@@ -123,10 +123,11 @@ namespace Makebr{
 			LOG() <<"    Makebr) Make Tree Key";
 		}
 
-		Tree::Tree_I64 p = 1;
-    	while (p <= (Tree::Tree_I64) maxsnap) {
-        	p *= 10;
-    	}
+		//Tree::Tree_I64 p = 1;
+    	//while (p <= (Tree::Tree_I64) maxsnap) {
+        //	p *= 10;
+    	//}
+    	p 	= maxsnap+1;
 		vh.treekey = p;
 
 
