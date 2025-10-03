@@ -27,6 +27,8 @@ namespace Ctree{
 	using CT_float	= float;
 	using CT_double = double;
 
+	using CT_Merit 	= CT_float;
+
 	// Specify data type
 	using CT_ID 	= IO_dtype::IO_GID;//CT_I32;
 	using CT_snap 	= IO_dtype::IO_Snap;//CT_I32;
@@ -34,7 +36,7 @@ namespace Ctree{
 
 	// Branch Controller Array
 	struct ListSt{
-		CT_double merit = 0.;
+		CT_Merit merit = 0.;
 		CT_ID id = -1;
 		CT_snap snap = -1;
 	};
@@ -50,7 +52,7 @@ namespace Ctree{
 	struct PIDSt{
 		CT_PID pid;
 		CT_ID gid;
-		CT_double weight;
+		CT_Merit weight;
 		CT_I32 n_con;
 		CT_I32 maxgid;
 	};
@@ -60,7 +62,7 @@ namespace Ctree{
 	// Snapshot particles
 	struct SnapPT{
 		PIDArray pid;
-		std::vector<CT_I32> gid, n_ptcl;
+		std::vector<CT_I32> gid, n_ptcl, n_ptcl2;
 		std::vector<CT_I32> hash;
 		std::vector<CT_I32> hash_next;
 		CT_I32 maxgid;
@@ -121,7 +123,7 @@ namespace Ctree{
 
 
     struct NextSt{
-    	CT_double merit = 0.;
+    	CT_Merit merit = 0.;
     	CT_ID id = 0;
     	CT_snap snap = 0;
     };
@@ -130,7 +132,7 @@ namespace Ctree{
     using NextArray = std::vector<NextSt>;
 
     struct CheckSt{
-    	CT_double merit = 0;
+    	CT_Merit merit = 0;
     	CT_ID id = 0;
     	CT_snap snap = 0;
     	CT_ID id0 = 0;
@@ -140,6 +142,10 @@ namespace Ctree{
 
     using CheckArray = std::vector<CheckSt>;
 
+    struct MeritSt{
+    	CT_Merit merit = -1.;
+    	CT_ID id = -1;
+    };
 	//-----
 
 	void reallocate(const vctree_set::Settings& vh, ControlArray& data, CT_I32 nn);
@@ -168,6 +174,8 @@ namespace Ctree{
 	
 	void commerit(const vctree_set::Settings& vh, ControlArray& data, PIDArray& pid, SnapPT& pid0, CT_I32 snap_curr);
 
+	void commerit2(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr);
+
 	void link(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr);
 
 	void addgal(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 snap_curr);
@@ -175,25 +183,27 @@ namespace Ctree{
 	void finalize(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number);
 	// ETC
 	void makenewbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_snap snap0, CT_ID id0, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
-	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_double merit_to_link);
-	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_double merit_to_link, CT_I32 snap_curr);
+	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link);
+	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link, CT_I32 snap_curr);
 
 	void get_merit(std::vector<CT_PID>& pid_g, std::vector<CT_I32>& gid_g, 
 		std::vector<CT_PID>& pid_s, std::vector<CT_I32>& gid_s, 
 		std::vector<CT_I32>& hash, std::vector<CT_I32>& hash_next, 
 		std::vector<CT_I32>& npart_g, std::vector<CT_I32>& npart_s, 
-		std::vector<CT_I32>& match_id, std::vector<CT_double>& match_merit);
+		std::vector<CT_I32>& match_id, std::vector<CT_Merit>& match_merit);
 
-	CT_double get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, std::vector<CT_double>& w0, std::vector<CT_double>& w1, CT_I32 merittype);
+	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, std::vector<CT_Merit>& w0, std::vector<CT_Merit>& w1, CT_I32 merittype);
+
+	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid);
 
 	void ctfree(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_I32 s_end, CT_I32 id_end, CT_I32 snap0);
 	CT_I32 wheresnap(IO::snapinfo& sinfo, CT_I32 snap_curr);
 	std::vector<CT_I32> get_control(ControlArray& data, CT_I32 type);
 	void PIDReallocate(const vctree_set::Settings& vh, PIDArray& pid, CT_I32 ind);
-	std::vector<CT_double> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid);
+	std::vector<CT_Merit> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid);
 	PIDArray get_coreptcl(const vctree_set::Settings& vh, PIDArray& pid);
 
-	CT_double brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist);
+	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist);
 	// For main
 	void main(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
                         //Tree& tree,

@@ -8,7 +8,7 @@ namespace Ctree{
 	//-----
 	// ETC
 	//-----
-	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_double merit_to_link){
+	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link){
 		bool istree = Tree::istree(key, data[ind].snap, data[ind].id);
 
 
@@ -64,7 +64,7 @@ namespace Ctree{
 		std::vector<CT_PID>& pid_s, std::vector<CT_I32>& gid_s, 
 		std::vector<CT_I32>& hash, std::vector<CT_I32>& hash_next, 
 		std::vector<CT_I32>& npart_g, std::vector<CT_I32>& npart_s, 
-		std::vector<CT_I32>& match_id, std::vector<CT_double>& match_merit){
+		std::vector<CT_I32>& match_id, std::vector<CT_Merit>& match_merit){
 
 		// local variables
 		CT_I32 n_pg = pid_g.size();
@@ -76,6 +76,7 @@ namespace Ctree{
 
 
 		// Make Index Table
+LOG()<<" n_g & n_s : "<<n_g<<" / "<<n_s;
 		std::vector<CT_I32> tbl_g(n_g, CT_I32{0});
 		std::vector<CT_I32> tbl_s(n_s, CT_I32{0});
 		CT_I32 nn_g = 0;
@@ -99,8 +100,8 @@ namespace Ctree{
 		//nn_s --;
 
 		// merit allocation
-		
-		MeritMatrix<CT_double> merit(nn_g , nn_s, CT_double{0});
+LOG()<<" nn_g & nn_s : "<<nn_g<<" / "<<nn_s;
+		MeritMatrix<CT_Merit> merit(nn_g , nn_s, CT_Merit{0});
 
 		// Hash
 		CT_I32 i0, ind;
@@ -147,6 +148,7 @@ namespace Ctree{
 
 
 		ind = 0;
+LOG()<<" n_g: "<<n_g;
 		std::vector<CT_I32> idtoind(n_g, CT_I32{0});
 
 		for(CT_I32 i=0; i<n_g; i++){
@@ -158,7 +160,7 @@ namespace Ctree{
 
 
 
-		CT_double dum;
+		CT_Merit dum;
 		CT_I32 dumid;
 		for(CT_I32 i=0; i<n_g; i++){
 			if(npart_g[i] <= 0) continue;
@@ -185,13 +187,13 @@ namespace Ctree{
 	}
 
 	// for simple merit
-	CT_double get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, std::vector<CT_double>& w0, std::vector<CT_double>& w1, CT_I32 merittype){
+	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, std::vector<CT_Merit>& w0, std::vector<CT_Merit>& w1, CT_I32 merittype){
 
 		CT_I32 n_raw 	= pid0.size();
 		CT_I32 n_match 	= pid.size();
-		CT_double share = 0.;
-		CT_double weight1 = 0.;
-		CT_double weight2 = 0.;
+		CT_Merit share = 0.;
+		CT_Merit weight1 = 0.;
+		CT_Merit weight2 = 0.;
 
 		std::vector<CT_I32> hash(n_raw, -1);
 		std::vector<CT_I32> hash_next(n_raw, -1);
@@ -249,12 +251,78 @@ namespace Ctree{
 		}
 
 
-		if(merittype == 1) share 	= (share*share) / ((CT_double) n_raw) / ( (CT_double) n_match );
-		if(merittype == 2) share 	= share / ( (CT_double) n_raw );
-		if(merittype == 3) share 	= (share*share) / ((CT_double) n_raw) / ( (CT_double) n_match ) * weight1 * weight2;
+		if(merittype == 1) share 	= (share*share) / ((CT_Merit) n_raw) / ( (CT_Merit) n_match );
+		if(merittype == 2) share 	= share / ( (CT_Merit) n_raw );
+		if(merittype == 3) share 	= (share*share) / ((CT_Merit) n_raw) / ( (CT_Merit) n_match ) * weight1 * weight2;
 
 		return share;
 	}
+
+// for memory efficient ver
+	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid){
+
+		CT_I32 np_snap = pid0.pid.size();
+		CT_I32 np_data = pid.size();
+		CT_I32 ind, i0;
+
+		std::vector<CT_Merit> merit(pid0.maxgid+1, CT_Merit{0.});
+
+		for(CT_I32 i=0; i<np_data; i++){
+			ind 	= std::abs(pid[i].pid) % np_snap;
+
+			if(ind < 0) ind = 0;
+
+			i0 	= pid0.hash[ind];
+
+			if(i0 < 0) continue;
+
+			while(true){
+				if(pid[i].pid == pid0.pid[i0].pid){
+					merit[pid0.pid[i0].gid] += 1.;
+					break;
+				} else {
+					if(pid0.hash_next[i0] >= 0){
+						i0 	= pid0.hash_next[i0];
+					} else{
+						break;
+					}
+				}
+			}
+		}
+
+
+
+#ifdef CTREE_USE_OMP
+		#pragma omp parallel for default(none) \
+			shared(np_snap, pid0, merit, np_data)
+#endif
+		for(CT_I32 i=0; i<pid0.maxgid+1; i++){
+			if(pid0.n_ptcl2[i] <= 0) continue;
+			merit[i] 	= merit[i] * merit[i] / pid0.n_ptcl2[i] / ((CT_Merit) np_data);
+		}
+
+		//for(CT_I32 i=0; i<np_snap; i++){
+		//	if(pid0.n_ptcl[i]<=0) continue;
+//
+//		//	merit[pid0.pid[i].gid]	= merit[pid0.pid[i].gid] * merit[pid0.pid[i].gid] / pid0.n_ptcl[i];
+		//}
+
+		MeritSt meritcom;
+		CT_Merit dum = -1;
+		for(CT_I32 i=0; i<pid0.maxgid+1; i++){
+			if(pid0.n_ptcl2[i]<=0) continue;
+
+			if(merit[i] > dum){
+				dum 	= merit[i];
+				meritcom.id 	= i;
+				meritcom.merit 	= dum;
+			}
+		}
+
+		return meritcom;
+	}
+
+
 
 	std::vector<CT_I32> get_control(ControlArray& data, CT_I32 type){
 		std::vector<CT_I32> cut(data[0].last_ind+1);
@@ -293,12 +361,12 @@ namespace Ctree{
 	}
 
 	// merit related
-	std::vector<CT_double> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid){
+	std::vector<CT_Merit> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid){
 		CT_I32 npart = pid.size();
-		std::vector<CT_double> weight(npart);
+		std::vector<CT_Merit> weight(npart);
 		
-		CT_double dind;
-		CT_double factor = (0.5772156649 + std::log( (CT_double) npart ));
+		CT_Merit dind;
+		CT_Merit factor = (0.5772156649 + std::log( (CT_Merit) npart ));
 
 		if(vh.ctree_weighttype == 1){
 
@@ -309,7 +377,7 @@ namespace Ctree{
 #endif
 			for(CT_I32 i=0; i<(CT_I32) npart; i++){
 				dind 	= npart - i;
-				weight[i] 	= dind / ((CT_double) npart) / factor;
+				weight[i] 	= dind / ((CT_Merit) npart) / factor;
 			}
 		}else{
 			LOG()<<" Not implemented yet";
@@ -377,7 +445,7 @@ namespace Ctree{
 					uncut ++;
 				}
 			}
-			if( ((CT_double) uncut) / ((CT_double) uind_n) > vh.ctree_minfrac) break;
+			if( ((CT_Merit) uncut) / ((CT_Merit) uind_n) > vh.ctree_minfrac) break;
 			n_step_bw0 --;
 		}
 
@@ -587,7 +655,7 @@ namespace Ctree{
 	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, std::vector<CT_snap>& slist, std::vector<CT_ID>& idlist){
 
 		PIDArray pid;
-		std::vector<CT_double> weight;
+		std::vector<CT_Merit> weight;
 		IO_dtype::GalArray gal0;
 
 
@@ -732,7 +800,7 @@ namespace Ctree{
 		Tree::TreeSt tree0;
 		std::vector<CT_snap> t_slist;
 		std::vector<CT_ID> t_idlist;
-		std::vector<CT_double> weight;
+		std::vector<CT_Merit> weight;
 		IO_dtype::GalArray gal0;
 
 		CT_I32 ntcut;
@@ -1003,6 +1071,14 @@ namespace Ctree{
 		i1 	= 0;
 		//CT_PID maxpid=-1;
 		CT_I32 maxgid=-1;
+		for(CT_I32 i=0; i<(CT_I32) gal.size(); i++){
+			if(gal[i].id >= maxgid) maxgid = gal[i].id;
+		}
+		spt.maxgid 	= maxgid;
+
+
+		std::vector<CT_I32> n_ptcl2(maxgid+1, CT_I32{0});
+
 
 		for(CT_I32 i=0; i<(CT_I32) gal.size(); i++){
 		//for(IO_dtype::GalSt g:gal){
@@ -1012,15 +1088,18 @@ namespace Ctree{
 				spt.pid[j+i0].pid 	= gal[i].pid[j];
 				spt.pid[j+i0].gid 	= gal[i].id;
 
-				if(gal[i].id >= maxgid) maxgid = gal[i].id;
+				//if(gal[i].id >= maxgid) maxgid = gal[i].id;
 				//if(g.pid[i]>=maxpid) maxpid = g.pid[i];
 			}
 			spt.n_ptcl[i]	= gal[i].npart;
 			spt.gid[i] 		= gal[i].id;
+
+			n_ptcl2[gal[i].id]	= gal[i].npart;
+
 			i0 	= i1 + 1;
 		}
 
-		spt.maxgid 	= maxgid;
+		spt.n_ptcl2 	= std::move(n_ptcl2);
 		//spt.maxpid 	= maxpid;
 
 		//spt.pid 	= std::move(pid);
@@ -1148,11 +1227,14 @@ namespace Ctree{
 
 		// Merit Computation
 		std::vector<CT_I32> match_id(ncut, CT_I32{-1});
-		std::vector<CT_double> match_merit(ncut, CT_double{-1.});
+		std::vector<CT_Merit> match_merit(ncut, CT_Merit{-1.});
 
 
 
 		get_merit(pid_g, gid_g, pid_s, gid_s, hash, hash_next, npart_g, npart_s, match_id, match_merit);
+
+
+int myrank = mpi_rank();
 
 		// input
 		for(CT_I32 i=0; i<ncut; i++){
@@ -1167,24 +1249,234 @@ namespace Ctree{
 			data[cut[i]].list[n0].id 		= match_id[i];
 			data[cut[i]].list[n0].snap 		= snap_curr;
 			data[cut[i]].list_n ++;
+
+if(cut[i]<2000 && myrank == 0){
+	LOG()<<cut[i]<<" / "<<data[cut[i]].id0<<" / "<<data[cut[i]].snap0<<" / "<<match_merit[i]<<" / "<<match_id[i];
+}
 		}
 
 	}
 
+	void commerit2(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr){
+		// Gather Target
+		//int myrank = mpi_rank();
+
+		std::vector<CT_I32> cut;
+		CT_I32 ncut = 0;
+		
+
+		cut 	= get_control(data, 1);
+		ncut 	= cut.size();
+		//for(CT_I32 i=0; i<data[0].last_ind+1; i++){
+		//	if(data[i].stat == 0 && data[i].n_ptcl < 0){
+		//		ncut ++;
+		//		cut.push_back(i);
+		//	}
+		//}
+
+		// Input particle list to the control array
+		std::vector<CT_snap> t_slist;
+		std::vector<CT_ID> t_idlist;
+		PIDArray cpid, cpid2;
+		IO_dtype::GalArray gal0;
+		Tree::TreeSt tree0;
+		CT_I32 ntcut;
+
+		//t_slist.reserve(vh.ctree_n_search);
+		//t_idlist.reserve(vh.ctree_n_search);
+		t_slist.resize(vh.ctree_n_search);
+		t_idlist.resize(vh.ctree_n_search);
+
+		if(ncut > 0){
+
+#ifdef CTREE_USE_MPI
+			int rank = 0, size = 1;
+			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+			for(CT_I32 ind : cut){
+				int owner = ind % size;
+				if(owner != rank) continue;
+
+				
+				cpid.clear();
+
+				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
+
+
+				if(!istree(key, data[ind].snap, data[ind].id)){ 
+					// no treee for this galaxy (read from a single snapshot)
+					//weight 	= get_weight(vh, gal0[0].pid);
+					cpid2.resize(gal0[0].pid.size());
+					for(CT_I32 k=0; k<(CT_I32) cpid2.size(); k++){
+						cpid2[k].pid 	= gal0[0].pid[k];
+						//cpid2[k].weight 	= weight[k];
+
+					}
+
+					cpid 	= get_coreptcl(vh, cpid2);
+
+					//pid0 = std::move(gal0[0].pid);
+
+				} else {
+					// this galaxy has a branch. Collect particles along its branch
+					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
+
+					ntcut = 0;
+					t_slist.clear();
+					t_idlist.clear();
+
+					for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+						if(tree0.snap[i] >= data[ind].snap){
+							ntcut ++;
+							t_slist.push_back(tree0.snap[i]);
+							t_idlist.push_back(tree0.id[i]);
+						}
+					}
+
+
+					if(ntcut == 0){
+						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
+						u_stop();
+					}
+
+					cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+				}
+
+
+				// store to control array
+				data[ind].p_list 	= std::move(cpid);
+				data[ind].n_ptcl 	= data[ind].p_list.size();
+				data[ind].pos[0]	= gal0[0].xc;
+				data[ind].pos[1]	= gal0[0].yc;
+				data[ind].pos[2]	= gal0[0].zc;
+
+				data[ind].vel[0]	= gal0[0].vxc;
+				data[ind].vel[1]	= gal0[0].vyc;
+				data[ind].vel[2]	= gal0[0].vzc;
+
+			}
+
+			MPI_Barrier(MPI_COMM_WORLD);
+
+			//Synchronize
+			
+
+    		for (CT_I32 ind : cut){
+        		int owner = ind % size;
+
+        		std::vector<std::uint8_t> blob_t;
+        		if (rank == owner) blob_t = serialize(data[ind]);
+        		bcast_blob_from_owner(owner, blob_t);
+        		if (rank != owner) deserialize(blob_t, data[ind]);
+
+	       	}
+    		MPI_Barrier(MPI_COMM_WORLD);
+#else 
+			for(CT_I32 ind : cut){
+				
+				cpid.clear();
+
+				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
+
+
+				if(!istree(key, data[ind].snap, data[ind].id)){ 
+					// no treee for this galaxy (read from a single snapshot)
+					//weight 	= get_weight(vh, gal0[0].pid);
+					cpid2.resize(gal0[0].pid.size());
+					for(CT_I32 k=0; k<(CT_I32) cpid2.size(); k++){
+						cpid2[k].pid 	= gal0[0].pid[k];
+						//cpid2[k].weight 	= weight[k];
+
+					}
+
+					cpid 	= get_coreptcl(vh, cpid2);
+
+					//pid0 = std::move(gal0[0].pid);
+
+				} else {
+					// this galaxy has a branch. Collect particles along its branch
+					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
+
+					ntcut = 0;
+					t_slist.clear();
+					t_idlist.clear();
+
+					for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+						if(tree0.snap[i] >= data[ind].snap){
+							ntcut ++;
+							t_slist.push_back(tree0.snap[i]);
+							t_idlist.push_back(tree0.id[i]);
+						}
+					}
+
+
+					if(ntcut == 0){
+						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
+						u_stop();
+					}
+
+					cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+				}
+
+
+				// store to control array
+				data[ind].p_list 	= std::move(cpid);
+				data[ind].n_ptcl 	= data[ind].p_list.size();
+				data[ind].pos[0]	= gal0[0].xc;
+				data[ind].pos[1]	= gal0[0].yc;
+				data[ind].pos[2]	= gal0[0].zc;
+
+				data[ind].vel[0]	= gal0[0].vxc;
+				data[ind].vel[1]	= gal0[0].vyc;
+				data[ind].vel[2]	= gal0[0].vzc;
+			}
+#endif
+		}
+
+
+
+		// Compute Merit
+int myrank = mpi_rank();
+		std::vector<CT_I32> cut2 = get_control(data, 0);
+		ncut = cut2.size();
+
+		CT_I32 n0;
+		for(CT_I32 ind : cut2){
+			MeritSt meritcom = get_merit3(pid0, data[ind].p_list);
+
+			n0 	= data[ind].list_n;
+
+			data[ind].list[n0].merit 	= meritcom.merit;
+			data[ind].list[n0].id		= meritcom.id;
+			data[ind].list[n0].snap 	= snap_curr;
+			data[ind].list_n ++;
+
+//if(ind<2000 && myrank == 0){
+//	LOG()<<ind<<" / "<<data[ind].id0<<" / "<<data[ind].snap0<<" / "<<meritcom.merit<<" / "<<meritcom.id;
+//}
+		}
+//
+//if(myrank == 0){
+//	u_stop();
+//}
+
+
+	}
 
 	//-----
 	// Link Branch
 	//-----
-	CT_double brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist){
+	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist){
 
 		IO_dtype::GalArray gal0 	= IO::r_gal(vh, s0, id0, true);
 
 		std::vector<CT_PID> pid0 = std::move(gal0[0].pid);
-		std::vector<CT_double> pweight0 = get_weight(vh, pid0);
+		std::vector<CT_Merit> pweight0 = get_weight(vh, pid0);
 
-		CT_double n_occ;
+		CT_Merit n_occ;
 		std::vector<CT_PID> pid1;
-		std::vector<CT_double> pweight1;
+		std::vector<CT_Merit> pweight1;
 		if( (CT_I32) slist.size() == 1 ){
 			IO_dtype::GalArray gal1 	= IO::r_gal(vh, slist[0], idlist[0], true);
 			pid1 = std::move(gal1[0].pid);
@@ -1203,24 +1495,24 @@ namespace Ctree{
 			
 			pweight1 = get_weight(vh, pid1);
 
-			n_occ 	= (CT_double) cpid[0].n_con;
+			n_occ 	= (CT_Merit) cpid[0].n_con;
 		}
 
 		CT_I32 merittype = 1;	// pre-selected to be 1
-		CT_double meritdum = get_merit2(pid0, pid1, pweight0, pweight1, merittype);
+		CT_Merit meritdum = get_merit2(pid0, pid1, pweight0, pweight1, merittype);
 
 		//-----
 		// Factor calculation
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		CT_double factor = ((CT_double) 1.) / std::pow( ((CT_double) vh.ctree_n_step_n * vh.ctree_n_step_dn),2.) * std::pow( ((CT_double )n_occ * vh.ctree_n_step_dn),2.);
+		CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n * vh.ctree_n_step_dn),2.) * std::pow( ((CT_Merit )n_occ * vh.ctree_n_step_dn),2.);
 
 		return factor*meritdum;
 		
 	}
 
-	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_double merit_to_link, CT_I32 snap_curr){
+	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link, CT_I32 snap_curr){
 
 		bool istree = Tree::istree(key, data[ind].snap, data[ind].id);
 		if(!istree){
@@ -1330,8 +1622,8 @@ namespace Ctree{
 		brcom_id.resize(com_n);
 		brcom_snap.resize(com_n);
 
-		CT_double merit_com = brcompare(vh, snap_to_link, id_to_link, brcom_snap, brcom_id);
-		CT_double merit_org = brcompare(vh, snap_to_link, id_to_link, brorg_snap, brorg_id);
+		CT_Merit merit_com = brcompare(vh, snap_to_link, id_to_link, brcom_snap, brcom_id);
+		CT_Merit merit_org = brcompare(vh, snap_to_link, id_to_link, brorg_snap, brorg_id);
 
 		// existing branch is better
 		//Tree::Tree_I64 keyval, keyval2;
@@ -1428,7 +1720,7 @@ namespace Ctree{
 		//----- Extract next points of the extracted controls
 		NextArray next_point(ncut);
 
-		CT_double dum_merit;
+		CT_Merit dum_merit;
 		
 
 #ifdef CTREE_USE_OMP
@@ -1508,7 +1800,7 @@ namespace Ctree{
 		std::vector<CT_ID> tt_id;
 		CT_I32 ntt;
 
-		CT_double this_merit, other_merit;
+		CT_Merit this_merit, other_merit;
 
 
 #ifdef CTREE_USE_MPI
@@ -1642,7 +1934,10 @@ namespace Ctree{
 
 				data[cut[i]].stat = -1;
 
-				keyval 	= data[cut[i]].snap0 + key[0].key * data[cut[i]].id0;
+				keyval 	= Tree::getkey(key, data[cut[i]].snap0, data[cut[i]].id0);
+
+				//data[cut[i]].snap0 + key[0].key * data[cut[i]].id0;
+
 				Tree::TreeSt& tree0 = tree[keyval];
 
 
@@ -1652,8 +1947,9 @@ namespace Ctree{
 				}else if(islink[i] == -2){
 					tree0.stat 	= -2;
 
-					keyval = next_point[i].snap + key[0].key * next_point[i].id;
-					tree0.frag_bid 	= key[keyval].ind;
+					//keyval = next_point[i].snap + key[0].key * next_point[i].id;
+					keyval 	= Tree::getkey(key, next_point[i].snap, next_point[i].id);
+					tree0.frag_bid 	= keyval;//key[keyval].ind;
 
 				}
 
@@ -1670,7 +1966,7 @@ namespace Ctree{
 		// Link to a next checkpoint
 		CT_I32 snap_to_link;
 		CT_I32 id_to_link;
-		CT_double merit_to_link;
+		CT_Merit merit_to_link;
 
 		// parallelizatin here..
 		for(CT_I32 i=0; i<ncut; i++){
@@ -1838,7 +2134,7 @@ namespace Ctree{
 				LOG()<<"			"<<how_big<ControlSt>(data)<<" GB for data";
 				LOG()<<"			"<<how_big<CT_I32>(dkey)<<" GB for dkey";
 				LOG()<<" ";
-				LOG()<<"		"<<tree[0].lind<<" / "<<tree.size();
+				//LOG()<<"		"<<tree[0].lind<<" / "<<tree.size();
 
 			}
 			//----- Classify Tree
@@ -1864,12 +2160,12 @@ namespace Ctree{
 #endif
 
 			//----- Collect PID
-			t0 = std::chrono::steady_clock::now();
-			PIDArray pid 	= collectpid(vh, data, tree, key);
-			if(myrank == 0){
-				auto t1 = std::chrono::steady_clock::now();
-				dt_collectpid = std::chrono::duration<double>(t1 - t0).count();
-			}
+			//t0 = std::chrono::steady_clock::now();
+			//PIDArray pid 	= collectpid(vh, data, tree, key);
+			//if(myrank == 0){
+			//	auto t1 = std::chrono::steady_clock::now();
+			//	dt_collectpid = std::chrono::duration<double>(t1 - t0).count();
+			//}
 
 			//----- Read particles at this snapshot
 			t0 = std::chrono::steady_clock::now();
@@ -1881,11 +2177,19 @@ namespace Ctree{
 
 			//----- Compute Merit
 			t0 = std::chrono::steady_clock::now();
-			commerit(vh, data, pid, pid0, sinfo[i].snum);
+			commerit2(vh, data, tree, key, pid0, sinfo[i].snum);
 			if(myrank == 0){
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
+
+			//----- Compute Merit
+			//t0 = std::chrono::steady_clock::now();
+			//commerit(vh, data, pid, pid0, sinfo[i].snum);
+			//if(myrank == 0){
+			//	auto t1 = std::chrono::steady_clock::now();
+			//	dt_commerit = std::chrono::duration<double>(t1 - t0).count();
+			//}
 
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
@@ -1908,7 +2212,7 @@ namespace Ctree{
 			if(myrank == 0){
 				LOG()<<"        Time report";
 				LOG()<<"          Classify Galaxies in   "<<dt_classify;
-				LOG()<<"          Collect PID in         "<<dt_collectpid;
+				//LOG()<<"          Collect PID in         "<<dt_collectpid;
 				LOG()<<"          Read Snapshot ptcls in "<<dt_readsnap;
 				LOG()<<"          Compute merit in       "<<dt_commerit;
 				LOG()<<"          Link branch in         "<<dt_link;
@@ -2045,7 +2349,7 @@ namespace Ctree{
 
 	    append_pod<CT_ID>(buf, x.id);
 	    append_pod<CT_snap>(buf, x.snap);
-	    append_pod<CT_double>(buf, x.merit);
+	    append_pod<CT_Merit>(buf, x.merit);
 	    return buf;
 	}
 
@@ -2055,7 +2359,7 @@ namespace Ctree{
 
 	    out.id 			= read_pod<CT_ID>(p, end);
 	    out.snap 		= read_pod<CT_snap>(p, end);
-	    out.merit		= read_pod<CT_double>(p, end);
+	    out.merit		= read_pod<CT_Merit>(p, end);
 
 	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
