@@ -138,7 +138,7 @@ namespace Makebr{
 
 		tree.resize(treesize);
 		key.resize(treesize);
-		key[0].key 	= p;		// key also stored in the first element
+		key[0].key 	= vh.treekey;		// key also stored in the first element
 		tree[0].lind = 0;		// last index stored in the first element
 
 		if(myrank == 0){
