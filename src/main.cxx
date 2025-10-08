@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     if( !u_initialcheck(argc) ){
     	u_stop();
     } else{
-    	LOG()  << "Program start";
+    	LOG()  << "Program starts";
 
     	// TODO 123123
     	// Basic spec info will be printed here
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
   if( !g_load_config(argv[1], vh) ){
   	u_stop();
   } else{
-  	if(myrank == 0) LOG() <<"  Configuration Load";
+  	if(myrank == 0) LOG() <<"  Configuration Loaded";
   }
 
   //-----
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   }
   //Tree::TreeArray tree2;
   //Tree::TreeKeyArray key2;
-  loadtree(vh, tree, key);
+  //loadtree(vh, tree, key);
 
 #ifdef CTREE_USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
@@ -108,7 +108,8 @@ int main(int argc, char** argv) {
   
 
 LOG()<<" merit comparison check";
-LOG()<<" without makebr?";
+LOG()<<" without makebr? save in process, load it. case for single tree";
+LOG()<<" commerit2 mpi";
 
   //-----
   // Save Tree

@@ -32,6 +32,6 @@
     @@@@@@              	email  : jinsu.rhee@gmail.com 
     @@@				github : github.com/JinsuRhee/VELUGA_CTree
 
-			VELUGA CTree (v0.01) for making the complete branch of Cosmological Simulation
+			VELUGA CTree (v0.01) for making the complete branch of Cosmological Simulations
 
                                                                                                     
