@@ -131,6 +131,14 @@ namespace Ctree{
 
     using NextArray = std::vector<NextSt>;
 
+    struct CollectSt{
+    	CT_snap snap = -1;
+    	CT_ID id = -1;
+    	CT_I32 lind = 0;
+    };
+
+    using CollectArray = std::vector<CollectSt>;
+
     struct CheckSt{
     	CT_Merit merit = 0;
     	CT_ID id = 0;
@@ -146,6 +154,57 @@ namespace Ctree{
     	CT_Merit merit = -1.;
     	CT_ID id = -1;
     };
+
+#ifdef CTREE_USE_MPI
+    //----- Link MPI
+    struct LinkJob{
+    	CT_I32 jobnum = -1;
+
+    	CT_I32 ind = -1;
+    	CT_I32 snap = -1;
+    	CT_I32 id = -1;
+    	CT_Merit merit = -1.;
+    	CT_I32 dind = -1;
+    	Tree::Tree_BID tind = -1;
+    	Tree::Tree_BID tind2 = -1;
+    	//Tree::Tree_BID bid;
+    	//Tree::TreeSt c_tree;
+
+    	//CT_I32 treeinput_ind = -1;
+    };
+    using JobArray = std::vector<LinkJob>;
+
+
+    CT_Merit link_commerit(const vctree_set::Settings& vh, Tree::TreeSt tree0, CT_I32 snap_to_link, CT_I32 id_to_link, CT_I32 snap_curr);
+
+    LinkJob get_job(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, CT_I32 ind, CT_I32 snap_to_link, CT_I32 id_to_link, CT_Merit merit_to_link, CT_I32 snap_curr);
+    JobArray commque(MPI_Datatype& LINKJOB_T, LinkJob& job, int owner);
+
+    void DoJob1(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+    void DoJob2(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, LinkJob& job, CT_I32 snap_curr);
+    void DoJob3(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+    void DoJob4(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, LinkJob& job, IO::snapinfo& sinfo, CT_I32 snap_curr);
+
+    void DoJob1a(const vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+    void DoJob1b(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
+
+    void DoJob2a(const vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+	void DoJob2b(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr);
+	void DoJob2c(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
+	void DoJob2d(Tree::TreeArray& tree, LinkJob& job);
+
+	void DoJob3a(const vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+	void DoJob3b(Tree::TreeArray& tree, Tree::Tree_BID org_bid, Tree::Tree_BID com_bid);
+
+	void DoJob4a(const vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr);
+	void DoJob4b(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
+	void DoJob4c(Tree::TreeArray& tree, Tree::TreeKeyArray& key, LinkJob& job);
+	void DoJob4d(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr);
+	void DoJob4e(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr, CT_I32* jobtype);
+
+	void syn_data(LinkJob& thisjob, ControlArray& data);
+	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
+#endif
 	//-----
 
 	void reallocate(const vctree_set::Settings& vh, ControlArray& data, CT_I32 nn);
@@ -169,6 +228,7 @@ namespace Ctree{
 	
 	PIDArray collectpid(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
 	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, std::vector<CT_snap>& slist, std::vector<CT_ID>& glist);
+	PIDArray collectpidalongbranch2(const vctree_set::Settings& vh, CollectArray& CArr);
 
 	SnapPT readsnap(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr);
 	
@@ -179,7 +239,7 @@ namespace Ctree{
 	void link(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr);
 
 	void addgal(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 snap_curr);
-
+	void delgal(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey);
 	void finalize(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number);
 	// ETC
 	void makenewbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_snap snap0, CT_ID id0, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
@@ -204,6 +264,7 @@ namespace Ctree{
 	PIDArray get_coreptcl(const vctree_set::Settings& vh, PIDArray& pid);
 
 	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist);
+	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, CollectArray& CArr);
 	// For main
 	void main(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
                         //Tree& tree,
@@ -225,8 +286,13 @@ namespace Ctree{
 	template<typename T> std::vector<T> read_vec(const std::uint8_t*& p, const std::uint8_t* end);
 
 	// ---- Serialize / Deserialize for ControlArray ----
-	std::vector<std::uint8_t> serialize(const ControlSt& A);
-	void deserialize(const std::vector<std::uint8_t>& buf, ControlSt& A);
+	std::vector<std::uint8_t> serialize_d1(const ControlSt& A);
+	void deserialize_d1(const std::vector<std::uint8_t>& buf, ControlSt& A);
+
+	// ---- Serialize / Deserialize for ControlArray ----
+	std::vector<std::uint8_t> serialize_d2(const ControlSt& A);
+	void deserialize_d2(const std::vector<std::uint8_t>& buf, ControlSt& A);
+
 
 	// ---- Serialize / Deserialize for NextArray ----
 	std::vector<std::uint8_t> serialize(const NextSt& x);
@@ -236,9 +302,73 @@ namespace Ctree{
 	std::vector<std::uint8_t> serialize(const CT_I32& x);
 	void deserialize(const std::vector<std::uint8_t>& buf, CT_I32& out);
 
+	// ---- Serialize / Deserialize for Job Array ----
+	std::vector<std::uint8_t> serialize(const LinkJob& x);
+	void deserialize(const std::vector<std::uint8_t>& buf, LinkJob& out);
+
+	// ---- Serialize / Deserialize for Control Array ----
+	std::vector<std::uint8_t> serialize(const ControlSt& x);
+	void deserialize(const std::vector<std::uint8_t>& buf, ControlSt& out);
+
+	// ---- Serialize / Deserialize for Tree Array ----
+	std::vector<std::uint8_t> serialize(const Tree::TreeSt& x);
+	void deserialize(const std::vector<std::uint8_t>& buf, Tree::TreeSt& out);
+
 	void bcast_blob_from_owner(int owner, std::vector<std::uint8_t>& blob);
 
 
+	static inline MPI_Datatype make_linkjob_type(){
+		      
+    	MPI_Datatype CT_I32_T = MPI_INT32_T;
+
+    	// CT_Merit 이 double 이면:
+    	MPI_Datatype CT_MERIT_T;
+    	if(sizeof(CT_Merit)==8){
+    		CT_MERIT_T = MPI_DOUBLE;
+    	}else if(sizeof(CT_Merit)==4){
+    		CT_MERIT_T = MPI_FLOAT;
+    	}
+
+    	MPI_Datatype CT_BID_T;
+    	if(sizeof(Tree::Tree_BID)==8){
+    		CT_BID_T = MPI_INT64_T;
+    	}else if(sizeof(Tree::Tree_BID)==4){
+    		CT_BID_T = MPI_INT32_T;
+    	}
+
+
+    	// LinkJob
+    	LinkJob dummy;
+    	int          blocklen[8] = {1,1,1,1,1,1,1,1};
+    	MPI_Datatype types[8]    = {CT_I32_T, CT_I32_T, CT_I32_T, CT_I32_T, CT_I32_T, CT_MERIT_T, CT_BID_T, CT_BID_T};
+    	MPI_Aint     disp[8], base;
+
+    	MPI_Get_address(&dummy,           &base);
+    	MPI_Get_address(&dummy.jobnum,    &disp[0]);
+    	MPI_Get_address(&dummy.ind,       &disp[1]);
+    	MPI_Get_address(&dummy.snap,      &disp[2]);
+    	MPI_Get_address(&dummy.id,        &disp[3]);
+    	MPI_Get_address(&dummy.dind,      &disp[4]);
+    	MPI_Get_address(&dummy.merit,     &disp[5]);
+    	MPI_Get_address(&dummy.tind,   	  &disp[6]);
+    	MPI_Get_address(&dummy.tind2,  	  &disp[7]);
+    	
+
+	    for (int i=0;i<8;++i) disp[i] -= base;
+
+    	MPI_Datatype LINKJOB_T;
+    	MPI_Type_create_struct(8, blocklen, disp, types, &LINKJOB_T);
+    	MPI_Type_commit(&LINKJOB_T);
+    	return LINKJOB_T;
+	}
 #endif
 
+	// For debugging
+	void savetree_ctree(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr);
+	void loadtree_ctree(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr);
+	void savedata(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr);
+	ControlArray loaddata(const vctree_set::Settings& vh, CT_I32 snap_curr);
+	void validate_data(ControlArray& data, ControlArray& data2);
+	void validate_tree(Tree::TreeArray& tree, Tree::TreeArray& tree2);
+	void validate_treekey(Tree::TreeKeyArray& key, Tree::TreeKeyArray& key2);
 }

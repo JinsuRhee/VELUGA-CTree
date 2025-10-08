@@ -97,6 +97,7 @@ namespace vctree_set{
   		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
   		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
   		double ctree_minfrac 	= vctree_parameters::ctree_minfrac;
+
 	};
 }
 
@@ -151,7 +152,7 @@ namespace vctree_log{
     		out << timestamp_yy_mm_dd_ss()
         		<< " [" << std::setw(16) << code_ << "] "
         		<< "[" << std::setw(4) << line_ << "] "
-        		<< "' " << ss_.str() << "'\n";
+        		<< " " << ss_.str() << "\n";
   			}
   			template<typename T>
   			Line& operator<<(const T& v) { ss_ << v; return *this; }
@@ -204,6 +205,8 @@ namespace Tree{
 		Tree_I32 stat = 0; 	// 0 (normal) (-1) natrual end (-2) fragmented
 
 		Tree_BID lind = 0; // last index of vec<TreeST> only stored in the first tree
+
+		Tree_I32 isfree = -1; // only used when MPI used in Ctree
 	};
 
 	struct TreeKey{
@@ -219,7 +222,7 @@ namespace Tree{
 	void treevecinput(std::vector<T>& v, Tree_I32 ind, T val){
 		
 		if( (double) ind >= (double) v.size()*0.8){
-			v.resize(tree_stepsize, T{});
+			v.resize(v.size() + tree_stepsize, T{});
 		}
 		v[ind] = val;
 
@@ -231,7 +234,7 @@ namespace Tree{
 	void treevecinput_tofirst(std::vector<T>& v, Tree_I32 ind, T val){
 		
 		if( (double) ind >= (double) v.size()*0.8){
-			v.resize(tree_stepsize, T{});
+			v.resize(v.size() + tree_stepsize, T{});
 		}
 		v.insert(v.begin(), val);
 	}

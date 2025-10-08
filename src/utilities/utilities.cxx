@@ -75,7 +75,6 @@ void u_stop() {
 
 
 // Save Tree
-
 void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
 
     
@@ -159,7 +158,7 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
         Tree::Tree_I32 n_branch = t.endind + 1;
         Tree::Tree_I32 n_numprg = t.numprog;
         Tree::Tree_I32 father_bid = t.father_bid;
-
+        Tree::Tree_I32 t_stat   = t.stat;
       
         
         // Size for the main branch
@@ -174,6 +173,9 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
         // Branch ID of father
         out2.write(reinterpret_cast<const char*>(&father_bid), sizeof(father_bid));
+
+        // Tree Stat
+        out2.write(reinterpret_cast<const char*>(&t_stat), sizeof(t_stat));
 
         // Branch_ID
         for(std::int32_t i=0; i<n_branch; i++){
@@ -293,7 +295,7 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
         // Read Data Type
         std::int32_t gidtag, snaptag, bidtag, mertag;
-        std::int32_t nbranch, nmerge, fid;
+        std::int32_t nbranch, nmerge, fid, t_stat;
 
 
 
@@ -323,9 +325,11 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
             loadtree_read(in, nmerge);
             loadtree_read(in, fid);
+            loadtree_read(in, t_stat);
 
             tree[i].father_bid = fid;
             tree[i].numprog = nmerge;
+            tree[i].stat    = t_stat;
 
             tree[i].id.resize(nbranch);
             tree[i].snap.resize(nbranch);
@@ -405,6 +409,6 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 //    }
 //
 //#endif
-
-
 }
+
+

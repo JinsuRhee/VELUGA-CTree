@@ -18,6 +18,7 @@
     #include <mpi.h>
 #endif
 
+
 // Logo Printing
 bool u_printlogo();
 
@@ -72,6 +73,9 @@ inline void loadtree_vecread(std::istream& in, std::vector<T>& vec, std::size_t 
     in.read(reinterpret_cast<char*>(vec.data()), sizeof(T)*n);
     if (!in) throw std::runtime_error("binary vector read failed");
 }
+
+
+
 //template <class SrcT, class BidT>
 //void read_bid_scatter(std::istream& in, std::vector<Tree::TreeKey>& treekey, std::size_t n) {
 //    constexpr std::size_t BLOCK = 1 << 15; // 32K elements
