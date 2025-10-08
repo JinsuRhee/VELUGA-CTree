@@ -397,6 +397,7 @@ namespace Makebr{
 
 
           		//----- Multiple connection
+if(ind2+1>Evoldum.size())LOG()<<"warnning~~~~~~~~~~~~`";
           		EvolArray Evoltmp(Evoldum.begin() + ind1, Evoldum.begin() + (ind2+1));
 
 
@@ -414,8 +415,9 @@ namespace Makebr{
 				//----- Merge other branch to this
 				Tree::Tree_I64 keyval, keyind0, keyind;
 
-				keyval = Evoltmp[0].snapc + key[0].key * Evoltmp[0].idc;
-				keyind0 = key[keyval].ind;
+				//keyval = Evoltmp[0].snapc + key[0].key * Evoltmp[0].idc;
+				//keyind0 = key[keyval].ind;
+				keyind0 	= Tree::getkey(key, Evoltmp[0].snapc, Evoltmp[0].idc);
 
 				for(IO_VR::VRT_GID m=1; m<(IO_VR::VRT_GID) Evoltmp.size(); m++){
 
@@ -423,8 +425,8 @@ namespace Makebr{
 						treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					}
 
-					keyval = Evoltmp[m].snapc + key[0].key * Evoltmp[m].idc;
-					keyind = key[keyval].ind;
+					keyind = Tree::getkey(key, Evoltmp[m].snapc, Evoltmp[m].idc);
+					//keyind = key[keyval].ind;
 
 					if((std::int32_t) tree[keyind].id.size() < vh.minbranchlength){
 						continue;
@@ -447,6 +449,12 @@ namespace Makebr{
 
 			if(myrank == 0) LOG() <<"      Connection done for Snapshot = "<<s;
 			if(myrank == 0) LOG() <<"        (n_all = "<<log.n_all<<" / n_link = "<<log.n_link<<" / n_broken = "<<log.n_broken<<" )";
+			if(myrank == 0){
+				LOG()<<"        Memory report";
+				LOG()<<"			"<<how_big<Tree::TreeSt>(tree)<<" GB for tree";
+				LOG()<<"			"<<how_big<Tree::TreeKey>(key)<<" GB for key";
+				LOG()<<" ";
+			}
 		}
 
 		if(myrank == 0){
