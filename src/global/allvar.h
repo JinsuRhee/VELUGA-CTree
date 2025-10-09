@@ -175,7 +175,7 @@ namespace Tree{
 	using Tree_Snap 	= std::int32_t;
 	using Tree_PID 	 	= std::int64_t;		// for particle ID
 	using Tree_merit	= double;
-	using Tree_BID 		= std::int64_t;		// Branch Index
+	using Tree_BID 		= std::int32_t;		// Branch Index
 	using Tree_I32 		= std::int32_t;
 	using Tree_I64 		= std::int64_t;
 
@@ -209,10 +209,11 @@ namespace Tree{
 		Tree_I32 isfree = -1; // only used when MPI used in Ctree
 	};
 
-	struct TreeKey{
-		Tree_BID ind = -1;
-		Tree_I64 key = 0; // only stored in the first tree
-	};
+	//struct TreeKey{
+	//	Tree_BID ind = -1;
+	//	Tree_I64 key = 0; // only stored in the first tree
+	//};
+	using TreeKey = Tree_BID;
 
 	using TreeArray = std::vector<TreeSt>;
 	using TreeKeyArray = std::vector<TreeKey>;
@@ -240,7 +241,8 @@ namespace Tree{
 	}
 
 	inline Tree_BID getkey(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		return key[ snap + key[0].key * id ].ind;
+		//return key[ snap + key[0].key * id ].ind;
+		return key[ snap + key[0]*id ];
 	}
 
 
@@ -248,10 +250,12 @@ namespace Tree{
 		Tree_Snap snap, Tree_GID id){
 
 		tree[0].lind ++;
-		Tree_I64 keyval;
-		keyval 	= snap + key[0].key * id;
+		//Tree_I64 keyval;
+		Tree_BID keyval 	= snap + key[0]*id;
+		//keyval 	= snap + key[0].key * id;
 
-		key[keyval].ind = tree[0].lind;
+		key[keyval]		= tree[0].lind;
+		//key[keyval].ind = tree[0].lind;
 
 		TreeSt& treedum 	= tree[ tree[0].lind ];
 
@@ -263,7 +267,7 @@ namespace Tree{
 	}
 
 	inline bool istree(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_I64 keyval = getkey(key, snap, id);
+		Tree_BID keyval = getkey(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		if(keyval > 0){
 			return true;
@@ -274,7 +278,7 @@ namespace Tree{
 	}
 
 	inline TreeSt gettree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_I64 keyval = getkey(key, snap, id);
+		Tree_BID keyval = getkey(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt tree0;
 
@@ -304,12 +308,16 @@ namespace Tree{
 		//Tree_Snap d_snap, Tree_GID d_id){
 
 		Tree_BID keyval_org, keyval_new;
-		keyval_org 	= snap + key[0].key * id;
-		keyval_new 	= to_snap + key[0].key * to_id;
+		//keyval_org 	= snap + key[0].key * id;
+		//keyval_new 	= to_snap + key[0].key * to_id;
+		keyval_org 	= snap + key[0] * id;
+		keyval_new 	= to_snap + key[0] * to_id;
 
+		//key[keyval_new].ind = key[keyval_org].ind;
+		key[keyval_new] 	= key[keyval_org];
 
-		key[keyval_new].ind = key[keyval_org].ind;
-		TreeSt& treedum 	= tree[ key[keyval_org].ind ];
+		//TreeSt& treedum 	= tree[ key[keyval_org].ind ];
+		TreeSt& treedum 	= tree[ key[keyval_org] ];
 
 		
 //int myrank  = mpi_rank();
@@ -354,7 +362,7 @@ namespace Tree{
 			return;
 		}
 
-		Tree_I64 keyval = getkey(key, snap, id);
+		Tree_BID keyval = getkey(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt& tree0 = tree[ keyval ];
 
@@ -364,8 +372,10 @@ namespace Tree{
 		
 		for(Tree_I32 i=0; i<tree0.endind+1; i++){
 
-			keyval 	= tree0.snap[i] + key[0].key * tree0.id[i];
-			key[keyval].ind = -1;
+			//keyval 	= tree0.snap[i] + key[0].key * tree0.id[i];
+			keyval 	= tree0.snap[i] + key[0] * tree0.id[i];
+			//key[keyval].ind = -1;
+			key[keyval] = -1;
 		}
 
 		// free this tree
@@ -385,7 +395,7 @@ namespace Tree{
 
 	// remove connection point before cut_snap
 	inline void modifytree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_Snap cut_snap){
-		Tree_I64 keyval = getkey(key, snap, id);
+		Tree_BID keyval = getkey(key, snap, id);
 
 		TreeSt& tree0	= tree[keyval];
 
@@ -420,7 +430,8 @@ namespace Tree{
 		}
 
 		for(Tree_I32 i=0; i<tree0.endind+1; i++){
-			key[ tree0.snap[i] + key[0].key*tree0.id[i] ].ind = -1;
+			//key[ tree0.snap[i] + key[0].key*tree0.id[i] ].ind = -1;
+			key[ tree0.snap[i] + key[0]*tree0.id[i] ] = -1;
 		}
 
 
@@ -434,7 +445,8 @@ namespace Tree{
 		tree0.endind 	= nnn-1;
 
 		for(Tree_I32 i=0; i<nnn; i++){
-			key[ tree0.snap[i] + key[0].key*tree0.id[i] ].ind = keyval;
+			//key[ tree0.snap[i] + key[0].key*tree0.id[i] ].ind = keyval;
+			key[ tree0.snap[i] + key[0]*tree0.id[i] ] = keyval;
 		}
 
 		//

@@ -110,13 +110,13 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
     out.write(reinterpret_cast<const char*>(&n), sizeof(n));
 
     // Third elements as Tree Key
-    std::int64_t tk = treekey[0].key;
+    std::int64_t tk = treekey[0];
     out.write(reinterpret_cast<const char*>(&tk), sizeof(tk));
 
     // Left for elements
     std::vector<Tree::Tree_BID> inds;
     inds.reserve(treekey.size());
-    for (const auto& k : treekey) inds.push_back(k.ind);
+    for (const auto& k : treekey) inds.push_back(k);
 
     if (!inds.empty()) {
         out.write(reinterpret_cast<const char*>(inds.data()),
@@ -271,10 +271,10 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
         for(std::int64_t i=0; i<nbid; i++){
  
-            treekey[i].ind  = treekey_load[i];
+            treekey[i]  = treekey_load[i];
         }
 
-        treekey[0].key = keyval;
+        treekey[0] = keyval;
 
 
     } 
@@ -352,7 +352,7 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
                 loadtree_vecread<std::int32_t>(in, tree[i].m_id, nmerge);
                 loadtree_vecread<std::int32_t>(in, tree[i].m_snap, nmerge);
                 loadtree_vecread<double>(in, tree[i].m_merit, nmerge);
-                loadtree_vecread<std::int64_t>(in, tree[i].m_bid, nmerge);
+                loadtree_vecread<std::int32_t>(in, tree[i].m_bid, nmerge);
             }
 
 
