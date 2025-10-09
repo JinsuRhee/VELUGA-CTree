@@ -177,6 +177,7 @@ namespace Ctree{
 
     CT_Merit link_commerit(const vctree_set::Settings& vh, Tree::TreeSt tree0, CT_I32 snap_to_link, CT_I32 id_to_link, CT_I32 snap_curr);
 
+    void init_job(LinkJob& thisjob);
     LinkJob get_job(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, CT_I32 ind, CT_I32 snap_to_link, CT_I32 id_to_link, CT_Merit merit_to_link, CT_I32 snap_curr);
     JobArray commque(MPI_Datatype& LINKJOB_T, LinkJob& job, int owner);
 
@@ -202,7 +203,7 @@ namespace Ctree{
 	void DoJob4d(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr);
 	void DoJob4e(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr, CT_I32* jobtype);
 
-	void syn_data(LinkJob& thisjob, ControlArray& data);
+	void syn_data(LinkJob& thisjob, ControlArray& data, ControlKey& dkey);
 	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
 #endif
 	//-----
