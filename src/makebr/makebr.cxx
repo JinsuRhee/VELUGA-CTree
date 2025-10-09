@@ -133,12 +133,20 @@ namespace Makebr{
 
 		
 		//----- Allocate TreeArray
-		Tree::Tree_I64 treesize;
+		Tree::Tree_BID treesize;
+		if(treesize > 2147483647 && sizeof(Tree::Tree_BID)==4){
+			if(myrank == 0){
+				LOG()<<" key will be overflow: change Tree_BID to I64";
+				u_stop();
+			}
+		}
+
 		treesize 	= maxsnap + vh.treekey * log.max_id + 1;
 
 		tree.resize(treesize);
 		key.resize(treesize);
-		key[0].key 	= vh.treekey;		// key also stored in the first element
+		//key[0].key 	= vh.treekey;		// key also stored in the first element
+		key[0]		= vh.treekey;
 		tree[0].lind = 0;		// last index stored in the first element
 
 		if(myrank == 0){
@@ -397,7 +405,6 @@ namespace Makebr{
 
 
           		//----- Multiple connection
-if(ind2+1>Evoldum.size())LOG()<<"warnning~~~~~~~~~~~~`";
           		EvolArray Evoltmp(Evoldum.begin() + ind1, Evoldum.begin() + (ind2+1));
 
 
@@ -413,7 +420,7 @@ if(ind2+1>Evoldum.size())LOG()<<"warnning~~~~~~~~~~~~`";
 
 
 				//----- Merge other branch to this
-				Tree::Tree_I64 keyval, keyind0, keyind;
+				Tree::Tree_BID keyind0, keyind;
 
 				//keyval = Evoltmp[0].snapc + key[0].key * Evoltmp[0].idc;
 				//keyind0 = key[keyval].ind;
@@ -421,8 +428,8 @@ if(ind2+1>Evoldum.size())LOG()<<"warnning~~~~~~~~~~~~`";
 
 				for(IO_VR::VRT_GID m=1; m<(IO_VR::VRT_GID) Evoltmp.size(); m++){
 
-					if(!istree(key, Evoltmp[m].snapc, Evoltmp[m].idc)){
-						treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
+					if(!Tree::istree(key, Evoltmp[m].snapc, Evoltmp[m].idc)){
+						Tree::treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					}
 
 					keyind = Tree::getkey(key, Evoltmp[m].snapc, Evoltmp[m].idc);

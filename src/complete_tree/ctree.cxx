@@ -57,14 +57,16 @@ namespace Ctree{
 		tree[tree[0].lind] 	= std::move(newtree);
 
 
-		Tree::Tree_I64 keyval;
-		keyval 	= snap0 + key[0].key * id0;
+		Tree::Tree_BID keyval;
+		//keyval 	= snap0 + key[0].key * id0;
+		keyval 	= snap0 + key[0] * id0;
 
 		if((Tree::Tree_BID) key.size() <= keyval){
 			key.resize( (Tree::Tree_BID) key.size() + vh.ctree_nstep);
 		}
 
-		key[keyval].ind 	= tree[0].lind;
+		//key[keyval].ind 	= tree[0].lind;
+		key[keyval] 	= tree[0].lind;
 
 		data[ind].id 	= id0;
 		data[ind].snap 	= snap0;
@@ -903,7 +905,7 @@ LOG()<<" n_g: "<<n_g;
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
 
-				if(!istree(key, data[ind].snap, data[ind].id)){ 
+				if(!Tree::istree(key, data[ind].snap, data[ind].id)){ 
 					// no treee for this galaxy (read from a single snapshot)
 					weight 	= get_weight(vh, gal0[0].pid);
 					cpid2.resize(gal0[0].pid.size());
@@ -1382,7 +1384,7 @@ if(cut[i]<2000 && myrank == 0){
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
 
-				if(!istree(key, data[ind].snap, data[ind].id)){ 
+				if(!Tree::istree(key, data[ind].snap, data[ind].id)){ 
 					// no treee for this galaxy (read from a single snapshot)
 					//weight 	= get_weight(vh, gal0[0].pid);
 					cpid2.resize(gal0[0].pid.size());
@@ -2110,7 +2112,7 @@ if(myrank == 0){
 #endif
 
 		// Close controls with islink < 0
-		Tree::Tree_I64 keyval;
+		Tree::Tree_BID keyval;
 t0 = std::chrono::steady_clock::now();
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(none) \
@@ -2729,17 +2731,17 @@ t0 = std::chrono::steady_clock::now();
 		//savetree_ctree(vh, tree, key, snap_curr);
 		
 
-		//ControlArray data2 = loaddata(vh, snap_curr);
-		//Tree::TreeArray tree2;
-		//Tree::TreeKeyArray key2;
-		//loadtree_ctree(vh, tree2, key2, snap_curr);
+		ControlArray data2 = loaddata(vh, snap_curr);
+		Tree::TreeArray tree2;
+		Tree::TreeKeyArray key2;
+		loadtree_ctree(vh, tree2, key2, snap_curr);
 
-		//validate_data(data, data2);
-		//validate_tree(tree, tree2);
-		//validate_treekey(key, key2);
+		validate_data(data, data2);
+		validate_tree(tree, tree2);
+		validate_treekey(key, key2);
 	
 
-		//if(snap_curr == 90) u_stop();
+		if(snap_curr == 90) u_stop();
 	}
 
 	}
@@ -2840,7 +2842,8 @@ t0 = std::chrono::steady_clock::now();
 			#pragma omp parallel for default(none) shared(dumtree, key, uniq_sorted, i)
 #endif
 			for(CT_I32 j=0; j<dumtree.endind+1; j++){
-				key[ dumtree.snap[j] + key[0].key * dumtree.id[j] ].ind = uniq_sorted[i];
+				//key[ dumtree.snap[j] + key[0].key * dumtree.id[j] ].ind = uniq_sorted[i];
+				key[ dumtree.snap[j] + key[0] * dumtree.id[j] ] = uniq_sorted[i];
 			}
 		}
 
@@ -3232,7 +3235,8 @@ t0 = std::chrono::steady_clock::now();
 			CT_I32 max_key = max_snap+1;
 
 			key.resize(max_snap + max_key*max_id);
-			key[0].key 	= max_key;
+			//key[0].key 	= max_key;
+			key[0]			= max_key;
 			//vh.treekey 	= max_snap+1;
 		}
 
@@ -3240,7 +3244,8 @@ t0 = std::chrono::steady_clock::now();
 		// Data Key
 		//-----
 		ControlKey dkey(key.size(), -1);
-		dkey[0] 	= key[0].key;
+		//dkey[0] 	= key[0].key;
+		dkey[0] 	= key[0];
 		// dkey is only called by snap0 and id0
 
 
@@ -3722,7 +3727,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
+	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s5.dat";
 	    LOG()<<"    Writing TreeKey in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -3741,13 +3746,15 @@ t0 = std::chrono::steady_clock::now();
 	    out.write(reinterpret_cast<const char*>(&n), sizeof(n));
 
 	    // Third elements as Tree Key
-	    std::int64_t tk = treekey[0].key;
+	    //std::int64_t tk = treekey[0].key;
+	    std::int64_t tk = treekey[0];
 	    out.write(reinterpret_cast<const char*>(&tk), sizeof(tk));
 
 	    // Left for elements
 	    std::vector<Tree::Tree_BID> inds;
 	    inds.reserve(treekey.size());
-	    for (const auto& k : treekey) inds.push_back(k.ind);
+	    //for (const auto& k : treekey) inds.push_back(k.ind);
+	    for (const auto& k : treekey) inds.push_back(k);
 
 	    if (!inds.empty()) {
 	        out.write(reinterpret_cast<const char*>(inds.data()),
@@ -3758,7 +3765,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save Tree
 	    //-----
-	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
+	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s5.dat";
 	    LOG()<<"    Writing Tree in "<<path;
 
 	    std::ofstream out2(path2, std::ios::binary);
@@ -3868,7 +3875,7 @@ t0 = std::chrono::steady_clock::now();
 	        // file check
 	        
 
-	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
+	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s5.dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -3903,10 +3910,12 @@ t0 = std::chrono::steady_clock::now();
 
 	        for(std::int64_t i=0; i<nbid; i++){
 	 
-	            treekey[i].ind  = treekey_load[i];
+	            //treekey[i].ind  = treekey_load[i];
+	            treekey[i]  = treekey_load[i];
 	        }
 
-	        treekey[0].key = keyval;
+	        //treekey[0].key = keyval;
+	        treekey[0] = keyval;
 
 
 	    } 
@@ -3914,7 +3923,7 @@ t0 = std::chrono::steady_clock::now();
 
 	    {
 	        
-	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
+	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s5.dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -3984,7 +3993,7 @@ t0 = std::chrono::steady_clock::now();
 	                loadtree_vecread<std::int32_t>(in, tree[i].m_id, nmerge);
 	                loadtree_vecread<std::int32_t>(in, tree[i].m_snap, nmerge);
 	                loadtree_vecread<double>(in, tree[i].m_merit, nmerge);
-	                loadtree_vecread<std::int64_t>(in, tree[i].m_bid, nmerge);
+	                loadtree_vecread<std::int32_t>(in, tree[i].m_bid, nmerge);
 	            }
 
 
@@ -4003,7 +4012,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s5.dat";
 	    LOG()<<"    Writing Data in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -4033,7 +4042,7 @@ t0 = std::chrono::steady_clock::now();
 	ControlArray loaddata(const vctree_set::Settings& vh, CT_I32 snap_curr){
 
 
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s5.dat";
 	    std::ifstream in(path, std::ios::binary);
 	    if (!in) {
 	        LOG()<<"load_treekey_bin: cannot open " + path;
@@ -4280,8 +4289,8 @@ t0 = std::chrono::steady_clock::now();
 
 			CT_I32 v1, v2;
 
-			v1 	= key[i].ind;
-			v2 	= key2[i].ind;
+			v1 	= key[i];
+			v2 	= key2[i];
 
 			if(v1 != v2){
 				LOG()<<"		key corrupted : "<<v1<<" / "<<v2;
