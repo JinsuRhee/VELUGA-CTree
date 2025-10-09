@@ -257,6 +257,10 @@ namespace Tree{
 		key[keyval]		= tree[0].lind;
 		//key[keyval].ind = tree[0].lind;
 
+		if(tree[0].lind >= (Tree_BID) tree.size()){
+			tree.resize(tree.size() + tree_stepsize);
+		}
+
 		TreeSt& treedum 	= tree[ tree[0].lind ];
 
 		treedum.endind ++;

@@ -2166,10 +2166,9 @@ if(myrank == 0){
 
 
 t0 = std::chrono::steady_clock::now();
-			
-			
+	
 
-#ifdef CTREE_USE_MPI
+#ifndef CTREE_USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		LinkJob thisjob;
@@ -2183,7 +2182,8 @@ t0 = std::chrono::steady_clock::now();
 		int jobdone = 0;
 
 		while(true){
-			thisjob.jobnum = -1;
+			init_job(thisjob);
+
 			if(rank_index < ncut){
 				ind 	= cut[rank_index];
 
@@ -2195,20 +2195,7 @@ t0 = std::chrono::steady_clock::now();
 					thisjob	= get_job(vh, tree, key, data, dkey, ind, snap_to_link, id_to_link, merit_to_link, snap_curr);
 
 				}
-			}else{
-				thisjob.ind = -1;
-				thisjob.dind = -1;
-				thisjob.tind = -1;
-				thisjob.tind2 = -1;
 			}
-
-//MPI_Barrier(MPI_COMM_WORLD);
-//for(CT_I32 i=0; i<size; i++){
-//	if(i == myrank){
-//		LOG()<<" -- "<<myrank<<" / "<<rank_index<<" / "<<thisjob.jobnum<<" / "<<thisjob.id<<" / "<<thisjob.snap<<" / "<<thisjob.ind<<" / "<<thisjob.merit<<" / "<<thisjob.dind<<" / "<<thisjob.tind<<" / "<<thisjob.tind2;
-//	}
-//	MPI_Barrier(MPI_COMM_WORLD);
-//}
 
 			// Gather que
 			int owner;
@@ -2224,47 +2211,6 @@ t0 = std::chrono::steady_clock::now();
 			owner = thisjob.tind2 % size;
 			job_tind2 	= std::move(commque(LINKJOB_T, thisjob, owner));
 
-//MPI_Barrier(MPI_COMM_WORLD);
-//LOG()<<"done?";
-//for(CT_I32 i=0; i<size; i++){
-//	if(i == myrank){
-//		LOG()<<" ";
-//		LOG()<<" myrank = "<<i;
-//		LOG()<<"        for ind "<<job_ind.size();
-//		if(job_ind.size()>0){
-//			for(auto j:job_ind){
-//				LOG()<<j.jobnum<<" / "<<j.id<<" / "<<j.snap<<" / "<<j.ind<<" / "<<j.merit<<" / "<<j.dind<<" / "<<j.tind<<" / "<<j.tind2;
-//			}
-//		}
-//
-//		LOG()<<"        for dind "<<job_dind.size();
-//		if(job_dind.size()>0){
-//			for(auto j:job_dind){
-//				LOG()<<j.jobnum<<" / "<<j.id<<" / "<<j.snap<<" / "<<j.ind<<" / "<<j.merit<<" / "<<j.dind<<" / "<<j.tind<<" / "<<j.tind2;
-//			}
-//		}
-//
-//		LOG()<<"        for tind "<<job_tind.size();
-//		if(job_tind.size()>0){
-//			for(auto j:job_tind){
-//				LOG()<<j.jobnum<<" / "<<j.id<<" / "<<j.snap<<" / "<<j.ind<<" / "<<j.merit<<" / "<<j.dind<<" / "<<j.tind<<" / "<<j.tind2;
-//			}
-//		}
-//
-//		LOG()<<"        for tind2 "<<job_tind2.size();
-//		if(job_tind2.size()>0){
-//			for(auto j:job_tind2){
-//				LOG()<<j.jobnum<<" / "<<j.id<<" / "<<j.snap<<" / "<<j.ind<<" / "<<j.merit<<" / "<<j.dind<<" / "<<j.tind<<" / "<<j.tind2;
-//			}
-//		}
-//	}
-//	
-//		
-//
-//	MPI_Barrier(MPI_COMM_WORLD);
-//}
-
-//if(myrank == 0) u_stop();
 
 			// Do Job1
 			// 1a for data[ind]
@@ -2408,7 +2354,7 @@ t0 = std::chrono::steady_clock::now();
 
 
 			// synchronize data
-			syn_data(thisjob, data);
+			syn_data(thisjob, data, dkey);
 
 
 			// synchronize tree & reset key
@@ -2727,18 +2673,18 @@ t0 = std::chrono::steady_clock::now();
 		
 
 
-		//savedata(vh, data, snap_curr);
-		//savetree_ctree(vh, tree, key, snap_curr);
+		savedata(vh, data, snap_curr);
+		savetree_ctree(vh, tree, key, snap_curr);
 		
 
-		ControlArray data2 = loaddata(vh, snap_curr);
-		Tree::TreeArray tree2;
-		Tree::TreeKeyArray key2;
-		loadtree_ctree(vh, tree2, key2, snap_curr);
+		//ControlArray data2 = loaddata(vh, snap_curr);
+		//Tree::TreeArray tree2;
+		//Tree::TreeKeyArray key2;
+		//loadtree_ctree(vh, tree2, key2, snap_curr);
 
-		validate_data(data, data2);
-		validate_tree(tree, tree2);
-		validate_treekey(key, key2);
+		//validate_data(data, data2);
+		//validate_tree(tree, tree2);
+		//validate_treekey(key, key2);
 	
 
 		if(snap_curr == 90) u_stop();
@@ -2756,7 +2702,17 @@ t0 = std::chrono::steady_clock::now();
 //		ctfree(vh, data, job.ind, job.snap, job.id, snap_curr);
 //	}
 #ifdef CTREE_USE_MPI
-	void syn_data(LinkJob& thisjob, ControlArray& data){
+	void init_job(LinkJob& thisjob){
+		thisjob.jobnum 	= -1;
+		thisjob.ind 	= -1;
+		thisjob.id 		= -1;
+		thisjob.snap 	= -1;
+		thisjob.merit 	= -1.;
+		thisjob.dind 	= -1;
+		thisjob.tind 	= -1;
+		thisjob.tind2 	= -1;
+	}
+	void syn_data(LinkJob& thisjob, ControlArray& data, ControlKey& dkey){
 
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -2788,6 +2744,15 @@ t0 = std::chrono::steady_clock::now();
 			if (rank == owner) blob_t = serialize(data[uniq_sorted[i]]);
 			bcast_blob_from_owner(owner, blob_t);
         	if (rank != owner) deserialize(blob_t, data[uniq_sorted[i]]);
+		}
+
+		// reset dkey
+		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
+			if(data[uniq_sorted[i]].stat >= 0){
+				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = uniq_sorted[i];
+			}else{
+				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = -1;
+			}
 		}
 	}
 
@@ -3001,7 +2966,7 @@ t0 = std::chrono::steady_clock::now();
 		bool istree = Tree::istree(key, snap_to_link, id_to_link);
 
 		if(istree){
-			thisjob.dind 	= tree[thisjob.tind2].snap[tree[thisjob.tind2].endind] + dkey[0] * tree[thisjob.tind2].id[tree[thisjob.tind2].endind];
+			thisjob.dind 	= dkey[tree[thisjob.tind2].snap[tree[thisjob.tind2].endind] + dkey[0] * tree[thisjob.tind2].id[tree[thisjob.tind2].endind]];
 		}
 
 		if(!istree){
@@ -3020,6 +2985,8 @@ t0 = std::chrono::steady_clock::now();
 			LOG()<<"   : "<<data[thisjob.dind].snap0<<" / "<<data[thisjob.dind].id0;
 			LOG()<<"   : "<<data[thisjob.dind].snap<<" / "<<data[thisjob.dind].id;
 			LOG()<<"   : "<<tree[thisjob.tind2].snap[tree[thisjob.tind2].endind]<<" / "<<tree[thisjob.tind2].id[tree[thisjob.tind2].endind];
+			LOG()<<" to: "<<snap_to_link<<" / "<<id_to_link;
+
 			u_stop();
 		}
 
