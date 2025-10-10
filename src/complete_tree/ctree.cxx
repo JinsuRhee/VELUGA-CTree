@@ -94,7 +94,6 @@ namespace Ctree{
 
 
 		// Make Index Table
-LOG()<<" n_g & n_s : "<<n_g<<" / "<<n_s;
 		std::vector<CT_I32> tbl_g(n_g, CT_I32{0});
 		std::vector<CT_I32> tbl_s(n_s, CT_I32{0});
 		CT_I32 nn_g = 0;
@@ -118,7 +117,6 @@ LOG()<<" n_g & n_s : "<<n_g<<" / "<<n_s;
 		//nn_s --;
 
 		// merit allocation
-LOG()<<" nn_g & nn_s : "<<nn_g<<" / "<<nn_s;
 		MeritMatrix<CT_Merit> merit(nn_g , nn_s, CT_Merit{0});
 
 		// Hash
@@ -166,7 +164,6 @@ LOG()<<" nn_g & nn_s : "<<nn_g<<" / "<<nn_s;
 
 
 		ind = 0;
-LOG()<<" n_g: "<<n_g;
 		std::vector<CT_I32> idtoind(n_g, CT_I32{0});
 
 		for(CT_I32 i=0; i<n_g; i++){
@@ -803,7 +800,6 @@ LOG()<<" n_g: "<<n_g;
 		std::vector<CT_Merit> weight;
 		IO_dtype::GalArray gal0;
 
-
 		gal0 	= IO::r_gal(vh, CArr[0].snap, CArr[0].id, true);
 
 		CT_I32 nn = gal0[0].pid.size();
@@ -901,6 +897,7 @@ LOG()<<" n_g: "<<n_g;
 
 				pid0.clear();
 				cpid.clear();
+
 
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
@@ -1224,9 +1221,6 @@ LOG()<<" n_g: "<<n_g;
 			
 		}
 
-//for(CT_I32 i=0; i<100; i++){
-//	LOG()<<" --- "<<i<<" / "<<spt.hash[i]<<" / "<<spt.hash_next[i];
-//}
 		return spt;
 	}
 
@@ -1312,8 +1306,6 @@ LOG()<<" n_g: "<<n_g;
 		get_merit(pid_g, gid_g, pid_s, gid_s, hash, hash_next, npart_g, npart_s, match_id, match_merit);
 
 
-int myrank = mpi_rank();
-
 		// input
 		for(CT_I32 i=0; i<ncut; i++){
 
@@ -1328,9 +1320,6 @@ int myrank = mpi_rank();
 			data[cut[i]].list[n0].snap 		= snap_curr;
 			data[cut[i]].list_n ++;
 
-if(cut[i]<2000 && myrank == 0){
-	LOG()<<cut[i]<<" / "<<data[cut[i]].id0<<" / "<<data[cut[i]].snap0<<" / "<<match_merit[i]<<" / "<<match_id[i];
-}
 		}
 
 	}
@@ -1359,11 +1348,14 @@ if(cut[i]<2000 && myrank == 0){
 		IO_dtype::GalArray gal0;
 		Tree::TreeSt tree0;
 		CT_I32 ntcut;
+		CollectArray CArr(vh.ctree_n_search+1);
+
+							
 
 		//t_slist.reserve(vh.ctree_n_search);
 		//t_idlist.reserve(vh.ctree_n_search);
-		t_slist.resize(vh.ctree_n_search);
-		t_idlist.resize(vh.ctree_n_search);
+		//t_slist.resize();
+		//t_idlist.resize(vh.ctree_n_search);
 
 		if(ncut > 0){
 
@@ -1402,15 +1394,21 @@ if(cut[i]<2000 && myrank == 0){
 					// this galaxy has a branch. Collect particles along its branch
 					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
 
-					ntcut = 0;
-					t_slist.clear();
-					t_idlist.clear();
 
-					for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+					ntcut = 0;
+					CArr[0].lind = -1;
+					//t_slist.clear();
+					//t_idlist.clear();
+
+					for(CT_I32 i=0; i<tree0.endind+1; i++){
 						if(tree0.snap[i] >= data[ind].snap){
+							CArr[ntcut].id 	= tree0.id[i];
+							CArr[ntcut].snap= tree0.snap[i];
+							CArr[0].lind 	= ntcut;
 							ntcut ++;
-							t_slist.push_back(tree0.snap[i]);
-							t_idlist.push_back(tree0.id[i]);
+							//t_slist.push_back(tree0.snap[i]);
+							//t_idlist.push_back(tree0.id[i]);
+							if(ntcut >= vh.ctree_n_search) break;
 						}
 					}
 
@@ -1419,7 +1417,8 @@ if(cut[i]<2000 && myrank == 0){
 						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
 						u_stop();
 					}
-					cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+					//cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+					cpid 	= collectpidalongbranch2(vh, CArr);
 				}
 
 
@@ -1478,14 +1477,21 @@ if(cut[i]<2000 && myrank == 0){
 					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
 
 					ntcut = 0;
-					t_slist.clear();
-					t_idlist.clear();
+					CArr[0].lind = -1;
+					//t_slist.clear();
+					//t_idlist.clear();
+
 
 					for(CT_I32 i=0; i<vh.ctree_n_search; i++){
 						if(tree0.snap[i] >= data[ind].snap){
+							CArr[ntcut].id 	= tree0.id[i];
+							CArr[ntcut].snap= tree0.snap[i];
+							CArr[0].lind 	= ntcut;
 							ntcut ++;
-							t_slist.push_back(tree0.snap[i]);
-							t_idlist.push_back(tree0.id[i]);
+
+							//ntcut ++;
+							//t_slist.push_back(tree0.snap[i]);
+							//t_idlist.push_back(tree0.id[i]);
 						}
 					}
 
@@ -1495,7 +1501,8 @@ if(cut[i]<2000 && myrank == 0){
 						u_stop();
 					}
 
-					cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+					//cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
+					cpid 	= collectpidalongbranch2(vh, CArr);
 				}
 
 
@@ -1805,14 +1812,12 @@ if(cut[i]<2000 && myrank == 0){
 
 		//// control
 		ctfree(vh, data, ind, tmp_tree_toc.snap[0], tmp_tree_toc.id[0], snap_curr);
-
 		if(dind<0) return; // no control array
 
 		//// Check whether data[dind] to close or not
 		if(!Tree::istree(key, data[dind].snap0, data[dind].id0)){ // one snapshot branch case
 			data[dind].stat = -1;
 			ctfree(vh, data, dind, -1, -1, snap_curr);
-
 			return;
 		} else{
 			Tree::TreeSt& modtree = tree[com_bid];
@@ -1820,7 +1825,6 @@ if(cut[i]<2000 && myrank == 0){
 			if(modtree.snap[0] <= snap_curr){
 				data[dind].stat = 1;
 				ctfree(vh, data, dind, modtree.snap[0], modtree.id[0], snap_curr);
-
 			} else{
 				CT_I32 index0, index1;
 
@@ -1833,11 +1837,9 @@ if(cut[i]<2000 && myrank == 0){
 					Tree::TreeSt& tree0 = tree[com_bid];
 					tree0.stat = -2;
 					tree0.frag_bid 	= org_bid;
-
 				}else{
 					data[dind].stat = 0;
 					ctfree(vh, data, dind, modtree.snap[0], modtree.id[0], snap_curr);
-
 				}
 			}
 			return;
@@ -2163,12 +2165,12 @@ if(myrank == 0){
 		CT_I32 snap_to_link;
 		CT_I32 id_to_link;
 		CT_Merit merit_to_link;
-
-
+		
+		ind = 0;
 t0 = std::chrono::steady_clock::now();
 	
 
-#ifndef CTREE_USE_MPI
+#ifdef CTREE_USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		LinkJob thisjob;
@@ -2176,13 +2178,16 @@ t0 = std::chrono::steady_clock::now();
 		CT_I32 rank_index = rank;
 		std::vector<CT_I32> keytracer(tree.size(), {-1});
 		MPI_Datatype LINKJOB_T = make_linkjob_type();
+		MPI_Datatype NEXT_T = make_next_type();
 
 		JobArray job_ind, job_dind, job_tind, job_tind2;
 
 		int jobdone = 0;
-
+CT_I32 oldncut	= ncut;
+CT_I32 oldnn 	= next_point.size();
 		while(true){
 			init_job(thisjob);
+			
 
 			if(rank_index < ncut){
 				ind 	= cut[rank_index];
@@ -2197,6 +2202,13 @@ t0 = std::chrono::steady_clock::now();
 				}
 			}
 
+			// Remove a que for overlapped ones
+			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.dind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, rank_index);
+			ncut 	= cut.size(); // update ncut
+
 			// Gather que
 			int owner;
 			owner = thisjob.ind % size;
@@ -2210,7 +2222,6 @@ t0 = std::chrono::steady_clock::now();
 
 			owner = thisjob.tind2 % size;
 			job_tind2 	= std::move(commque(LINKJOB_T, thisjob, owner));
-
 
 			// Do Job1
 			// 1a for data[ind]
@@ -2314,32 +2325,41 @@ t0 = std::chrono::steady_clock::now();
 
 			// 4d for data[dind];
 			// 4e for data[dind];
+			// TODO-----
+			// modtree should be changed in tind2 que
 			if(job_dind.size()>0){
 				for(auto j:job_dind){
 					if(j.jobnum != 4) continue;
 					if(j.dind<0) continue;
 
-					if(tree[j.tind2].endind == 0){
+					Tree::TreeSt modtree = tree[j.tind2];
+					CT_I32 lsnap = -1;
+					CT_I32 lid = -1;
+					for(CT_I32 k=modtree.endind; k>=0; k--){
+						if(modtree.snap[k]<=j.snap) break;
+						lsnap 	= modtree.snap[k];
+					}
+
+					if(lsnap<0){
 						DoJob4d(vh, data, j.dind, snap_curr);
 					}else{
 						CT_I32 job4type[3];
 
-						Tree::TreeSt& modtree = tree[j.tind2];					
-
-						job4type[1]	= modtree.snap[0];
-						job4type[2]	= modtree.id[0];
-						if(modtree.snap[0] <= snap_curr){
+						job4type[1]	= lsnap;
+						job4type[2]	= lid;
+						if(lsnap <= snap_curr){
 							job4type[0] = 1;
 						}else{
 							CT_I32 index0, index1;
 
 							index0	= wheresnap(sinfo, snap_curr);
-							index1 	= wheresnap(sinfo, modtree.snap[0]);
+							index1 	= wheresnap(sinfo, lsnap);
 							if(std::abs(index0-index1) > vh.ctree_n_search){
 								job4type[0] = 2;
 
-								modtree.stat 	= -2;
-								modtree.frag_bid= j.tind;
+								// this to be updated in the future
+								//modtree.stat 	= -2;
+								//modtree.frag_bid= j.tind;
 							}else{
 								job4type[0] = 3;
 							}
@@ -2351,11 +2371,8 @@ t0 = std::chrono::steady_clock::now();
 				}
 			}
 
-
-
-			// synchronize data
+			// synchronize data & reset dkey
 			syn_data(thisjob, data, dkey);
-
 
 			// synchronize tree & reset key
 			syn_tree(thisjob, tree, key);
@@ -2631,6 +2648,7 @@ t0 = std::chrono::steady_clock::now();
 
 
 #else
+
 		// parallelizatin here..
 		for(CT_I32 i=0; i<ncut; i++){
 			if(islink[i] < 0) continue;
@@ -2662,6 +2680,7 @@ t0 = std::chrono::steady_clock::now();
 #endif
 
 
+
 	if(myrank == 0){
 		auto t1 = std::chrono::steady_clock::now();
 		howlong5 	= std::chrono::duration<double>(t1 - t0).count();
@@ -2671,21 +2690,21 @@ t0 = std::chrono::steady_clock::now();
 		LOG()<<" Close Link             : "<<howlong4;
 		LOG()<<" Do Link                : "<<howlong5;
 		
-
-
-		savedata(vh, data, snap_curr);
-		savetree_ctree(vh, tree, key, snap_curr);
+		//savedata(vh, data, snap_curr);
+		//savetree_ctree(vh, tree, key, snap_curr);
 		
+		LOG()<<oldncut<<" / "<<cut.size();
+		LOG()<<oldnn<<" / "<<next_point.size();
+		ControlArray data2 = loaddata(vh, snap_curr);
+		Tree::TreeArray tree2;
+		Tree::TreeKeyArray key2;
+		loadtree_ctree(vh, tree2, key2, snap_curr);
 
-		//ControlArray data2 = loaddata(vh, snap_curr);
-		//Tree::TreeArray tree2;
-		//Tree::TreeKeyArray key2;
-		//loadtree_ctree(vh, tree2, key2, snap_curr);
-
-		//validate_data(data, data2);
-		//validate_tree(tree, tree2);
+		validate_data(data, data2);
+		validate_tree(tree, tree2);
 		//validate_treekey(key, key2);
-	
+
+			
 
 		if(snap_curr == 90) u_stop();
 	}
@@ -2712,6 +2731,15 @@ t0 = std::chrono::steady_clock::now();
 		thisjob.tind 	= -1;
 		thisjob.tind2 	= -1;
 	}
+	void filter_sort(std::vector<std::pair<CT_I32, CT_I32>>& pairs){
+    	// remove < 0
+    	pairs.erase(std::remove_if(pairs.begin(), pairs.end(), [](auto& p){ return p.first < 0; }), pairs.end());
+
+    	// sort
+    	std::stable_sort(pairs.begin(), pairs.end(), [](auto& a, auto& b){return a.first < b.first;});
+
+	}
+
 	void syn_data(LinkJob& thisjob, ControlArray& data, ControlKey& dkey){
 
 		int rank = 0, size = 1;
@@ -2719,42 +2747,194 @@ t0 = std::chrono::steady_clock::now();
 	    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
-		CT_I32 local_ind[2] = {thisjob.ind, thisjob.dind};
-			
-		std::vector<CT_I32> all_inds(size*2);
-		MPI_Allgather(&local_ind, 2, MPI_INT, all_inds.data(), 2, MPI_INT, MPI_COMM_WORLD);
+	    std::vector<CT_I32> all_ind(size), all_dind(size), all_num(size);
 
-		std::vector<CT_I32> uniq_sorted;
-		uniq_sorted.reserve(all_inds.size());
+	    MPI_Allgather(&thisjob.ind,  1, MPI_INT, all_ind.data(),  1, MPI_INT, MPI_COMM_WORLD);
+    	MPI_Allgather(&thisjob.dind, 1, MPI_INT, all_dind.data(), 1, MPI_INT, MPI_COMM_WORLD);
+    	MPI_Allgather(&thisjob.jobnum,  1, MPI_INT, all_num.data(),  1, MPI_INT, MPI_COMM_WORLD);
 
-    		
-   		for (CT_I32 x : all_inds) {
-       		if (x >= 0) uniq_sorted.push_back(x);
-   		}
+    	std::vector<std::pair<CT_I32, CT_I32>> pairs_ind;  pairs_ind.reserve(size);
+    	std::vector<std::pair<CT_I32, CT_I32>> pairs_dind; pairs_dind.reserve(size);
+    	for (int r=0; r<size; ++r) {
+        	pairs_ind.emplace_back(all_ind[r],  all_num[r]);
+        	pairs_dind.emplace_back(all_dind[r], all_num[r]);
+    	}
 
-    		
-   		std::sort(uniq_sorted.begin(), uniq_sorted.end());
-   		uniq_sorted.erase(std::unique(uniq_sorted.begin(), uniq_sorted.end()), uniq_sorted.end());
+    	filter_sort(pairs_ind);
+    	filter_sort(pairs_dind);
 
-   		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
+    	// merge for ind
+    	for(CT_I32 i=0; i<(CT_I32)pairs_ind.size(); i++){
+    		if(pairs_ind[i].second >0){
 
-			int owner = uniq_sorted[i] % size;
+    			int owner = pairs_ind[i].first % size;
 
-			std::vector<std::uint8_t> blob_t;
-			if (rank == owner) blob_t = serialize(data[uniq_sorted[i]]);
-			bcast_blob_from_owner(owner, blob_t);
-        	if (rank != owner) deserialize(blob_t, data[uniq_sorted[i]]);
-		}
+    			std::vector<std::uint8_t> blob_t;
+    			if(rank == owner) blob_t = serialize(data[pairs_ind[i].first]);
+    			bcast_blob_from_owner(owner, blob_t);
+    			if(rank != owner) deserialize(blob_t, data[pairs_ind[i].first]);
+
+    			data[pairs_ind[i].first].Free_plist();
+				data[pairs_ind[i].first].n_ptcl 		= -1;
+
+				if(data[pairs_ind[i].first].stat >= 0){
+					dkey[data[pairs_ind[i].first].snap0 + dkey[0]*data[pairs_ind[i].first].id0] = pairs_ind[i].first;
+				}else{
+					dkey[data[pairs_ind[i].first].snap0 + dkey[0]*data[pairs_ind[i].first].id0] = -1;
+				}
+    		}
+    	}
+
+    	// merge for dind
+    	for(CT_I32 i=0; i<(CT_I32)pairs_dind.size(); i++){
+    		if(pairs_dind[i].second>0){
+
+    			int owner = pairs_dind[i].first % size;
+
+    			std::vector<std::uint8_t> blob_t;
+    			if(rank == owner) blob_t = serialize(data[pairs_dind[i].first]);
+    			bcast_blob_from_owner(owner, blob_t);
+    			if(rank != owner) deserialize(blob_t, data[pairs_dind[i].first]);
+
+    			if(pairs_dind[i].second == 2 || pairs_dind[i].second ==4){
+    				data[pairs_dind[i].first].Free_plist();
+					data[pairs_dind[i].first].n_ptcl 		= -1;
+    			}
+
+    			if(data[pairs_dind[i].first].stat >= 0){
+					dkey[data[pairs_dind[i].first].snap0 + dkey[0]*data[pairs_dind[i].first].id0] = pairs_dind[i].first;
+				}else{
+					dkey[data[pairs_dind[i].first].snap0 + dkey[0]*data[pairs_dind[i].first].id0] = -1;
+				}
+    		}
+    	}
+    }
+
+    void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, CT_I32 rank_index){
+    	int rank, size;
+    	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    	
+
+    	// collect jobind
+    	std::vector<CT_I32> all_ind(size);
+    	MPI_Allgather(&jobind, 1, MPI_INT, all_ind.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    	// sort
+    	std::vector<std::pair<CT_I32,int>> pairs;
+    	pairs.reserve(size);
+    	for (int r = 0; r < size; ++r) {
+    		//if(all_ind[r]<0) continue;
+        	pairs.emplace_back(all_ind[r], r);
+    	}
+
+    	pairs.erase(std::remove_if(pairs.begin(), pairs.end(),
+                           [](const auto& p){ return p.first < 0; }),
+            pairs.end());
+
+
+    	std::sort(pairs.begin(), pairs.end(),
+              [](const auto& a, const auto& b){
+                  if (a.first != b.first) return a.first < b.first;
+                  return a.second < b.second;
+              });
+
+    	// winner or loser
+    	std::vector<char> is_loser(size, 0);
+    	//bool any_dup = false;
+
+    	for (int i = 0; i < (int) pairs.size(); ) {
+        	int j = i + 1;
+        	while (j < (int) pairs.size() && pairs[j].first == pairs[i].first) ++j;
+
+        	// [i, j) : same ind group
+        	if (j - i > 1) {
+            	//any_dup = true;
+            	// i is winner, i+1..j-1 loser
+            	for (int k = i + 1; k < j; ++k) {
+                	int loser_rank = pairs[k].second;
+                	is_loser[loser_rank] = 1;
+            	}
+        	}
+        	i = j;
+    	}
+
+    	// send ind of loser
+    	int sendcnt = is_loser[rank] ? 1 : 0;
+    	std::vector<int> recvcnts(size);
+    	MPI_Allgather(&sendcnt, 1, MPI_INT, recvcnts.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    	std::vector<int> displs(size, 0);
+    	int total = 0;
+    	for (int i = 0; i < size; ++i) {
+        	displs[i] = total;
+        	total    += recvcnts[i];
+    	}
+
+    	std::vector<CT_I32> gathered_loser_inds(total);
+    	MPI_Allgatherv(is_loser[rank] ? &ind : nullptr, sendcnt, MPI_INT,
+                   gathered_loser_inds.data(), recvcnts.data(), displs.data(), MPI_INT,
+                   MPI_COMM_WORLD);
+
+    	// push back to cut
+    	cut.insert(cut.end(), gathered_loser_inds.begin(), gathered_loser_inds.end());
+
+    	// append next_array
+    	NextArray recv_next(total);
+    	NextSt local_next_elem	= next_point[rank_index];
+    	if (total > 0) {
+            MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
+                recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
+        	next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
+    	}
+
+    	// change job for loser
+    	if(is_loser[rank] == 1){
+    		init_job(thisjob);
+    	}
+
+    }
+
+    
+
+//		CT_I32 local_ind[2] = {thisjob.ind, thisjob.dind};
+//		
+//			
+//		std::vector<CT_I32> all_inds(size*2);
+//		MPI_Allgather(&local_ind, 2, MPI_INT, all_inds.data(), 2, MPI_INT, MPI_COMM_WORLD);
+//
+//		std::vector<CT_I32> uniq_sorted;
+//		uniq_sorted.reserve(all_inds.size());
+//
+//    		
+//   		for (CT_I32 x : all_inds) {
+//       		if (x >= 0) uniq_sorted.push_back(x);
+//   		}
+//
+//    		
+//   		std::sort(uniq_sorted.begin(), uniq_sorted.end());
+//   		uniq_sorted.erase(std::unique(uniq_sorted.begin(), uniq_sorted.end()), uniq_sorted.end());
+
+//   		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
+//
+//			int owner = uniq_sorted[i] % size;
+//
+//			std::vector<std::uint8_t> blob_t;
+//			if(rank == owner) blob_t = serialize(data[uniq_sorted[i]]);
+//			bcast_blob_from_owner(owner, blob_t);
+//        	if(rank != owner) deserialize(blob_t, data[uniq_sorted[i]]);
+//		}
 
 		// reset dkey
-		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
-			if(data[uniq_sorted[i]].stat >= 0){
-				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = uniq_sorted[i];
-			}else{
-				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = -1;
-			}
-		}
-	}
+//		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
+//			if(data[uniq_sorted[i]].stat >= 0){
+//				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = uniq_sorted[i];
+//			}else{
+//				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = -1;
+//			}
+//		}
+	
 
 	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
 
@@ -2796,6 +2976,21 @@ t0 = std::chrono::steady_clock::now();
 			if (rank == owner) blob_t = serialize(tree[uniq_sorted[i]]);
 			bcast_blob_from_owner(owner, blob_t);
         	if (rank != owner) deserialize(blob_t, tree[uniq_sorted[i]]);
+
+        	if(tree[uniq_sorted[i]].isfree == 1){
+				tree[uniq_sorted[i]].id.resize(0);
+				tree[uniq_sorted[i]].snap.resize(0);
+				tree[uniq_sorted[i]].p_merit.resize(0);
+				tree[uniq_sorted[i]].m_id.resize(0);
+				tree[uniq_sorted[i]].m_snap.resize(0);
+				tree[uniq_sorted[i]].m_merit.resize(0);
+				tree[uniq_sorted[i]].m_bid.resize(0);
+				tree[uniq_sorted[i]].father_bid = -1;
+				tree[uniq_sorted[i]].numprog = 0;
+				tree[uniq_sorted[i]].endind = -1;
+				tree[uniq_sorted[i]].isfree 	= -1;
+			}
+        	
 		}
 
 		// reset key
@@ -2833,7 +3028,10 @@ t0 = std::chrono::steady_clock::now();
 
 	void DoJob2b(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){
 		// data[ dind ]
-		if(dind>=0) ctfree(vh, data, dind, -1, -1, snap_curr);
+		if(dind>=0){
+			data[dind].stat 	= -1;
+			ctfree(vh, data, dind, -1, -1, snap_curr);
+		}
 	}
 
 	void DoJob2c(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){
@@ -3201,7 +3399,7 @@ t0 = std::chrono::steady_clock::now();
 
 			CT_I32 max_key = max_snap+1;
 
-			key.resize(max_snap + max_key*max_id);
+			key.resize(max_snap + max_key*max_id, {-1});
 			//key[0].key 	= max_key;
 			key[0]			= max_key;
 			//vh.treekey 	= max_snap+1;
@@ -3331,6 +3529,7 @@ t0 = std::chrono::steady_clock::now();
 				LOG()<<"          Link branch in         "<<dt_link;
 				LOG()<<"          Add new galaxies in    "<<dt_addgal;
 				LOG()<<"          Delete broken gals in  "<<dt_delgal;
+				LOG()<<" 	";
 			}
 
 #ifdef CTREE_USE_MPI
@@ -3606,8 +3805,8 @@ t0 = std::chrono::steady_clock::now();
 	    out.list 		= read_vec<ListSt>(p, end);
 	    out.list_n 		= read_pod<CT_I32>(p, end);
 		
-		out.Free_plist();
-		out.n_ptcl 		= -1;
+		//out.Free_plist();
+		//out.n_ptcl 		= -1;
 		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
@@ -3645,22 +3844,22 @@ t0 = std::chrono::steady_clock::now();
 	    out.stat 		= read_pod<Tree::Tree_I32>(p, end);
 	    out.isfree 		= read_pod<Tree::Tree_I32>(p, end);
 		
-		if(out.isfree == 1){
-			out.id.resize(0);
-			out.snap.resize(0);
-			out.p_merit.resize(0);
-
-			out.m_id.resize(0);
-			out.m_snap.resize(0);
-			out.m_merit.resize(0);
-			out.m_bid.resize(0);
-
-			out.father_bid = -1;
-			out.numprog = 0;
-			out.endind = -1;
-
-			out.isfree 	= -1;
-		}
+//		if(out.isfree == 1){
+//			out.id.resize(0);
+//			out.snap.resize(0);
+//			out.p_merit.resize(0);
+//
+//			out.m_id.resize(0);
+//			out.m_snap.resize(0);
+//			out.m_merit.resize(0);
+//			out.m_bid.resize(0);
+//
+//			out.father_bid = -1;
+//			out.numprog = 0;
+//			out.endind = -1;
+//
+//			out.isfree 	= -1;
+//		}
 
 		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
@@ -3694,7 +3893,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s5.dat";
+	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s2.dat";
 	    LOG()<<"    Writing TreeKey in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -3732,7 +3931,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save Tree
 	    //-----
-	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s5.dat";
+	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s2.dat";
 	    LOG()<<"    Writing Tree in "<<path;
 
 	    std::ofstream out2(path2, std::ios::binary);
@@ -3842,7 +4041,7 @@ t0 = std::chrono::steady_clock::now();
 	        // file check
 	        
 
-	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s5.dat";
+	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s2.dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -3867,15 +4066,15 @@ t0 = std::chrono::steady_clock::now();
 
 	        // Allocate
 	        //auto treekey_load = loadtree_mkvector(bidtag, nbid);
-	        std::vector<std::int64_t> treekey_load;
+	        std::vector<std::int32_t> treekey_load;
 	        treekey_load.resize(nbid);
-	        loadtree_vecread<std::int64_t>(in, treekey_load, nbid);
+	        loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
 
 	        // Copy
 	        //Tree::TreeKeyArray treekey;
 	        treekey.resize(nbid);
 
-	        for(std::int64_t i=0; i<nbid; i++){
+	        for(std::int32_t i=0; i<nbid; i++){
 	 
 	            //treekey[i].ind  = treekey_load[i];
 	            treekey[i]  = treekey_load[i];
@@ -3890,7 +4089,7 @@ t0 = std::chrono::steady_clock::now();
 
 	    {
 	        
-	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s5.dat";
+	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s2.dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -3979,7 +4178,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s5.dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s2.dat";
 	    LOG()<<"    Writing Data in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -4009,7 +4208,7 @@ t0 = std::chrono::steady_clock::now();
 	ControlArray loaddata(const vctree_set::Settings& vh, CT_I32 snap_curr){
 
 
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s5.dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s2.dat";
 	    std::ifstream in(path, std::ios::binary);
 	    if (!in) {
 	        LOG()<<"load_treekey_bin: cannot open " + path;
@@ -4079,7 +4278,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		ID corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].id0;
@@ -4088,7 +4287,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		ID0 corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].snap;
@@ -4097,7 +4296,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		Snap corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].snap0;
@@ -4106,7 +4305,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		Snap0 corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].stat;
@@ -4115,7 +4314,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		stat corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].n_ptcl;
@@ -4124,7 +4323,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		n_ptcl corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].list_n;
@@ -4133,7 +4332,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		list_n corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 		}
 
@@ -4166,7 +4365,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		endind corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			if(v1 < 0) continue;
@@ -4180,7 +4379,7 @@ t0 = std::chrono::steady_clock::now();
 				if(w1 != w2){
 					LOG()<<"		ID list corrupted : "<<w1<<" / "<<w2;
 					LOG()<<"		@ : "<<i<<" / "<<j;
-					u_stop();
+					//u_stop();
 				}
 
 				w1 	= tree[i].snap[j];
@@ -4189,7 +4388,7 @@ t0 = std::chrono::steady_clock::now();
 				if(w1 != w2){
 					LOG()<<"		Snap list corrupted : "<<w1<<" / "<<w2;
 					LOG()<<"		@ : "<<i<<" / "<<j;
-					u_stop();
+					//u_stop();
 				}
 			}
 
@@ -4199,16 +4398,16 @@ t0 = std::chrono::steady_clock::now();
 			if(w1 != w2){
 				LOG()<<"		father_bid corrupted : "<<w1<<" / "<<w2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			w1 	= tree[i].frag_bid;
 			w2 	= tree2[i].frag_bid;
 
 			if(w1 != w2){
-				LOG()<<"		frag corrupted : "<<w1<<" / "<<w2;
-				LOG()<<"		@ : "<<i;
-				u_stop();
+				//LOG()<<"		frag corrupted : "<<w1<<" / "<<w2;
+				//LOG()<<"		@ : "<<i;
+				//u_stop();
 			}
 
 			w1 	= tree[i].numprog;
@@ -4217,7 +4416,7 @@ t0 = std::chrono::steady_clock::now();
 			if(w1 != w2){
 				LOG()<<"		numprog corrupted : "<<w1<<" / "<<w2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			
@@ -4225,9 +4424,9 @@ t0 = std::chrono::steady_clock::now();
 			w2 	= tree2[i].stat;
 
 			if(w1 != w2){
-				LOG()<<"		stat_bid corrupted : "<<w1<<" / "<<w2;
-				LOG()<<"		@ : "<<i;
-				u_stop();
+				//LOG()<<"		stat_bid corrupted : "<<w1<<" / "<<w2;
+				//LOG()<<"		@ : "<<i;
+				//u_stop();
 			}
 
 			w1 	= tree[i].isfree;
@@ -4236,7 +4435,7 @@ t0 = std::chrono::steady_clock::now();
 			if(w1 != w2){
 				LOG()<<"		isfree corrupted : "<<w1<<" / "<<w2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 		}
 
@@ -4262,7 +4461,7 @@ t0 = std::chrono::steady_clock::now();
 			if(v1 != v2){
 				LOG()<<"		key corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 		}
 

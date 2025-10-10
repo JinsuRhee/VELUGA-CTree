@@ -203,6 +203,8 @@ namespace Ctree{
 	void DoJob4d(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr);
 	void DoJob4e(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr, CT_I32* jobtype);
 
+	void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, CT_I32 rank_index);
+	void filter_sort(std::vector<std::pair<CT_I32, CT_I32>>& pairs);
 	void syn_data(LinkJob& thisjob, ControlArray& data, ControlKey& dkey);
 	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
 #endif
@@ -317,6 +319,50 @@ namespace Ctree{
 
 	void bcast_blob_from_owner(int owner, std::vector<std::uint8_t>& blob);
 
+    static inline MPI_Datatype make_next_type(){
+    	
+
+    	MPI_Datatype CT_MERIT_T;
+    	if(sizeof(CT_Merit)==8){
+    		CT_MERIT_T = MPI_DOUBLE;
+    	}else if(sizeof(CT_Merit)==4){
+    		CT_MERIT_T = MPI_FLOAT;
+    	}
+
+    	MPI_Datatype CT_ID_T;
+    	if(sizeof(CT_ID)==8){
+    		CT_ID_T = MPI_INT64_T;
+    	}else if(sizeof(CT_ID)==4){
+    		CT_ID_T = MPI_INT32_T;
+    	}
+
+    	MPI_Datatype CT_Snap_T;
+    	if(sizeof(CT_snap)==8){
+    		CT_Snap_T = MPI_INT64_T;
+    	}else if(sizeof(CT_snap)==4){
+    		CT_Snap_T = MPI_INT32_T;
+    	}
+    	
+    	NextSt d;
+    	MPI_Aint base, disp[3];
+    	int blocklen[3]	= {1, 1, 1};
+    	MPI_Datatype types[3] = {CT_MERIT_T, CT_ID_T, CT_Snap_T};
+
+    	MPI_Get_address(&d, 			&base);
+    	MPI_Get_address(&d.merit, 		&disp[0]);
+    	MPI_Get_address(&d.id, 			&disp[1]);
+    	MPI_Get_address(&d.snap, 		&disp[2]);
+
+    	for (int i=0;i<3;++i) disp[i] -= base;
+
+    	MPI_Datatype NEXT_T;
+    	MPI_Type_create_struct(3, blocklen, disp, types, &NEXT_T);
+    	MPI_Type_commit(&NEXT_T);
+    	return NEXT_T;
+    	//
+    	
+
+    }
 
 	static inline MPI_Datatype make_linkjob_type(){
 		      
