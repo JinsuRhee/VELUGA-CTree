@@ -2186,7 +2186,7 @@ if(myrank == 0){
 		CT_I32 id_to_link;
 		CT_Merit merit_to_link;
 		
-
+		ind = 0;
 t0 = std::chrono::steady_clock::now();
 	
 
@@ -2204,6 +2204,7 @@ t0 = std::chrono::steady_clock::now();
 
 		int jobdone = 0;
 CT_I32 oldncut	= ncut;
+CT_I32 oldnn 	= next_point.size();
 		while(true){
 			init_job(thisjob);
 			
@@ -2716,19 +2717,11 @@ for(CT_I32 i=0; i<data[0].last_ind+1; i++){
 		LOG()<<" Close Link             : "<<howlong4;
 		LOG()<<" Do Link                : "<<howlong5;
 		
-for(CT_I32 i=0; i<data[0].last_ind+1; i++){
-	if(data[i].snap>100 || data[i].snap0>100) LOG()<<" snap !! "<<i<<" / "<<data[i].snap<<" / "<<data[i].snap0;
-	if(data[i].id < 0 && data[i].snap > 0) LOG()<<" id !! "<<i<<" / "<<data[i].id<<" / "<<data[i].snap0;
-}
-
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
-if(oldncut != (CT_I32) cut.size()){
-	for(CT_I32 i=oldncut; i<(CT_I32) cut.size(); i++){
-		LOG()<<"over - "<<cut[i];
-	}
-}		
-
+		
+		LOG()<<oldncut<<" / "<<cut.size();
+		LOG()<<oldnn<<" / "<<next_point.size();
 		ControlArray data2 = loaddata(vh, snap_curr);
 		Tree::TreeArray tree2;
 		Tree::TreeKeyArray key2;
@@ -2859,9 +2852,14 @@ if(oldncut != (CT_I32) cut.size()){
     	std::vector<std::pair<CT_I32,int>> pairs;
     	pairs.reserve(size);
     	for (int r = 0; r < size; ++r) {
-    		if(all_ind[r]<0) continue;
+    		//if(all_ind[r]<0) continue;
         	pairs.emplace_back(all_ind[r], r);
     	}
+
+    	pairs.erase(std::remove_if(pairs.begin(), pairs.end(),
+                           [](const auto& p){ return p.first < 0; }),
+            pairs.end());
+
 
     	std::sort(pairs.begin(), pairs.end(),
               [](const auto& a, const auto& b){
@@ -3428,7 +3426,7 @@ if(oldncut != (CT_I32) cut.size()){
 
 			CT_I32 max_key = max_snap+1;
 
-			key.resize(max_snap + max_key*max_id);
+			key.resize(max_snap + max_key*max_id, {-1});
 			//key[0].key 	= max_key;
 			key[0]			= max_key;
 			//vh.treekey 	= max_snap+1;
