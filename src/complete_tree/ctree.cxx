@@ -94,7 +94,6 @@ namespace Ctree{
 
 
 		// Make Index Table
-LOG()<<" n_g & n_s : "<<n_g<<" / "<<n_s;
 		std::vector<CT_I32> tbl_g(n_g, CT_I32{0});
 		std::vector<CT_I32> tbl_s(n_s, CT_I32{0});
 		CT_I32 nn_g = 0;
@@ -118,7 +117,6 @@ LOG()<<" n_g & n_s : "<<n_g<<" / "<<n_s;
 		//nn_s --;
 
 		// merit allocation
-LOG()<<" nn_g & nn_s : "<<nn_g<<" / "<<nn_s;
 		MeritMatrix<CT_Merit> merit(nn_g , nn_s, CT_Merit{0});
 
 		// Hash
@@ -166,7 +164,6 @@ LOG()<<" nn_g & nn_s : "<<nn_g<<" / "<<nn_s;
 
 
 		ind = 0;
-LOG()<<" n_g: "<<n_g;
 		std::vector<CT_I32> idtoind(n_g, CT_I32{0});
 
 		for(CT_I32 i=0; i<n_g; i++){
@@ -803,8 +800,6 @@ LOG()<<" n_g: "<<n_g;
 		std::vector<CT_Merit> weight;
 		IO_dtype::GalArray gal0;
 
-int myrank = mpi_rank();
-if(myrank == 0 && CArr[0].snap>100) LOG()<<" here ";
 		gal0 	= IO::r_gal(vh, CArr[0].snap, CArr[0].id, true);
 
 		CT_I32 nn = gal0[0].pid.size();
@@ -823,8 +818,6 @@ if(myrank == 0 && CArr[0].snap>100) LOG()<<" here ";
 			if(loop_ind >= (CT_I32) CArr[0].lind + 1) break;
 			weight.clear();
 
-int myrank = mpi_rank();
-if(myrank == 0 && CArr[loop_ind].snap>100) LOG()<<" here ";
 			gal0 	= IO::r_gal(vh, CArr[loop_ind].snap, CArr[loop_ind].id, true);
 
 			ind1 	= ind0 + gal0[0].pid.size()-1;
@@ -1228,9 +1221,6 @@ if(myrank == 0 && CArr[loop_ind].snap>100) LOG()<<" here ";
 			
 		}
 
-//for(CT_I32 i=0; i<100; i++){
-//	LOG()<<" --- "<<i<<" / "<<spt.hash[i]<<" / "<<spt.hash_next[i];
-//}
 		return spt;
 	}
 
@@ -1316,8 +1306,6 @@ if(myrank == 0 && CArr[loop_ind].snap>100) LOG()<<" here ";
 		get_merit(pid_g, gid_g, pid_s, gid_s, hash, hash_next, npart_g, npart_s, match_id, match_merit);
 
 
-int myrank = mpi_rank();
-
 		// input
 		for(CT_I32 i=0; i<ncut; i++){
 
@@ -1332,9 +1320,6 @@ int myrank = mpi_rank();
 			data[cut[i]].list[n0].snap 		= snap_curr;
 			data[cut[i]].list_n ++;
 
-if(cut[i]<2000 && myrank == 0){
-	LOG()<<cut[i]<<" / "<<data[cut[i]].id0<<" / "<<data[cut[i]].snap0<<" / "<<match_merit[i]<<" / "<<match_id[i];
-}
 		}
 
 	}
@@ -1387,8 +1372,7 @@ if(cut[i]<2000 && myrank == 0){
 				cpid.clear();
 
 
-int myrank = mpi_rank();
-if(myrank == 0 && data[ind].snap>100) LOG()<<" here : "<<ind;
+
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
 
@@ -1642,9 +1626,6 @@ if(myrank == 0 && data[ind].snap>100) LOG()<<" here : "<<ind;
 
 	CT_Merit brcompare2(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, CollectArray& CArr){
 
-int myrank = mpi_rank();
-if(myrank == 0 && s0>100) LOG()<<" here ";
-
 		IO_dtype::GalArray gal0 	= IO::r_gal(vh, s0, id0, true);
 
 		std::vector<CT_PID> pid0 = std::move(gal0[0].pid);
@@ -1655,7 +1636,6 @@ if(myrank == 0 && s0>100) LOG()<<" here ";
 		std::vector<CT_Merit> pweight1;
 
 		if( CArr[0].lind == 0 ){
-if(myrank == 0 && CArr[0].snap>100) LOG()<<" here ";
 			IO_dtype::GalArray gal1 	= IO::r_gal(vh, CArr[0].snap, CArr[0].id, true);
 			pid1 = std::move(gal1[0].pid);
 			pweight1 = get_weight(vh, pid1);
@@ -2393,13 +2373,6 @@ CT_I32 oldnn 	= next_point.size();
 
 			// synchronize data & reset dkey
 			syn_data(thisjob, data, dkey);
-if(myrank == 0){
-for(CT_I32 i=0; i<data[0].last_ind+1; i++){
-	if(data[i].snap>100 || data[i].snap0>100) LOG()<<" snap !! "<<i<<" / "<<data[i].snap<<" / "<<data[i].snap0<<" / "<<rank_index;
-	if(data[i].id < 0 && data[i].snap > 0) LOG()<<" id !! "<<i<<" / "<<data[i].id<<" / "<<data[i].snap0<<" / "<<rank_index;
-
-}
-}
 
 			// synchronize tree & reset key
 			syn_tree(thisjob, tree, key);
