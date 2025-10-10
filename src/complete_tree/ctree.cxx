@@ -803,7 +803,8 @@ LOG()<<" n_g: "<<n_g;
 		std::vector<CT_Merit> weight;
 		IO_dtype::GalArray gal0;
 
-
+int myrank = mpi_rank();
+if(myrank == 0 && CArr[0].snap>100) LOG()<<" here ";
 		gal0 	= IO::r_gal(vh, CArr[0].snap, CArr[0].id, true);
 
 		CT_I32 nn = gal0[0].pid.size();
@@ -822,6 +823,8 @@ LOG()<<" n_g: "<<n_g;
 			if(loop_ind >= (CT_I32) CArr[0].lind + 1) break;
 			weight.clear();
 
+int myrank = mpi_rank();
+if(myrank == 0 && CArr[loop_ind].snap>100) LOG()<<" here ";
 			gal0 	= IO::r_gal(vh, CArr[loop_ind].snap, CArr[loop_ind].id, true);
 
 			ind1 	= ind0 + gal0[0].pid.size()-1;
@@ -901,6 +904,7 @@ LOG()<<" n_g: "<<n_g;
 
 				pid0.clear();
 				cpid.clear();
+
 
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
@@ -1383,7 +1387,8 @@ if(cut[i]<2000 && myrank == 0){
 				cpid.clear();
 
 
-
+int myrank = mpi_rank();
+if(myrank == 0 && data[ind].snap>100) LOG()<<" here : "<<ind;
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
 
@@ -1637,6 +1642,9 @@ if(cut[i]<2000 && myrank == 0){
 
 	CT_Merit brcompare2(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, CollectArray& CArr){
 
+int myrank = mpi_rank();
+if(myrank == 0 && s0>100) LOG()<<" here ";
+
 		IO_dtype::GalArray gal0 	= IO::r_gal(vh, s0, id0, true);
 
 		std::vector<CT_PID> pid0 = std::move(gal0[0].pid);
@@ -1647,6 +1655,7 @@ if(cut[i]<2000 && myrank == 0){
 		std::vector<CT_Merit> pweight1;
 
 		if( CArr[0].lind == 0 ){
+if(myrank == 0 && CArr[0].snap>100) LOG()<<" here ";
 			IO_dtype::GalArray gal1 	= IO::r_gal(vh, CArr[0].snap, CArr[0].id, true);
 			pid1 = std::move(gal1[0].pid);
 			pweight1 = get_weight(vh, pid1);
@@ -1690,7 +1699,7 @@ if(cut[i]<2000 && myrank == 0){
 
 			makenewbr(vh, data, ind, data[ind].snap, data[ind].id, tree, key);
 		}
-tree[0].numprog = 3;
+
 		CT_I32 dummy = wheresnap(sinfo, snap_curr);
 		dummy += 1;
 
@@ -1717,7 +1726,7 @@ tree[0].numprog = 3;
 
 		// Clean Merge
 		if(tmp_tree_toc.snap[tmp_tree_toc.endind] < tmp_tree.snap[0]){ // end before the start: complete merge
-tree[0].numprog = 4;
+
 
 			//if( !(tmp_tree_toc.id[tmp_tree_toc.endind] == id_to_link && tmp_tree_toc.snap[tmp_tree_toc.endind] == snap_to_link )){
 			//	LOG()<<"Just check whether this is possible";
@@ -1797,7 +1806,6 @@ tree[0].numprog = 4;
 		// existing branch is better
 		//Tree::Tree_I64 keyval, keyval2;
 		if(merit_com > merit_org){
-tree[0].numprog = 5;
 			data[ind].stat = -1;
 
 			Tree::TreeSt& tree0 = tree[org_bid];
@@ -1824,14 +1832,12 @@ tree[0].numprog = 5;
 
 		//// control
 		ctfree(vh, data, ind, tmp_tree_toc.snap[0], tmp_tree_toc.id[0], snap_curr);
-tree[0].numprog = 6;
 		if(dind<0) return; // no control array
 
 		//// Check whether data[dind] to close or not
 		if(!Tree::istree(key, data[dind].snap0, data[dind].id0)){ // one snapshot branch case
 			data[dind].stat = -1;
 			ctfree(vh, data, dind, -1, -1, snap_curr);
-tree[0].numprog = 7;
 			return;
 		} else{
 			Tree::TreeSt& modtree = tree[com_bid];
@@ -1839,7 +1845,6 @@ tree[0].numprog = 7;
 			if(modtree.snap[0] <= snap_curr){
 				data[dind].stat = 1;
 				ctfree(vh, data, dind, modtree.snap[0], modtree.id[0], snap_curr);
-tree[0].numprog = 8;
 			} else{
 				CT_I32 index0, index1;
 
@@ -1852,11 +1857,9 @@ tree[0].numprog = 8;
 					Tree::TreeSt& tree0 = tree[com_bid];
 					tree0.stat = -2;
 					tree0.frag_bid 	= org_bid;
-tree[0].numprog = 9;
 				}else{
 					data[dind].stat = 0;
 					ctfree(vh, data, dind, modtree.snap[0], modtree.id[0], snap_curr);
-tree[0].numprog = 10;
 				}
 			}
 			return;
@@ -2182,8 +2185,8 @@ if(myrank == 0){
 		CT_I32 snap_to_link;
 		CT_I32 id_to_link;
 		CT_Merit merit_to_link;
+		
 
-if(myrank == 0)LOG()<<data[1].n_ptcl<<" / "<<cut[0]<<" / "<<cut[1];
 t0 = std::chrono::steady_clock::now();
 	
 
@@ -2195,13 +2198,15 @@ t0 = std::chrono::steady_clock::now();
 		CT_I32 rank_index = rank;
 		std::vector<CT_I32> keytracer(tree.size(), {-1});
 		MPI_Datatype LINKJOB_T = make_linkjob_type();
+		MPI_Datatype NEXT_T = make_next_type();
 
 		JobArray job_ind, job_dind, job_tind, job_tind2;
 
 		int jobdone = 0;
-
+CT_I32 oldncut	= ncut;
 		while(true){
 			init_job(thisjob);
+			
 
 			if(rank_index < ncut){
 				ind 	= cut[rank_index];
@@ -2215,6 +2220,13 @@ t0 = std::chrono::steady_clock::now();
 
 				}
 			}
+
+			// Remove a que for overlapped ones
+			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.dind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, rank_index);
+			ncut 	= cut.size(); // update ncut
 
 			// Gather que
 			int owner;
@@ -2230,24 +2242,6 @@ t0 = std::chrono::steady_clock::now();
 			owner = thisjob.tind2 % size;
 			job_tind2 	= std::move(commque(LINKJOB_T, thisjob, owner));
 
-MPI_Barrier(MPI_COMM_WORLD);
-if(rank_index>=37080 && rank_index<37080+24 && snap_curr == 97 && myrank == 3){
-	if(job_ind.size()>0){
-		for(auto j:job_ind){
-			if(j.ind == 1){
-				LOG()<<"ind !! "<<rank_index<<" / "<<j.jobnum;
-			}
-		}
-	}
-
-	if(job_dind.size()>0){
-		for(auto j:job_dind){
-			if(j.dind == 1){
-				LOG()<<"dind !! "<<rank_index<<" / "<<j.jobnum;
-			}
-		}
-	}
-}
 			// Do Job1
 			// 1a for data[ind]
 			if(job_ind.size()>0){
@@ -2396,35 +2390,19 @@ if(rank_index>=37080 && rank_index<37080+24 && snap_curr == 97 && myrank == 3){
 				}
 			}
 
-if(rank_index>=37080 && rank_index<37080+24 && snap_curr == 97){
-	for(int i=0; i<size; i++){
-		if(myrank == i){
-			LOG()<<"data[1] n_ptcl = "<<data[1].n_ptcl;
-			if(job_ind.size()>0){
-				for(auto j:job_ind) LOG()<<"  job ind : "<<j.ind<<" / "<<j.jobnum;
-			}
-			if(job_dind.size()>0){
-				for(auto j:job_dind) LOG()<<"  job dind : "<<j.dind<<" / "<<j.jobnum;
-			}
-		}
-
-		MPI_Barrier(MPI_COMM_WORLD);
-	}
-	MPI_Barrier(MPI_COMM_WORLD);
-}
-
-
 			// synchronize data & reset dkey
 			syn_data(thisjob, data, dkey);
+if(myrank == 0){
+for(CT_I32 i=0; i<data[0].last_ind+1; i++){
+	if(data[i].snap>100 || data[i].snap0>100) LOG()<<" snap !! "<<i<<" / "<<data[i].snap<<" / "<<data[i].snap0<<" / "<<rank_index;
+	if(data[i].id < 0 && data[i].snap > 0) LOG()<<" id !! "<<i<<" / "<<data[i].id<<" / "<<data[i].snap0<<" / "<<rank_index;
 
+}
+}
 
 			// synchronize tree & reset key
 			syn_tree(thisjob, tree, key);
 
-if(myrank == 0 && snap_curr == 97 && data[1].n_ptcl < 0){
-	LOG()<<" / "<<rank_index;
-	u_stop();
-}
 			rank_index 	+= size;
 			
 			if(rank_index >= ncut){
@@ -2703,7 +2681,6 @@ if(myrank == 0 && snap_curr == 97 && data[1].n_ptcl < 0){
 
 			ind 	= cut[i];
 
-tree[0].numprog = 1;
 			if(data[ind].stat == -1) continue;		// already linked to another
 
 			snap_to_link 	= next_point[i].snap;
@@ -2713,7 +2690,6 @@ tree[0].numprog = 1;
 			istree 	= Tree::istree(key, snap_to_link, id_to_link);
 
 			if(!istree){ // notree
-tree[0].numprog = 2;
 				expandbr(vh, data, ind, tree, key, id_to_link, snap_to_link, merit_to_link);
 
 				if(data[ind].stat == -1){
@@ -2726,10 +2702,6 @@ tree[0].numprog = 2;
 			}else{ // tree exist (compare two branches)
 				linkbr(vh, data, dkey, ind, sinfo, tree, key, id_to_link, snap_to_link, merit_to_link, snap_curr);
 			}
-if(snap_curr==97 && ind==1 && myrank == 0){
-	LOG()<<" / "<<ind<<" / "<<data[ind].n_ptcl<<" / "<<tree[0].numprog;
-	u_stop();
-}
 		}
 #endif
 
@@ -2744,11 +2716,18 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 		LOG()<<" Close Link             : "<<howlong4;
 		LOG()<<" Do Link                : "<<howlong5;
 		
-
+for(CT_I32 i=0; i<data[0].last_ind+1; i++){
+	if(data[i].snap>100 || data[i].snap0>100) LOG()<<" snap !! "<<i<<" / "<<data[i].snap<<" / "<<data[i].snap0;
+	if(data[i].id < 0 && data[i].snap > 0) LOG()<<" id !! "<<i<<" / "<<data[i].id<<" / "<<data[i].snap0;
+}
 
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
-		
+if(oldncut != (CT_I32) cut.size()){
+	for(CT_I32 i=oldncut; i<(CT_I32) cut.size(); i++){
+		LOG()<<"over - "<<cut[i];
+	}
+}		
 
 		ControlArray data2 = loaddata(vh, snap_curr);
 		Tree::TreeArray tree2;
@@ -2757,10 +2736,9 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 
 		validate_data(data, data2);
 		validate_tree(tree, tree2);
-		validate_treekey(key, key2);
+		//validate_treekey(key, key2);
 
-		LOG()<<data[1].n_ptcl<<" / "<<data2[1].n_ptcl;
-	
+			
 
 		if(snap_curr == 90) u_stop();
 	}
@@ -2787,7 +2765,7 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 		thisjob.tind 	= -1;
 		thisjob.tind2 	= -1;
 	}
-	void filter_sort_unique(std::vector<std::pair<CT_I32, CT_I32>>& pairs){
+	void filter_sort(std::vector<std::pair<CT_I32, CT_I32>>& pairs){
     	// remove < 0
     	pairs.erase(std::remove_if(pairs.begin(), pairs.end(), [](auto& p){ return p.first < 0; }), pairs.end());
 
@@ -2816,8 +2794,8 @@ if(snap_curr==97 && ind==1 && myrank == 0){
         	pairs_dind.emplace_back(all_dind[r], all_num[r]);
     	}
 
-    	filter_sort_unique(pairs_ind);
-    	filter_sort_unique(pairs_dind);
+    	filter_sort(pairs_ind);
+    	filter_sort(pairs_dind);
 
     	// merge for ind
     	for(CT_I32 i=0; i<(CT_I32)pairs_ind.size(); i++){
@@ -2864,7 +2842,90 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 				}
     		}
     	}
+    }
 
+    void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, CT_I32 rank_index){
+    	int rank, size;
+    	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    	
+
+    	// collect jobind
+    	std::vector<CT_I32> all_ind(size);
+    	MPI_Allgather(&jobind, 1, MPI_INT, all_ind.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    	// sort
+    	std::vector<std::pair<CT_I32,int>> pairs;
+    	pairs.reserve(size);
+    	for (int r = 0; r < size; ++r) {
+    		if(all_ind[r]<0) continue;
+        	pairs.emplace_back(all_ind[r], r);
+    	}
+
+    	std::sort(pairs.begin(), pairs.end(),
+              [](const auto& a, const auto& b){
+                  if (a.first != b.first) return a.first < b.first;
+                  return a.second < b.second;
+              });
+
+    	// winner or loser
+    	std::vector<char> is_loser(size, 0);
+    	//bool any_dup = false;
+
+    	for (int i = 0; i < (int) pairs.size(); ) {
+        	int j = i + 1;
+        	while (j < (int) pairs.size() && pairs[j].first == pairs[i].first) ++j;
+
+        	// [i, j) : same ind group
+        	if (j - i > 1) {
+            	//any_dup = true;
+            	// i is winner, i+1..j-1 loser
+            	for (int k = i + 1; k < j; ++k) {
+                	int loser_rank = pairs[k].second;
+                	is_loser[loser_rank] = 1;
+            	}
+        	}
+        	i = j;
+    	}
+
+    	// send ind of loser
+    	int sendcnt = is_loser[rank] ? 1 : 0;
+    	std::vector<int> recvcnts(size);
+    	MPI_Allgather(&sendcnt, 1, MPI_INT, recvcnts.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+    	std::vector<int> displs(size, 0);
+    	int total = 0;
+    	for (int i = 0; i < size; ++i) {
+        	displs[i] = total;
+        	total    += recvcnts[i];
+    	}
+
+    	std::vector<CT_I32> gathered_loser_inds(total);
+    	MPI_Allgatherv(is_loser[rank] ? &ind : nullptr, sendcnt, MPI_INT,
+                   gathered_loser_inds.data(), recvcnts.data(), displs.data(), MPI_INT,
+                   MPI_COMM_WORLD);
+
+    	// push back to cut
+    	cut.insert(cut.end(), gathered_loser_inds.begin(), gathered_loser_inds.end());
+
+    	// append next_array
+    	NextArray recv_next(total);
+    	NextSt local_next_elem	= next_point[rank_index];
+    	if (total > 0) {
+            MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
+                recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
+        	next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
+    	}
+
+    	// change job for loser
+    	if(is_loser[rank] == 1){
+    		init_job(thisjob);
+    	}
+
+    }
+
+    
 
 //		CT_I32 local_ind[2] = {thisjob.ind, thisjob.dind};
 //		
@@ -2902,7 +2963,7 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 //				dkey[data[uniq_sorted[i]].snap0 + dkey[0]*data[uniq_sorted[i]].id0] = -1;
 //			}
 //		}
-	}
+	
 
 	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
 
@@ -4291,7 +4352,7 @@ if(snap_curr==97 && ind==1 && myrank == 0){
 			if(v1 != v2){
 				LOG()<<"		n_ptcl corrupted : "<<v1<<" / "<<v2;
 				LOG()<<"		@ : "<<i;
-				u_stop();
+				//u_stop();
 			}
 
 			v1 	= data[i].list_n;
