@@ -261,9 +261,9 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
         // Allocate
         //auto treekey_load = loadtree_mkvector(bidtag, nbid);
-        std::vector<std::int64_t> treekey_load;
+        std::vector<std::int32_t> treekey_load;
         treekey_load.resize(nbid);
-        loadtree_vecread<std::int64_t>(in, treekey_load, nbid);
+        loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
 
         // Copy
         //Tree::TreeKeyArray treekey;

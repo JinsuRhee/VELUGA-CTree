@@ -1414,8 +1414,20 @@ namespace Ctree{
 
 
 					if(ntcut == 0){
-						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
-						u_stop();
+						LOG()<<"Weird branch: Snap = "<<data[ind].snap<<" / ID = "<<data[ind].id;
+						LOG()<<"Weird branch: Snap0 = "<<data[ind].snap0<<" / ID0 = "<<data[ind].id0<<" / "<<ind;
+						//int myrank = mpi_rank();
+						//if(myrank == 0){
+							for(CT_I32 k=0; k<tree0.endind+1; k++){
+								LOG()<<" --- "<<tree0.snap[k]<<" / "<<tree0.id[k];
+							}
+
+							LOG()<<" @ "<<Tree::getkey(key, data[ind].snap0, data[ind].id0);
+							LOG()<<" @ "<<Tree::getkey(key, data[ind].snap, data[ind].id);
+
+							u_stop();	
+						//}
+						
 					}
 					//cpid 	= collectpidalongbranch(vh, t_slist, t_idlist);
 					cpid 	= collectpidalongbranch2(vh, CArr);
@@ -2183,8 +2195,7 @@ t0 = std::chrono::steady_clock::now();
 		JobArray job_ind, job_dind, job_tind, job_tind2;
 
 		int jobdone = 0;
-CT_I32 oldncut	= ncut;
-CT_I32 oldnn 	= next_point.size();
+
 		while(true){
 			init_job(thisjob);
 			
@@ -2201,6 +2212,7 @@ CT_I32 oldnn 	= next_point.size();
 
 				}
 			}
+
 
 			// Remove a que for overlapped ones
 			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, rank_index);
@@ -2314,6 +2326,7 @@ CT_I32 oldnn 	= next_point.size();
 				}
 			}
 
+
 			// 4c for tree[tind2]
 			if(job_tind2.size()>0){
 				for(auto j:job_tind2){
@@ -2338,6 +2351,7 @@ CT_I32 oldnn 	= next_point.size();
 					for(CT_I32 k=modtree.endind; k>=0; k--){
 						if(modtree.snap[k]<=j.snap) break;
 						lsnap 	= modtree.snap[k];
+						lid 	= modtree.id[k];
 					}
 
 					if(lsnap<0){
@@ -2693,8 +2707,6 @@ CT_I32 oldnn 	= next_point.size();
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
 		
-		LOG()<<oldncut<<" / "<<cut.size();
-		LOG()<<oldnn<<" / "<<next_point.size();
 		ControlArray data2 = loaddata(vh, snap_curr);
 		Tree::TreeArray tree2;
 		Tree::TreeKeyArray key2;
@@ -2704,7 +2716,6 @@ CT_I32 oldnn 	= next_point.size();
 		validate_tree(tree, tree2);
 		//validate_treekey(key, key2);
 
-			
 
 		if(snap_curr == 90) u_stop();
 	}
@@ -3087,16 +3098,11 @@ CT_I32 oldnn 	= next_point.size();
 	void DoJob4c(Tree::TreeArray& tree, Tree::TreeKeyArray& key, LinkJob& job){
 
 		//tree[tind2]
-		Tree::modifytree(tree, key, job.snap, job.id, job.snap);
+		//Tree::modifytree(tree, key, job.snap, job.id, job.snap);
 
-		// if dind branch had a single checkpoint, so it is removed after modifytree, gostop = false
+		Tree::modifytree_byindex(tree, key, job.tind2, job.snap);
 
-		//if(dind>=0){
-		//	gostop 	= Tree::istree(key, data[dind].snap0, data[dind].id0);
-		//}else{
-		//	gostop = false;
-		//}
-		
+	
 	}
 
 	void DoJob4d(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){

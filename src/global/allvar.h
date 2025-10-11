@@ -242,7 +242,8 @@ namespace Tree{
 
 	inline Tree_BID getkey(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
 		//return key[ snap + key[0].key * id ].ind;
-		return key[ snap + key[0]*id ];
+		return key[ snap + key[0]*id ] > 0 ? key[ snap + key[0]*id ] : -1;
+		
 	}
 
 
@@ -413,7 +414,7 @@ namespace Tree{
 				nnn ++;
 			}
 		}
-
+if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<nnn;
 		if(nnn == 0){
 			if(tree0.endind == 0 && tree0.snap[0] == cut_snap && tree0.snap[tree0.endind] == cut_snap){ // single snapshot case
 				treefree(tree, key, snap, id);
@@ -431,6 +432,7 @@ namespace Tree{
 			new_id[i] 		= tree0.id[mod_ind[i]];
 			new_snap[i] 	= tree0.snap[mod_ind[i]];
 			new_merit[i] 	= tree0.p_merit[mod_ind[i]];
+if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<new_snap[i]<<" / "<<new_id[i];
 		}
 
 		for(Tree_I32 i=0; i<tree0.endind+1; i++){
@@ -491,9 +493,107 @@ namespace Tree{
 			}
 		}
 
-		
+		if(snap == 98 && id == 27095 && cut_snap == 98){
+			LOG()<<tree0.endind;
+			int rank = 0;
+			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+			for(Tree_I32 i=0; i<tree0.endind+1; i++)LOG()<<tree0.snap[i]<<" / "<<tree0.id[i]<<" / "<<rank<<" = 23"<<" / "<<keyval;
+		}
 	}
 
+	inline void modifytree_byindex(TreeArray& tree, TreeKeyArray& key, Tree_BID bid, Tree_Snap cut_snap){
+		//Tree_BID keyval = getkey(key, snap, id);
+
+		TreeSt& tree0	= tree[bid];
+
+		// modify the tree
+		Tree_I32 nnn = 0;
+		std::vector<Tree_I32> mod_ind(tree0.endind+1);
+
+		for(Tree_I32 i=0; i<tree0.endind+1; i++){
+			if(tree0.snap[i] > cut_snap){
+				mod_ind[nnn] = i;
+				nnn ++;
+			}
+		}
+
+		if(nnn == 0){
+			if(tree0.endind == 0 && tree0.snap[0] == cut_snap && tree0.snap[tree0.endind] == cut_snap){ // single snapshot case
+				treefree(tree, key, tree0.snap[0], tree0.id[0]);
+			}
+			return;
+		}
+
+		mod_ind.resize(nnn);
+
+		std::vector<Tree_GID> new_id(tree0.id.size());
+		std::vector<Tree_Snap> new_snap(tree0.snap.size());
+		std::vector<Tree_merit> new_merit(tree0.p_merit.size());
+
+		for(Tree_I32 i=0; i<nnn; i++){
+			new_id[i] 		= tree0.id[mod_ind[i]];
+			new_snap[i] 	= tree0.snap[mod_ind[i]];
+			new_merit[i] 	= tree0.p_merit[mod_ind[i]];
+		}
+
+		for(Tree_I32 i=0; i<tree0.endind+1; i++){
+			key[ tree0.snap[i] + key[0]*tree0.id[i] ] = -1;
+		}
+
+
+		tree0.id.clear();
+		tree0.snap.clear();
+		tree0.p_merit.clear();
+
+		tree0.id 		= std::move(new_id);
+		tree0.snap 		= std::move(new_snap);
+		tree0.p_merit 	= std::move(new_merit);
+		tree0.endind 	= nnn-1;
+
+		for(Tree_I32 i=0; i<nnn; i++){
+			//key[ tree0.snap[i] + key[0].key*tree0.id[i] ].ind = keyval;
+			key[ tree0.snap[i] + key[0]*tree0.id[i] ] = bid;
+		}
+
+		//
+
+		if(tree0.numprog > 0){
+			std::vector<Tree_GID> new_mid(tree0.numprog);
+			std::vector<Tree_Snap> new_snap(tree0.numprog);
+			std::vector<Tree_merit> new_merit(tree0.numprog);
+			std::vector<Tree_BID> new_bid(tree0.numprog);
+
+			Tree_I32 np = 0;
+
+			for(Tree_I32 i=0; i<tree0.numprog; i++){
+				if(tree0.m_snap[i] > cut_snap){
+					//mod_ind[np] 	= i;
+					new_mid[np] 	= tree0.m_id[i];
+					new_snap[np] 	= tree0.m_snap[i];
+					new_merit[np]	= tree0.m_merit[i];
+					new_bid[np]		= tree0.m_bid[i];
+					np ++;
+				}
+			}
+
+			tree0.m_id.clear();
+			tree0.m_snap.clear();
+			tree0.m_merit.clear();
+			tree0.m_bid.clear();
+			tree0.numprog = 0;
+
+			if(np > 0){
+				//mod_ind.resize(np);
+
+				tree0.m_id 		= std::move(new_mid);
+				tree0.m_snap	= std::move(new_snap);
+				tree0.m_merit	= std::move(new_merit);
+				tree0.m_bid 	= std::move(new_bid);
+				tree0.numprog 	= np;
+			}
+		}
+
+	}
 }
 
 //-----
