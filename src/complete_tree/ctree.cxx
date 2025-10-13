@@ -3445,11 +3445,13 @@ t0 = std::chrono::steady_clock::now();
 				if(sinfo[i].snum > vh.ctree_loadcheck) continue;
 
 				if(skip_load < 0){
+#ifdef CTREE_USE_MPI
 					int size=1;
 					MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 					for(int j=0; j<size; j++){
 						if(j==myrank){
+#endif
 							ControlArray data2 = loaddata(vh, vh.ctree_loadcheck);
 							Tree::TreeArray tree2;
 							Tree::TreeKeyArray key2;
@@ -3465,10 +3467,13 @@ t0 = std::chrono::steady_clock::now();
 							for(CT_I32 k=0; k<data[0].last_ind+1; k++){
 								if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
 							}
+#ifdef CTREE_USE_MPI
 						}
 						MPI_Barrier(MPI_COMM_WORLD);
 					}
+#endif
 					skip_load = 1;
+
 				}
 			}
 
@@ -4251,6 +4256,16 @@ t0 = std::chrono::steady_clock::now();
 	        	}
 	        }
 
+	        if(d.n_ptcl>0){
+	        	for(auto p:d.p_list){
+	        		out.write(reinterpret_cast<const char*>(&p.pid), sizeof(p.pid));
+	        		out.write(reinterpret_cast<const char*>(&p.gid), sizeof(p.gid));
+	        		out.write(reinterpret_cast<const char*>(&p.weight), sizeof(p.weight));
+	        		out.write(reinterpret_cast<const char*>(&p.n_con), sizeof(p.n_con));
+	        		out.write(reinterpret_cast<const char*>(&p.maxgid), sizeof(p.maxgid));
+	        	}
+	        }
+
 	        out.write(reinterpret_cast<const char*>(&d.last_ind), sizeof(d.last_ind));
 	    }
 	      
@@ -4275,6 +4290,7 @@ t0 = std::chrono::steady_clock::now();
 
 	    CT_I32 dumint;
 	    CT_ID dumid;
+	    CT_PID dumpid;
 	    CT_snap dumsnap;
 	    CT_Merit dummerit;
 
@@ -4312,6 +4328,32 @@ t0 = std::chrono::steady_clock::now();
 	        		loadtree_read(in, dummerit);
 					d.list[l].merit = dummerit;
 	        	}
+	        }
+
+
+	        if(d.n_ptcl>0){
+
+	        	PIDArray pdum(d.n_ptcl);
+
+	        	for(CT_I32 l=0; l<d.n_ptcl; l++){
+	        		loadtree_read(in, dumpid);
+	        		pdum[l].pid 	= dumpid;
+
+	        		loadtree_read(in, dumid);
+	        		pdum[l].gid 	= dumid;
+
+	        		loadtree_read(in, dummerit);
+	        		pdum[l].weight 	= dummerit;
+
+	        		loadtree_read(in, dumint);
+	        		pdum[l].n_con 	= dumint;
+
+	        		loadtree_read(in, dumint);
+	        		pdum[l].maxgid	= dumint;
+	        	}
+
+	        	d.p_list 	= std::move(pdum);
+	
 	        }
 
 	        loadtree_read(in, dumint);

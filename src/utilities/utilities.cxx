@@ -128,7 +128,7 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
     // Save Tree
     //-----
     const std::string path2 = vh.out_dir + "/ctree_tree.dat";
-    LOG()<<"    Writing Tree in "<<path;
+    LOG()<<"    Writing Tree in "<<path2;
 
     std::ofstream out2(path2, std::ios::binary);
     if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path);
