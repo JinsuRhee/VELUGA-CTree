@@ -597,6 +597,11 @@ namespace Ctree{
 				Tree::TreeSt tree0 = Tree::gettree(tree, key, data[i].snap0, data[i].id0);
 				data[i].id 		= tree0.id[0];
 				data[i].snap 	= tree0.snap[0];
+
+				// update id0 & snap0
+				data[i].id0 	= tree0.id[tree0.endind];
+				data[i].snap0 	= tree0.snap[tree0.endind];
+				
 			}else{
 				// no branch exists
 				makenewbr(vh, data, i, data[i].snap0, data[i].id0, tree, key);
@@ -3436,11 +3441,6 @@ t0 = std::chrono::steady_clock::now();
 
 			if(myrank==0)LOG() <<"      TREE CONNECTION AT SNAP "<<i4(sinfo[i].snum)<<" for "<<i6(data[0].last_ind+1)<<" galaxies";
 
-			if(myrank==0 && vh.ctree_makecheck>0 && sinfo[i].snum % vh.ctree_makecheck == 0){
-				savedata(vh, data, sinfo[i].snum);
-				savetree_ctree(vh, tree, key, sinfo[i].snum);
-			}
-
 			if(vh.ctree_loadcheck > 0){
 				if(sinfo[i].snum > vh.ctree_loadcheck) continue;
 
@@ -3476,6 +3476,12 @@ t0 = std::chrono::steady_clock::now();
 
 				}
 			}
+
+			if(myrank==0 && vh.ctree_makecheck>0 && sinfo[i].snum % vh.ctree_makecheck == 0){
+				savedata(vh, data, sinfo[i].snum);
+				savetree_ctree(vh, tree, key, sinfo[i].snum);
+			}
+
 
 			if(myrank==0){
 				LOG()<<"        Memory report";
