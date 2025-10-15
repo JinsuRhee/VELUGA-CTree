@@ -128,6 +128,8 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="ctree_n_step_dn")  { parse_num(val, vh.ctree_n_step_dn); }
     else if (lkey=="ctree_rfact")      { parse_num(val, vh.ctree_rfact); }
     else if (lkey=="ctree_weighttype") { parse_num(val, vh.ctree_weighttype); }
+    else if (lkey=="ctree_makecheck") { parse_num(val, vh.ctree_makecheck); }
+    else if (lkey=="ctree_loadcheck") { parse_num(val, vh.ctree_loadcheck); }
     //else if (lkey=="ctree_rerunmod")   { parse_num(val, vh.ctree_rerunmod); }
     //else if (lkey=="ctree_rerun")      { parse_num(val, vh.ctree_rerun); }
     else {

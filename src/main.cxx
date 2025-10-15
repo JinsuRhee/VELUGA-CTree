@@ -72,7 +72,12 @@ int main(int argc, char** argv) {
   Tree::TreeKeyArray key;
   if(vh.iotype == "VR"){
     if(myrank == 0) LOG() <<"  Entering to MakeBr";
-    //Makebr::mainloop(vh, tree, key);
+    Makebr::mainloop(vh, tree, key);
+
+    if(myrank == 0){
+      LOG() <<"  Save the Tree & Key";
+      if(myrank == 0) savetree(vh, tree, key);
+    }
   }else{
     //TODO 123123
     //For Other OUTPUT

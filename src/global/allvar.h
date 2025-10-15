@@ -72,6 +72,9 @@ namespace vctree_set{
   		int32_t ctree_n_step_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
   		double  ctree_rfact      = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
   		int32_t ctree_weighttype = 1; 	   // Weighting type (1 :TF )
+
+  		int32_t ctree_makecheck = -1;
+  		int32_t ctree_loadcheck = -1;
   		// TreeFrog I/O related
   		std::string tag_num     = "";
   		std::string tag_off     = "";

@@ -597,6 +597,11 @@ namespace Ctree{
 				Tree::TreeSt tree0 = Tree::gettree(tree, key, data[i].snap0, data[i].id0);
 				data[i].id 		= tree0.id[0];
 				data[i].snap 	= tree0.snap[0];
+
+				// update id0 & snap0
+				data[i].id0 	= tree0.id[tree0.endind];
+				data[i].snap0 	= tree0.snap[tree0.endind];
+				
 			}else{
 				// no branch exists
 				makenewbr(vh, data, i, data[i].snap0, data[i].id0, tree, key);
@@ -2707,17 +2712,17 @@ t0 = std::chrono::steady_clock::now();
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
 		
-		ControlArray data2 = loaddata(vh, snap_curr);
-		Tree::TreeArray tree2;
-		Tree::TreeKeyArray key2;
-		loadtree_ctree(vh, tree2, key2, snap_curr);
+		//ControlArray data2 = loaddata(vh, snap_curr);
+		//Tree::TreeArray tree2;
+		//Tree::TreeKeyArray key2;
+		//loadtree_ctree(vh, tree2, key2, snap_curr);
 
-		validate_data(data, data2);
-		validate_tree(tree, tree2);
+		//validate_data(data, data2);
+		//validate_tree(tree, tree2);
 		//validate_treekey(key, key2);
 
 
-		if(snap_curr == 90) u_stop();
+		//if(snap_curr == 90) u_stop();
 	}
 
 	}
@@ -3428,12 +3433,55 @@ t0 = std::chrono::steady_clock::now();
 		//-----
 		// Main Loop
 		//-----
+		CT_I32 skip_load = -1;
 		ctree_num number;
 		if(myrank==0)LOG() <<"    Ctree) Main loop starts";
 		for(CT_I32 i=sinfo.size()-1; i>=0; i--){
 			if(sinfo[i].snum<0) continue;
 
 			if(myrank==0)LOG() <<"      TREE CONNECTION AT SNAP "<<i4(sinfo[i].snum)<<" for "<<i6(data[0].last_ind+1)<<" galaxies";
+
+			if(vh.ctree_loadcheck > 0){
+				if(sinfo[i].snum > vh.ctree_loadcheck) continue;
+
+				if(skip_load < 0){
+#ifdef CTREE_USE_MPI
+					int size=1;
+					MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+					for(int j=0; j<size; j++){
+						if(j==myrank){
+#endif
+							ControlArray data2 = loaddata(vh, vh.ctree_loadcheck);
+							Tree::TreeArray tree2;
+							Tree::TreeKeyArray key2;
+							loadtree_ctree(vh, tree2, key2, vh.ctree_loadcheck);
+							data    = std::move(data2);
+							tree    = std::move(tree2);
+							key     = std::move(key2);
+
+							for(CT_I32 k=1; k<(CT_I32) dkey.size();k++){
+								dkey[k] = -1;
+							}
+							
+							for(CT_I32 k=0; k<data[0].last_ind+1; k++){
+								if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
+							}
+#ifdef CTREE_USE_MPI
+						}
+						MPI_Barrier(MPI_COMM_WORLD);
+					}
+#endif
+					skip_load = 1;
+
+				}
+			}
+
+			if(myrank==0 && vh.ctree_makecheck>0 && sinfo[i].snum % vh.ctree_makecheck == 0){
+				savedata(vh, data, sinfo[i].snum);
+				savetree_ctree(vh, tree, key, sinfo[i].snum);
+			}
+
 
 			if(myrank==0){
 				LOG()<<"        Memory report";
@@ -3899,7 +3947,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s2.dat";
+	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
 	    LOG()<<"    Writing TreeKey in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -3937,8 +3985,8 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save Tree
 	    //-----
-	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s2.dat";
-	    LOG()<<"    Writing Tree in "<<path;
+	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
+	    LOG()<<"    Writing Tree in "<<path2;
 
 	    std::ofstream out2(path2, std::ios::binary);
 	    if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path);
@@ -4047,7 +4095,7 @@ t0 = std::chrono::steady_clock::now();
 	        // file check
 	        
 
-	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + "_s2.dat";
+	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -4095,7 +4143,7 @@ t0 = std::chrono::steady_clock::now();
 
 	    {
 	        
-	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + "_s2.dat";
+	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
 	        if(myrank==0){
 	            LOG() << "    Reading TreeKey from " << path;
 	        }
@@ -4184,7 +4232,7 @@ t0 = std::chrono::steady_clock::now();
 	    //-----
 	    // Save TreeKey
 	    //-----
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s2.dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
 	    LOG()<<"    Writing Data in "<<path;
 
 	    std::ofstream out(path, std::ios::binary);
@@ -4206,6 +4254,24 @@ t0 = std::chrono::steady_clock::now();
 	        out.write(reinterpret_cast<const char*>(&d.n_ptcl), sizeof(d.n_ptcl));
 	        out.write(reinterpret_cast<const char*>(&d.list_n), sizeof(d.list_n));
 
+	        if(d.list_n>0){
+	        	for(CT_I32 l=0; l<d.list_n; l++){
+	        		out.write(reinterpret_cast<const char*>(&d.list[l].id), sizeof(d.list[l].id));
+	        		out.write(reinterpret_cast<const char*>(&d.list[l].snap), sizeof(d.list[l].snap));
+	        		out.write(reinterpret_cast<const char*>(&d.list[l].merit), sizeof(d.list[l].merit));
+	        	}
+	        }
+
+	        if(d.n_ptcl>0){
+	        	for(auto p:d.p_list){
+	        		out.write(reinterpret_cast<const char*>(&p.pid), sizeof(p.pid));
+	        		out.write(reinterpret_cast<const char*>(&p.gid), sizeof(p.gid));
+	        		out.write(reinterpret_cast<const char*>(&p.weight), sizeof(p.weight));
+	        		out.write(reinterpret_cast<const char*>(&p.n_con), sizeof(p.n_con));
+	        		out.write(reinterpret_cast<const char*>(&p.maxgid), sizeof(p.maxgid));
+	        	}
+	        }
+
 	        out.write(reinterpret_cast<const char*>(&d.last_ind), sizeof(d.last_ind));
 	    }
 	      
@@ -4214,7 +4280,7 @@ t0 = std::chrono::steady_clock::now();
 	ControlArray loaddata(const vctree_set::Settings& vh, CT_I32 snap_curr){
 
 
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + "_s2.dat";
+	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
 	    std::ifstream in(path, std::ios::binary);
 	    if (!in) {
 	        LOG()<<"load_treekey_bin: cannot open " + path;
@@ -4229,19 +4295,24 @@ t0 = std::chrono::steady_clock::now();
 	    ControlArray data = allocate(vh, ndata);
 
 	    CT_I32 dumint;
+	    CT_ID dumid;
+	    CT_PID dumpid;
+	    CT_snap dumsnap;
+	    CT_Merit dummerit;
+
 	    for(auto &d: data){
 
-	        loadtree_read(in, dumint);
-	        d.id    = dumint;
+	        loadtree_read(in, dumid);
+	        d.id    = dumid;
 
-	        loadtree_read(in, dumint);
-	        d.id0    = dumint;
+	        loadtree_read(in, dumid);
+	        d.id0    = dumid;
 
-	        loadtree_read(in, dumint);
-	        d.snap    = dumint;
+	        loadtree_read(in, dumsnap);
+	        d.snap    = dumsnap;
 
-	        loadtree_read(in, dumint);
-	        d.snap0    = dumint;
+	        loadtree_read(in, dumsnap);
+	        d.snap0    = dumsnap;
 
 	        loadtree_read(in, dumint);
 	        d.stat    = dumint;
@@ -4251,6 +4322,45 @@ t0 = std::chrono::steady_clock::now();
 
 	        loadtree_read(in, dumint);
 	        d.list_n    = dumint;
+
+	        if(d.list_n>0){
+	        	for(CT_I32 l=0; l<d.list_n; l++){
+	        		loadtree_read(in, dumid);
+	        		d.list[l].id = dumid;
+
+	        		loadtree_read(in, dumsnap);
+	        		d.list[l].snap = dumsnap;
+
+	        		loadtree_read(in, dummerit);
+					d.list[l].merit = dummerit;
+	        	}
+	        }
+
+
+	        if(d.n_ptcl>0){
+
+	        	PIDArray pdum(d.n_ptcl);
+
+	        	for(CT_I32 l=0; l<d.n_ptcl; l++){
+	        		loadtree_read(in, dumpid);
+	        		pdum[l].pid 	= dumpid;
+
+	        		loadtree_read(in, dumid);
+	        		pdum[l].gid 	= dumid;
+
+	        		loadtree_read(in, dummerit);
+	        		pdum[l].weight 	= dummerit;
+
+	        		loadtree_read(in, dumint);
+	        		pdum[l].n_con 	= dumint;
+
+	        		loadtree_read(in, dumint);
+	        		pdum[l].maxgid	= dumint;
+	        	}
+
+	        	d.p_list 	= std::move(pdum);
+	
+	        }
 
 	        loadtree_read(in, dumint);
 	        d.last_ind    = dumint;
