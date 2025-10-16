@@ -407,7 +407,7 @@ namespace Ctree{
 	// Find index in snapshot array
 	CT_I32 wheresnap(IO::snapinfo& sinfo, CT_I32 snap_curr){
 		CT_I32 ind=0;
-		for(CT_I32 j=0; j<(CT_I32) sinfo.size() + 1; j++){
+		for(CT_I32 j=0; j<(CT_I32) sinfo.size(); j++){
 			if(sinfo[j].snum == snap_curr){
 				ind = j;
 				break;
@@ -601,7 +601,7 @@ namespace Ctree{
 				// update id0 & snap0
 				data[i].id0 	= tree0.id[tree0.endind];
 				data[i].snap0 	= tree0.snap[tree0.endind];
-				
+
 			}else{
 				// no branch exists
 				makenewbr(vh, data, i, data[i].snap0, data[i].id0, tree, key);
@@ -3460,11 +3460,17 @@ t0 = std::chrono::steady_clock::now();
 							tree    = std::move(tree2);
 							key     = std::move(key2);
 
+							dkey.resize(key.size());
+
 							for(CT_I32 k=1; k<(CT_I32) dkey.size();k++){
 								dkey[k] = -1;
 							}
 							
 							for(CT_I32 k=0; k<data[0].last_ind+1; k++){
+								if(data[k].snap0 + dkey[0]*data[k].id0 >= (CT_I32) dkey.size()){
+									LOG()<<" Why it happens?";
+									dkey.resize(dkey.resize() + vh.ctree_nstep);
+								}
 								if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
 							}
 #ifdef CTREE_USE_MPI

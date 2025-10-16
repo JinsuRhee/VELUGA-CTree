@@ -29,6 +29,10 @@ namespace Makebr{
 		//----- Change the TF output name to synchronize the exact snapshot list
 		if(myrank == 0) tfcname(vh);
 
+#ifdef CTREE_USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
+		
 		//----- Gather snapshot list
 		std::vector<IO_VR::VRT_Snap> snaplist;
 		IO_VR::VRT_Snap maxsnap = -1;
