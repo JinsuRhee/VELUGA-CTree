@@ -1,58 +1,16 @@
-# CMakeLists.txt
-#
-# VELUGA - Ctree
-# Written by Jinsu Rhee (jinsu.rhee@gmail.com)
-#
-# Ver 0.01
-#
-#-----------------
-# Code Structure
-#	ctree/
-#		├─ CMakeLists.txt
-#		└─ src/
-#			├─ main.cxx                 # wrapper code
-#			├─ global/                  # global headers and utilities
-#			│ 	├─ allvar.h
-#			│ 	├─ io.h 				# Manage IO
-#			│ 	├─ io.cxx 				# IO
-#			│ 	└─ config.cxx 			# Read configuration file 
-#			├─ makebr/                  # makebr related
-#			│ 	├─ makebr.h 			# Makebr header
-#			│ 	└─ makebr.cxx 			# Branch making
-#			├─ complete_tree/           # complete_tree related
-#			│	├─ ctree.h 				# Complete Tree Header
-#			│	└─ ctree.cxx 			# Complete Tree part
-#			└─ utilities/               # utilities
-#				├─ utilities.h
-#				└─ utilities.cxx
-#-----------------
+cmake_minimum_required(VERSION 3.10)
+project(veluga_ctree LANGUAGES C CXX)
 
-
-# Directory structures
-#
-#	src/
-#	|--		allvar.h 			# Farther Header
-#	|--		types.h 			# Data Types
-#	|-- 	autovec.h 			# Vector Customizing
-#	|
-#	|
-#	|--		main.cxx 			# Main executation file
-#	|--		config.cxx 			# Read Configuration
-#	|--		utilities.cxx 		# Some utilities ftns
-#	|-- 	makebr.cxx 			# make branch main loop
-		
-
-cmake_minimum_required(VERSION 3.20)
-project(veluga_ctree LANGUAGES CXX)
-
+# Standards
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
+# Options
+option(ENABLE_ASAN "Build with AddressSanitizer/UBSan" ON)
 
-
-#-----
-# Make executable
-#-----
+# Executable
 add_executable(veluga_ctree
   src/main.cxx
   src/global/config.cxx
@@ -60,69 +18,93 @@ add_executable(veluga_ctree
   src/makebr/makebr.cxx
   src/complete_tree/ctree.cxx
   src/utilities/utilities.cxx
-#  src/config.cxx
-#  src/utilities.cxx
-#  src/makebr.cxx
 )
 
-#-----
-# MPI
-#-----
+# ----------------
+# MPI (Intel MPI)
+# ----------------
 find_package(MPI REQUIRED)
 if (MPI_FOUND)
   add_compile_definitions(CTREE_USE_MPI)
   target_link_libraries(veluga_ctree PRIVATE MPI::MPI_CXX)
 endif()
 
-#-----
-# OMP
-#-----
-find_package(OpenMP REQUIRED)
+# ----------------
+# OpenMP
+# ----------------
+find_package(OpenMP REQUIRED COMPONENTS CXX)
 if (OpenMP_FOUND)
   add_compile_definitions(CTREE_USE_OMP)
   target_link_libraries(veluga_ctree PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-#-----
-# HDF5
-#-----
-find_package(HDF5 REQUIRED COMPONENTS C CXX)
-target_link_libraries(veluga_ctree PRIVATE HDF5::HDF5)
+# ----------------
+# HDF5 (Config target or variable)
+# ----------------
+find_package(HDF5 REQUIRED COMPONENTS C CXX HL)
 
-#-----
-# GCC > 9
-#-----
+if (TARGET HDF5::HDF5)
+  # For HDF target
+  target_link_libraries(veluga_ctree PRIVATE HDF5::HDF5)
+elseif (TARGET hdf5::hdf5)
+  if (TARGET hdf5::hdf5_cpp)
+    target_link_libraries(veluga_ctree PRIVATE hdf5::hdf5_cpp)
+  endif()
+  if (TARGET hdf5::hdf5_hl)
+    target_link_libraries(veluga_ctree PRIVATE hdf5::hdf5_hl)
+  endif()
+  if (TARGET hdf5::hdf5_hl_cpp)
+    target_link_libraries(veluga_ctree PRIVATE hdf5::hdf5_hl_cpp)
+  endif()
+  target_link_libraries(veluga_ctree PRIVATE hdf5::hdf5)
+else()
+  # based on find
+  target_include_directories(veluga_ctree PRIVATE ${HDF5_INCLUDE_DIRS})
+  set(_hdf5_all_libs
+    ${HDF5_LIBRARIES}
+    ${HDF5_CXX_LIBRARIES}
+    ${HDF5_HL_LIBRARIES}
+    ${HDF5_CXX_HL_LIBRARIES}
+  )
+  list(REMOVE_DUPLICATES _hdf5_all_libs)
+  target_link_libraries(veluga_ctree PRIVATE ${_hdf5_all_libs})
+endif()
+
+# ----------------
+# GCC version check
+# ----------------
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-    message(FATAL_ERROR "GCC >= 9 is required for std::filesystem. Found ${CMAKE_CXX_COMPILER_VERSION}.")
+    message(FATAL_ERROR "GCC >= 9 is required. Found ${CMAKE_CXX_COMPILER_VERSION}.")
   endif()
 endif()
 
-
-
-# Add path
-target_include_directories(veluga_ctree PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}/src
-	${HDF5_INCLUDE_DIRS}
-)
-
-# Link libraries
-#target_link_libraries(veluga_ctree
-#  PUBLIC MPI::MPI_CXX
-#  PUBLIC OpenMP::OpenMP_CXX
-#  PUBLIC ${HDF5_CXX_LIBRARIES}
-#)
-
-target_compile_definitions(veluga_ctree PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
-
-# 옵션: 약간의 최적화와 경고
+# ----------------
+# optimiaztion & ASAN
+# ----------------
 if (MSVC)
-  target_compile_options(veluga_ctree PRIVATE /O2 /W4)
+  target_compile_options(veluga_ctree PRIVATE /W4)
 else()
-  target_compile_options(veluga_ctree PRIVATE -O3 -Wall -Wextra -Wpedantic)
+  target_compile_options(veluga_ctree PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 
+if (ENABLE_ASAN AND NOT MSVC)
+  # optimization crash block
+  target_compile_options(veluga_ctree PRIVATE -O1 -g -fno-omit-frame-pointer -fsanitize=address,undefined)
+  target_link_options(veluga_ctree PRIVATE -fsanitize=address,undefined)
+else()
+  if (NOT MSVC)
+    target_compile_options(veluga_ctree PRIVATE -O3)
+  else()
+    target_compile_options(veluga_ctree PRIVATE /O2)
+  endif()
+endif()
 
+# Includes
+target_include_directories(veluga_ctree PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
-
+# Misc
+target_compile_definitions(veluga_ctree PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
