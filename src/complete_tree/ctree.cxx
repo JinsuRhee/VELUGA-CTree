@@ -351,7 +351,7 @@ namespace Ctree{
 			} else if(type == 1){
 				is 	= (data[i].stat == 0) && (data[i].n_ptcl < 0);
 			} else if(type == -1){
-				is  = (data[i].stat >= 0);
+				is  = (data[i].stat >= 0) && (data[i].id0 > 0);
 			}
 
 			if(is){
@@ -2220,10 +2220,10 @@ t0 = std::chrono::steady_clock::now();
 
 
 			// Remove a que for overlapped ones
-			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, rank_index);
-			check_overlap(NEXT_T, thisjob, thisjob.dind, ind, cut, next_point, rank_index);
-			check_overlap(NEXT_T, thisjob, thisjob.tind, ind, cut, next_point, rank_index);
-			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, islink, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.dind, ind, cut, next_point, islink, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind, ind, cut, next_point, islink, rank_index);
+			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, islink, rank_index);
 			ncut 	= cut.size(); // update ncut
 
 			// Gather que
@@ -2826,7 +2826,7 @@ t0 = std::chrono::steady_clock::now();
     	}
     }
 
-    void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, CT_I32 rank_index){
+    void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index){
     	int rank, size;
     	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     	MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -2903,6 +2903,16 @@ t0 = std::chrono::steady_clock::now();
             MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
                 recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
         	next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
+    	}
+
+    	// append islink
+    	std::vector<CT_I32> recv_islink(total);
+    	CT_I32 local_islink = islink[rank_index];
+    	if (total > 0) {
+    		MPI_Allgatherv(is_loser[rank] ? &local_islink : nullptr, sendcnt, MPI_INT, 
+    			recv_islink.data(), recvcnts.data(), displs.data(), MPI_INT, MPI_COMM_WORLD);
+
+    		islink.insert(islink.end(), recv_islink.begin(), recv_islink.end());
     	}
 
     	// change job for loser
@@ -3469,7 +3479,7 @@ t0 = std::chrono::steady_clock::now();
 							for(CT_I32 k=0; k<data[0].last_ind+1; k++){
 								if(data[k].snap0 + dkey[0]*data[k].id0 >= (CT_I32) dkey.size()){
 									LOG()<<" Why it happens?";
-									dkey.resize(dkey.resize() + vh.ctree_nstep);
+									dkey.resize(dkey.size() + vh.ctree_nstep);
 								}
 								if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
 							}
