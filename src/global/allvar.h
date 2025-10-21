@@ -417,7 +417,7 @@ namespace Tree{
 				nnn ++;
 			}
 		}
-if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<nnn;
+
 		if(nnn == 0){
 			if(tree0.endind == 0 && tree0.snap[0] == cut_snap && tree0.snap[tree0.endind] == cut_snap){ // single snapshot case
 				treefree(tree, key, snap, id);
@@ -435,7 +435,7 @@ if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<nnn;
 			new_id[i] 		= tree0.id[mod_ind[i]];
 			new_snap[i] 	= tree0.snap[mod_ind[i]];
 			new_merit[i] 	= tree0.p_merit[mod_ind[i]];
-if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<new_snap[i]<<" / "<<new_id[i];
+
 		}
 
 		for(Tree_I32 i=0; i<tree0.endind+1; i++){
@@ -494,13 +494,6 @@ if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<new_snap[i]<<" / "<<new_i
 				tree0.m_bid 	= std::move(new_bid);
 				tree0.numprog 	= np;
 			}
-		}
-
-		if(snap == 98 && id == 27095 && cut_snap == 98){
-			LOG()<<tree0.endind;
-			int rank = 0;
-			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-			for(Tree_I32 i=0; i<tree0.endind+1; i++)LOG()<<tree0.snap[i]<<" / "<<tree0.id[i]<<" / "<<rank<<" = 23"<<" / "<<keyval;
 		}
 	}
 

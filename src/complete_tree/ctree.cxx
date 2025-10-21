@@ -408,8 +408,9 @@ namespace Ctree{
 	CT_I32 wheresnap(IO::snapinfo& sinfo, CT_I32 snap_curr){
 		CT_I32 ind=0;
 		for(CT_I32 j=0; j<(CT_I32) sinfo.size(); j++){
+			if(sinfo[j].snum<0) continue;
+			ind ++;
 			if(sinfo[j].snum == snap_curr){
-				ind = j;
 				break;
 			}
 		}
