@@ -190,7 +190,6 @@ namespace IO_VR{
 	// read Galaxy Catalog
 	//	
 	//-----
-	//==================== 메인 함수: r_gal ====================//
 	// id0 < 0  → All galaxies
 	// id0 >= 0 → A Galaxy corresponding to this ID
 	// horg 	→ 'h' or 'g'

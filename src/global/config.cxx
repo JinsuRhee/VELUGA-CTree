@@ -105,6 +105,17 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // Ramses related
     else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
+
+
+    // Branch related
+    else if (lkey=="branchmaker") vh.branchmaker = normalize_iotype(val, true);
+    else if (lkey=="brtype") vh.brtype = normalize_iotype(val, true);
+
+    // Load tree
+    else if (lkey=="loadtree") vh.loadtree = normalize_iotype(val, true);
+    else if (lkey=="loadtree_ftree") vh.loadtree_ftree = normalize_iotype(val, false);
+    else if (lkey=="loadtree_fkey") vh.loadtree_fkey = normalize_iotype(val, false);
+    
     // General (String)
     else if (lkey=="horg") {
       if (!val.empty()) vh.horg = (char)std::tolower((unsigned char)val[0]);
@@ -123,6 +134,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="treekey"){ parse_num(val, vh.treekey); }
 
     // Ctree
+    else if (lkey=="ctree_minfrac")    { parse_num(val, vh.ctree_minfrac); }
     else if (lkey=="ctree_n_search")   { parse_num(val, vh.ctree_n_search); }
     else if (lkey=="ctree_n_step_n")   { parse_num(val, vh.ctree_n_step_n); }
     else if (lkey=="ctree_n_step_dn")  { parse_num(val, vh.ctree_n_step_dn); }

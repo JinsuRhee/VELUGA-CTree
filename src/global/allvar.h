@@ -26,7 +26,7 @@ namespace vctree_parameters{
   	//inline int32_t tarr_size = 10000;
   	inline int32_t ctree_nstep 	= 10000;
   	inline int32_t ctree_npid 	= 100000;
-  	inline double ctree_minfrac = 0.25;
+  	
 }
 
 
@@ -45,6 +45,14 @@ namespace vctree_set{
 	struct Settings {
 		std::string iotype 		= "VR";			  // IO type
 		std::string	simtype		= "Ramses";		  // Simulation type
+		
+
+		std::string branchmaker = "N";
+		std::string brtype 		= "TF";
+
+		std::string loadtree 	= "Y";
+		std::string loadtree_ftree = "";
+		std::string loadtree_fkey  = "";
 
 		// For VR IO
 		std::string vr_dir_catalog 	= "./catalog/";   // VR output directory
@@ -99,7 +107,7 @@ namespace vctree_set{
   		//int32_t tarr_size = vctree_parameters::tarr_size;
   		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
   		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
-  		double ctree_minfrac 	= vctree_parameters::ctree_minfrac;
+  		double ctree_minfrac 	= 0.25;//;vctree_parameters::ctree_minfrac;
 
 	};
 }

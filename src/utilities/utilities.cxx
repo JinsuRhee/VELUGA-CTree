@@ -75,7 +75,7 @@ void u_stop() {
 
 
 // Save Tree
-void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
+void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
 
     
 
@@ -228,7 +228,7 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 }
 
 
-void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
+void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
 
     int myrank  = mpi_rank();
     // Simple version used
@@ -236,7 +236,8 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
         // file check
         
 
-        const std::string path = vh.out_dir + "/ctree_key.dat";
+        //const std::string path = vh.out_dir + "/ctree_key.dat";
+        const std::string path = vh.loadtree_fkey;
         if(myrank==0){
             LOG() << "    Reading TreeKey from " << path;
         }
@@ -282,7 +283,8 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
     {
         
-        const std::string path = vh.out_dir + "/ctree_tree.dat";
+        //const std::string path = vh.out_dir + "/ctree_tree.dat";
+        const std::string path = vh.loadtree_ftree;
         if(myrank==0){
             LOG() << "    Reading TreeKey from " << path;
         }
