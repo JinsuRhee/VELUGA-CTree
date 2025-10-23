@@ -3471,19 +3471,7 @@ t0 = std::chrono::steady_clock::now();
 							tree    = std::move(tree2);
 							key     = std::move(key2);
 
-							dkey.resize(key.size());
-
-							for(CT_I32 k=1; k<(CT_I32) dkey.size();k++){
-								dkey[k] = -1;
-							}
 							
-							for(CT_I32 k=0; k<data[0].last_ind+1; k++){
-								if(data[k].snap0 + dkey[0]*data[k].id0 >= (CT_I32) dkey.size()){
-									LOG()<<" Why it happens?";
-									dkey.resize(dkey.size() + vh.ctree_nstep);
-								}
-								if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
-							}
 #ifdef CTREE_USE_MPI
 						}
 						MPI_Barrier(MPI_COMM_WORLD);
@@ -3497,6 +3485,21 @@ t0 = std::chrono::steady_clock::now();
 			if(myrank==0 && vh.ctree_makecheck>0 && sinfo[i].snum % vh.ctree_makecheck == 0){
 				savedata(vh, data, sinfo[i].snum);
 				savetree_ctree(vh, tree, key, sinfo[i].snum);
+			}
+
+			//----- dkey initialize
+			dkey.resize(key.size());
+
+			//OMP HERE?
+			for(CT_I32 k=1; k<(CT_I32) dkey.size();k++){
+				dkey[k] = -1;
+			}
+
+			for(CT_I32 k=0; k<data[0].last_ind+1; k++){
+				if(data[k].snap0 + dkey[0]*data[k].id0 >= (CT_I32) dkey.size()){
+					dkey.resize(dkey.size() + vh.ctree_nstep);
+				}
+				if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
 			}
 
 
