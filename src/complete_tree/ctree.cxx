@@ -1873,12 +1873,17 @@ int myrank = mpi_rank();
 
 		ind1 	= wheresnap(sinfo, snap_curr);
 		ind0 	= wheresnap(sinfo, (CT_I32) vh.snapi);
-		snap_int_cut 	= ind1-ind0-1;
-		if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
+		//ind2 	= wheresnap(sinfo, (CT_I32) vh.snapf);
+
+		//snap_int_cut 	= ind1-ind0-1;
+		//snap_int_cut2 	= ind2-ind1-1;
+
+		//if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
+		//if(snap_int_cut2 >= vh.ctree_n_search) snap_int_cut2 = vh.ctree_n_search;
 		//ind1 	= snap_curr;
 		//ind0 	= vh.snapi;
-		//snap_int_cut	= ind1-ind0-1;
-		//if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
+		snap_int_cut	= ind1-ind0-1;
+		if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
 		//----- Extract Target Control whose list is fully filled
 		std::vector<CT_I32> cut(data[0].last_ind+1);
 		CT_I32 ncut = 0;
@@ -3296,8 +3301,25 @@ t0 = std::chrono::steady_clock::now();
 
 		CT_I32 nn = 0;
 
+		ControlKey dkey2(dkey.size(), {-1});
+		dkey2[0] 	= dkey[0];
+
+#if CTREE_USE_OMP
+		#pragma omp parallel for default(none) \
+			shared(data, dkey2)
+#endif
+		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
+			if(data[i].list_n <= 0) continue;
+			for(CT_I32 j=0; j<data[i].list_n; j++){
+				dkey2[ data[i].list[j].snap + data[i].list[j].id * dkey2[0] ] = 1;
+			}
+		}
+
 		for(CT_I32 i=0; i<(CT_I32) gal0.size(); i++){
 
+			// is existed in the link list, do not add
+
+			if(dkey2[ gal0[i].snap + dkey2[0]*gal0[i].id] > 0) continue;
 
 			if(!Tree::istree( key, gal0[i].snap, gal0[i].id )){
 				gal[nn] 	= gal0[i];
@@ -3460,8 +3482,8 @@ t0 = std::chrono::steady_clock::now();
 					int size=1;
 					MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-					for(int j=0; j<size; j++){
-						if(j==myrank){
+					//for(int j=0; j<size; j++){
+					//	if(j==myrank){
 #endif
 							ControlArray data2 = loaddata(vh, vh.ctree_loadcheck);
 							Tree::TreeArray tree2;
@@ -3473,9 +3495,9 @@ t0 = std::chrono::steady_clock::now();
 
 							
 #ifdef CTREE_USE_MPI
-						}
-						MPI_Barrier(MPI_COMM_WORLD);
-					}
+					//	}
+					//	MPI_Barrier(MPI_COMM_WORLD);
+					//}
 #endif
 					skip_load = 1;
 
