@@ -8,6 +8,21 @@ namespace Ctree{
 	//-----
 	// ETC
 	//-----
+	void re_dkey(ControlKey& dkey, CT_I32 ind){
+
+	}
+    void in_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id, CT_I32 ind){
+    	CT_I32 keyval = snap + dkey[0]*id;
+    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, ind);
+    	dkey[keyval]	= ind;
+    }
+    CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id){
+    	CT_I32 keyval = snap + dkey[0]*id;
+    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, ind);
+    	return dkey[keyval];
+    }
+
+
 	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link){
 		
 		// this should be snap0 & id0 in mpi parallelization
@@ -3306,10 +3321,6 @@ t0 = std::chrono::steady_clock::now();
 		ControlKey dkey2(dkey.size(), {-1});
 		dkey2[0] 	= dkey[0];
 
-#if CTREE_USE_OMP
-		#pragma omp parallel for default(none) \
-			shared(data, dkey2)
-#endif
 		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
 			if(data[i].list_n <= 0) continue;
 			for(CT_I32 j=0; j<data[i].list_n; j++){

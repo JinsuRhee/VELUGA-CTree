@@ -175,6 +175,11 @@ namespace Ctree{
     using JobArray = std::vector<LinkJob>;
 
 
+    void re_dkey(ControlKey& dkey, CT_I32 ind);
+    void in_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id, CT_I32 ind);
+    CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id);
+
+
     CT_Merit link_commerit(const vctree_set::Settings& vh, Tree::TreeSt tree0, CT_I32 snap_to_link, CT_I32 id_to_link, CT_I32 snap_curr);
 
     void init_job(LinkJob& thisjob);
