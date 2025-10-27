@@ -1921,6 +1921,8 @@ auto t0 = std::chrono::steady_clock::now();
 					next_point[i].snap 	= data[ind].list[j].snap;
 					next_point[i].merit = data[ind].list[j].merit;
 
+					// link to closer snapshot if the merit scoes is enough high
+					if(dum_merit >= 0.5 * vh.ctree_minfrac) break;
 				}
 			}
 		}
