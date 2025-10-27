@@ -258,6 +258,25 @@ namespace Tree{
 	}
 
 
+	inline void re_key(TreeKeyArray& key, Tree_BID ind){
+
+		Tree_BID newsize = key.size()*1.1;
+		if(ind > newsize) newsize = ind+1;
+		key.resize(newsize, {-1});
+	}
+
+    inline void in_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_BID ind){
+    	Tree_BID keyval = snap + key[0]*id;
+    	if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
+    	key[keyval]	= ind;
+    }
+
+    inline Tree_BID get_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
+    	Tree_BID keyval = snap + key[0]*id;
+    	if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
+    	return key[keyval];
+    }
+
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
 		Tree_Snap snap, Tree_GID id){
 

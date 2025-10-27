@@ -10,15 +10,20 @@ namespace Ctree{
 	//-----
 	void re_dkey(ControlKey& dkey, CT_I32 ind){
 
+		CT_I32 newsize = dkey.size()*1.1;
+		if(ind > newsize) newsize = ind+1;
+
+		dkey.resize(newsize, {-1});
+
 	}
     void in_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id, CT_I32 ind){
     	CT_I32 keyval = snap + dkey[0]*id;
-    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, ind);
+    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
     	dkey[keyval]	= ind;
     }
     CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id){
     	CT_I32 keyval = snap + dkey[0]*id;
-    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, ind);
+    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
     	return dkey[keyval];
     }
 
