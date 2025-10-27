@@ -19,6 +19,7 @@ namespace Ctree{
     void in_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id, CT_I32 ind){
     	CT_I32 keyval = snap + dkey[0]*id;
     	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
+    	if(keyval>=dkey.size()) LOG()<<" ?? "<<snap<<" / "<<id<<" / "<<keyval;
     	dkey[keyval]	= ind;
     }
     CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id){
@@ -1297,8 +1298,7 @@ t0 = std::chrono::steady_clock::now();
 				if(this_merit < other_merit){
 					islink[i] = -2;
 
-					//next_point[i].id 	= -1;
-					//next_point[i].snap 	= -1;
+
 					continue;
 				}
 			} else{
@@ -1757,9 +1757,9 @@ t0 = std::chrono::steady_clock::now();
     			}
 
     			if(data[pairs_dind[i].first].stat >= 0){
-    				in_dkey(dkey, data[pairs_dind[i].first].snap0, dkey[0]*data[pairs_dind[i].first].id0, pairs_dind[i].first);
+    				in_dkey(dkey, data[pairs_dind[i].first].snap0, data[pairs_dind[i].first].id0, pairs_dind[i].first);
 				}else{
-					in_dkey(dkey, data[pairs_dind[i].first].snap0, dkey[0]*data[pairs_dind[i].first].id0, -1);
+					in_dkey(dkey, data[pairs_dind[i].first].snap0, data[pairs_dind[i].first].id0, -1);
 				}
     		}
     	}
