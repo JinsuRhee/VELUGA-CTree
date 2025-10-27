@@ -235,14 +235,11 @@ namespace Ctree{
 	void classify(const vctree_set::Settings& vh, ControlArray& data, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number);
 	
 	PIDArray collectpid(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
-	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, std::vector<CT_snap>& slist, std::vector<CT_ID>& glist);
-	PIDArray collectpidalongbranch2(const vctree_set::Settings& vh, CollectArray& CArr);
+	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0);
 
 	SnapPT readsnap(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr);
-	
-	void commerit(const vctree_set::Settings& vh, ControlArray& data, PIDArray& pid, SnapPT& pid0, CT_I32 snap_curr);
 
-	void commerit2(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr);
+	void commerit(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr);
 
 	void link(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr);
 
@@ -254,13 +251,7 @@ namespace Ctree{
 	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link);
 	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link, CT_I32 snap_curr);
 
-	void get_merit(std::vector<CT_PID>& pid_g, std::vector<CT_I32>& gid_g, 
-		std::vector<CT_PID>& pid_s, std::vector<CT_I32>& gid_s, 
-		std::vector<CT_I32>& hash, std::vector<CT_I32>& hash_next, 
-		std::vector<CT_I32>& npart_g, std::vector<CT_I32>& npart_s, 
-		std::vector<CT_I32>& match_id, std::vector<CT_Merit>& match_merit);
-
-	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, std::vector<CT_Merit>& w0, std::vector<CT_Merit>& w1, CT_I32 merittype);
+	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, CT_I32 merittype);
 
 	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid);
 
@@ -271,8 +262,7 @@ namespace Ctree{
 	std::vector<CT_Merit> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid);
 	PIDArray get_coreptcl(const vctree_set::Settings& vh, PIDArray& pid);
 
-	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, std::vector<CT_I32>& slist, std::vector<CT_I32>& idlist);
-	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, CollectArray& CArr);
+	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, Tree::TreeSt& tree0, CT_I32 snap0);
 	// For main
 	void main(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
                         //Tree& tree,
