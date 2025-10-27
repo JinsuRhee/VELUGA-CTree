@@ -131,7 +131,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="meritlimit"){ parse_num(val, vh.meritlimit); }
     //else if (lkey=="snap_step")   { parse_num(val, vh.snap_step); }
     //else if (lkey=="makebr_nprog"){ parse_num(val, vh.makebr_nprog); }
-    else if (lkey=="treekey"){ parse_num(val, vh.treekey); }
+   
 
     // Ctree
     else if (lkey=="ctree_minfrac")    { parse_num(val, vh.ctree_minfrac); }
