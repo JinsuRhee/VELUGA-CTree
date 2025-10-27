@@ -23,8 +23,12 @@ namespace Ctree{
     }
     CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id){
     	CT_I32 keyval = snap + dkey[0]*id;
-    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
-    	return dkey[keyval];
+    	if(keyval >= (CT_I32) dkey.size()){
+    		return -1;
+    	}
+    	else{
+    		return dkey[keyval];
+    	}
     }
 
 
@@ -51,8 +55,6 @@ namespace Ctree{
 			makenewbr(vh, data, ind, data[ind].snap, data[ind].id, tree, key);
 		}
 
-		//Tree::TreeSt tree0 	= Tree::gettree(tree, key, data[ind].snap, data[ind].id);
-
 		Tree::treeinput(tree, key, data[ind].snap0, data[ind].id0, snap_to_link, id_to_link, merit_to_link);
 	}
 
@@ -77,22 +79,10 @@ namespace Ctree{
 		tree[tree[0].lind] 	= std::move(newtree);
 
 
-		Tree::Tree_BID keyval;
-		//keyval 	= snap0 + key[0].key * id0;
-		keyval 	= snap0 + key[0] * id0;
-
-		if((Tree::Tree_BID) key.size() <= keyval){
-			key.resize( (Tree::Tree_BID) key.size() + vh.ctree_nstep);
-		}
-
-		//key[keyval].ind 	= tree[0].lind;
-		key[keyval] 	= tree[0].lind;
+		Tree::in_key(key, snap0, id0, tree[0].lind);
 
 		data[ind].id 	= id0;
 		data[ind].snap 	= snap0;
-
-
-
 	}
 
 
@@ -506,9 +496,6 @@ namespace Ctree{
 	// Free
 	void ctfree(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_I32 s_end, CT_I32 id_end, CT_I32 snap0){
 
-		//dkey[ data[ind].snap + dkey[0]*data[ind].id ] = -1;
-		//dkey[ data[ind].snap0 + dkey[0]*data[ind].id0 ] = -1;
-
 		CT_I32 ncut;
 		data[ind].detstat 	= -1;
 
@@ -518,7 +505,6 @@ namespace Ctree{
 
 		data[ind].n_ptcl 	= -1;
 		if(s_end<0){
-			//dkey[ data[ind].snap + dkey[0]*data[ind].id ] = -1;
 			data[ind].id = -1;
 			data[ind].snap = -1;
 
@@ -531,7 +517,6 @@ namespace Ctree{
 		}else if(s_end > snap0){
 			data[ind].id 	= id_end;
 			data[ind].snap 	= s_end;
-			//dkey[ data[ind].snap + dkey[0]*data[ind].id ] = ind;
 
 			ncut = 0;
 			for(CT_I32 i=0; i<vh.ctree_n_search; i++){
@@ -568,7 +553,6 @@ namespace Ctree{
 		}else if(s_end <= snap0 && s_end > 0){
 			data[ind].id 	= id_end;
 			data[ind].snap 	= s_end;
-			//dkey[ data[ind].snap + dkey[0]*data[ind].id ] = ind;
 
 			for(CT_I32 i=0; i<vh.ctree_n_search; i++){
 				data[ind].list[i].merit = -1.;
@@ -626,19 +610,11 @@ namespace Ctree{
 			}else{
 				// no branch exists
 				makenewbr(vh, data, i, data[i].snap0, data[i].id0, tree, key);
-				//data[i].id 		= data[i].id0;
-				//data[i].snap 	= data[i].snap0;
 			}
 
-			dkey[ data[i].snap0 + dkey[0] * data[i].id0 ]	= i;
-
-			//dkey[ data[i].snap + dkey[0] * data[i].id ]	= i;
-
+			in_dkey(dkey, data[i].snap0, data[i].id0, i);
 		}
-		data[0].last_ind 	= i1;
-
-		
-		
+		data[0].last_ind 	= i1;	
 	}
 
 	//-----
@@ -728,16 +704,6 @@ namespace Ctree{
 
 			PIDReallocate(vh, pid, ind1);
 
-
-			//if(ind1 >= (CT_I32) pid.size()){
-			//	stepsize 	= pid.size() + ind1 + vh.ctree_npid;
-			//	while(true){
-			//		if(ind1 < stepsize) break;
-			//		stepsize += vh.ctree_npid;
-			//	}
-			//	pid.resize( stepsize );
-			//}
-
 			// OMP?
 #ifdef CTREE_USE_OMP
 			#pragma omp parallel for default(none) \
@@ -759,62 +725,6 @@ namespace Ctree{
 		PIDArray pid2;
 		pid2 	= get_coreptcl(vh, pid);
 
-
-//		std::sort(pid.begin(), pid.end(), [](const PIDSt& a, const PIDSt& b) {
-//            if (a.pid != b.pid) return a.pid < b.pid;
-//            return a.weight > b.weight; 
-//        });
-//
-//		std::vector<CT_I32> uind(ind0);
-//
-//		CT_I32 uind_n = 1;
-//		CT_PID uind_ptdum = pid[0].pid;
-//		uind[0] 	= 0;
-//
-//		for(CT_I32 i=1; i<ind0; i++){
-//			if(pid[i].pid > uind_ptdum){
-//				uind[uind_n]	= i;
-//				uind_ptdum 		= pid[i].pid;
-//				uind_n ++;
-//			}
-//		}
-//		uind.resize(uind_n);
-//
-//		// step
-//		std::vector<CT_I32> numid(uind.size());
-//		//numid[0]	= uind[0] + 1;
-//		for(CT_I32 i=0; i<uind.size()-1; i++){
-//			numid[i]	= uind[i+1] - uind[i];
-//		}
-//		numid[uind.size()-1] 	= pid.size() - uind[uind.size()-1];
-//
-//		// resize particle array for exsiting ones for multiple snapshots
-//		std::vector<CT_I32> ucut(ind0);
-//		CT_I32 uncut = 0;
-//		CT_I32 n_step_bw0 = vh.ctree_n_step_n;
-//		while(true){
-//			uncut = 0;
-//			for(CT_I32 i=0; i<uind_n; i++){
-//				if(numid[i] >= n_step_bw0){
-//					ucut[uncut]	= uind[i];
-//					uncut ++;
-//				}
-//			}
-//			if( ((CT_double) uncut) / ((CT_double) uind_n) > 0.25) break;
-//			n_step_bw0 --;
-//		}
-//
-//		ucut.resize(uncut);
-//
-//		// input
-//		PIDArray pid2(uncut);
-//
-//		for(CT_I32 i=0; i<uncut; i++){
-//			pid2[i] 		= pid[ucut[i]];
-//		}
-//
-//
-//		pid2.resize(uncut);
 
 		return pid2;
 		
@@ -1448,8 +1358,8 @@ namespace Ctree{
 								LOG()<<" --- "<<tree0.snap[k]<<" / "<<tree0.id[k];
 							}
 
-							LOG()<<" @ "<<Tree::getkey(key, data[ind].snap0, data[ind].id0);
-							LOG()<<" @ "<<Tree::getkey(key, data[ind].snap, data[ind].id);
+							LOG()<<" @ "<<Tree::get_key(key, data[ind].snap0, data[ind].id0);
+							LOG()<<" @ "<<Tree::get_key(key, data[ind].snap, data[ind].id);
 
 							u_stop();	
 						//}
@@ -1730,11 +1640,12 @@ namespace Ctree{
 		Tree::TreeSt tmp_tree 		= Tree::gettree(tree, key, data[ind].snap, data[ind].id);
 		Tree::TreeSt tmp_tree_toc	= Tree::gettree(tree, key, snap_to_link, id_to_link);
 
-		Tree::Tree_BID org_bid 	= Tree::getkey(key, data[ind].snap, data[ind].id);
-		Tree::Tree_BID com_bid 	= Tree::getkey(key, snap_to_link, id_to_link);
+		Tree::Tree_BID org_bid 	= Tree::get_key(key, data[ind].snap, data[ind].id);
+		Tree::Tree_BID com_bid 	= Tree::get_key(key, snap_to_link, id_to_link);
 
 
-		CT_I32 dind = dkey[tmp_tree_toc.snap[tmp_tree_toc.endind] + dkey[0] * tmp_tree_toc.id[tmp_tree_toc.endind]];
+		CT_I32 dind = get_dkey(dkey, tmp_tree_toc.snap[tmp_tree_toc.endind], tmp_tree_toc.id[tmp_tree_toc.endind]);
+
 		if(dind>0 && (data[dind].id0 != tmp_tree_toc.id[tmp_tree_toc.endind] || data[dind].snap0 != tmp_tree_toc.snap[tmp_tree_toc.endind])){
 			LOG()<<"?? : "<<dind<<" / "<<com_bid;
 			LOG()<<data[dind].id0<<" / "<<data[dind].snap0;
@@ -1744,13 +1655,6 @@ namespace Ctree{
 
 		// Clean Merge
 		if(tmp_tree_toc.snap[tmp_tree_toc.endind] < tmp_tree.snap[0]){ // end before the start: complete merge
-
-
-			//if( !(tmp_tree_toc.id[tmp_tree_toc.endind] == id_to_link && tmp_tree_toc.snap[tmp_tree_toc.endind] == snap_to_link )){
-			//	LOG()<<"Just check whether this is possible";
-			//	u_stop();
-			//}
-
 			
 			tmp_tree_toc.p_merit[0] 	= merit_to_link;
 
@@ -2171,7 +2075,7 @@ t0 = std::chrono::steady_clock::now();
 
 				data[cut[i]].stat = -1;
 
-				keyval 	= Tree::getkey(key, data[cut[i]].snap0, data[cut[i]].id0);
+				keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
 
 				//data[cut[i]].snap0 + key[0].key * data[cut[i]].id0;
 
@@ -2184,9 +2088,9 @@ t0 = std::chrono::steady_clock::now();
 				}else if(islink[i] == -2){
 					tree0.stat 	= -2;
 
-					//keyval = next_point[i].snap + key[0].key * next_point[i].id;
-					keyval 	= Tree::getkey(key, next_point[i].snap, next_point[i].id);
-					tree0.frag_bid 	= keyval;//key[keyval].ind;
+					
+					keyval 	= Tree::get_key(key, next_point[i].snap, next_point[i].id);
+					tree0.frag_bid 	= keyval;
 
 				}
 
@@ -2822,9 +2726,9 @@ t0 = std::chrono::steady_clock::now();
 				data[pairs_ind[i].first].n_ptcl 		= -1;
 
 				if(data[pairs_ind[i].first].stat >= 0){
-					dkey[data[pairs_ind[i].first].snap0 + dkey[0]*data[pairs_ind[i].first].id0] = pairs_ind[i].first;
+					in_dkey(dkey, data[pairs_ind[i].first].snap0, data[pairs_ind[i].first].id0, pairs_ind[i].first);
 				}else{
-					dkey[data[pairs_ind[i].first].snap0 + dkey[0]*data[pairs_ind[i].first].id0] = -1;
+					in_dkey(dkey, data[pairs_ind[i].first].snap0, data[pairs_ind[i].first].id0, -1);
 				}
     		}
     	}
@@ -2846,9 +2750,9 @@ t0 = std::chrono::steady_clock::now();
     			}
 
     			if(data[pairs_dind[i].first].stat >= 0){
-					dkey[data[pairs_dind[i].first].snap0 + dkey[0]*data[pairs_dind[i].first].id0] = pairs_dind[i].first;
+    				in_dkey(dkey, data[pairs_dind[i].first].snap0, dkey[0]*data[pairs_dind[i].first].id0, pairs_dind[i].first);
 				}else{
-					dkey[data[pairs_dind[i].first].snap0 + dkey[0]*data[pairs_dind[i].first].id0] = -1;
+					in_dkey(dkey, data[pairs_dind[i].first].snap0, dkey[0]*data[pairs_dind[i].first].id0, -1);
 				}
     		}
     	}
@@ -3052,12 +2956,8 @@ t0 = std::chrono::steady_clock::now();
 		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
 			dumtree 	= tree[uniq_sorted[i]];
 
-#ifdef CTREE_USE_OMP
-			#pragma omp parallel for default(none) shared(dumtree, key, uniq_sorted, i)
-#endif
 			for(CT_I32 j=0; j<dumtree.endind+1; j++){
-				//key[ dumtree.snap[j] + key[0].key * dumtree.id[j] ].ind = uniq_sorted[i];
-				key[ dumtree.snap[j] + key[0] * dumtree.id[j] ] = uniq_sorted[i];
+				Tree::in_key(key, dumtree.snap[j], dumtree.id[j], uniq_sorted[i]);
 			}
 		}
 
@@ -3206,14 +3106,14 @@ t0 = std::chrono::steady_clock::now();
 		thisjob.id 		= id_to_link;
 		thisjob.merit 	= merit_to_link;
 		
-		thisjob.tind 	= Tree::getkey(key, data[ind].snap, data[ind].id);
-		thisjob.tind2 	= Tree::getkey(key, snap_to_link, id_to_link);
+		thisjob.tind 	= Tree::get_key(key, data[ind].snap, data[ind].id);
+		thisjob.tind2 	= Tree::get_key(key, snap_to_link, id_to_link);
 
 		//Job 1: Does connection point has a tree?
 		bool istree = Tree::istree(key, snap_to_link, id_to_link);
 
 		if(istree){
-			thisjob.dind 	= dkey[tree[thisjob.tind2].snap[tree[thisjob.tind2].endind] + dkey[0] * tree[thisjob.tind2].id[tree[thisjob.tind2].endind]];
+			thisjob.dind 	= get_dkey(dkey, tree[thisjob.tind2].snap[tree[thisjob.tind2].endind], tree[thisjob.tind2].id[tree[thisjob.tind2].endind]);
 		}
 
 		if(!istree){
@@ -3329,15 +3229,14 @@ t0 = std::chrono::steady_clock::now();
 		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
 			if(data[i].list_n <= 0) continue;
 			for(CT_I32 j=0; j<data[i].list_n; j++){
-				dkey2[ data[i].list[j].snap + data[i].list[j].id * dkey2[0] ] = 1;
+				in_dkey(dkey2, data[i].list[j].snap, data[i].list[j].id, 1);
 			}
 		}
 
 		for(CT_I32 i=0; i<(CT_I32) gal0.size(); i++){
 
 			// is existed in the link list, do not add
-
-			if(dkey2[ gal0[i].snap + dkey2[0]*gal0[i].id] > 0) continue;
+			if(get_dkey(dkey2, gal0[i].snap, gal0[i].id) > 0) continue;
 
 			if(!Tree::istree( key, gal0[i].snap, gal0[i].id )){
 				gal[nn] 	= gal0[i];
@@ -3349,7 +3248,7 @@ t0 = std::chrono::steady_clock::now();
 				Tree::TreeSt tree0 = Tree::gettree(tree, key, gal0[i].snap, gal0[i].id);
 
 
-				if( dkey[ tree0.snap[tree0.endind] + dkey[0]*tree0.id[tree0.endind] ] < 0){
+				if( get_dkey(dkey, tree0.snap[tree0.endind], tree0.id[tree0.endind]) < 0){
 					gal[nn]		= gal0[i];
 					nn ++;
 					continue;
@@ -3358,6 +3257,8 @@ t0 = std::chrono::steady_clock::now();
 				}	
 			}
 		}
+
+		if(nn==0) return;
 
 		gal.resize(nn);
 
@@ -3375,13 +3276,9 @@ t0 = std::chrono::steady_clock::now();
 		CT_I32 nn 	= ncut + vh.ctree_nstep;
 		ControlArray data2 = allocate(vh, nn);
 
-#ifdef CTREE_USE_OMP
-		#pragma omp parallel for default(none) \
-			shared(ncut, dkey, data, data2, cut)
-#endif
 		for(CT_I32 i=0; i<ncut; i++){
 			data2[i]	= data[cut[i]];
-			dkey[  data[cut[i]].snap0 + dkey[0]*data[cut[i]].id0  ] = i;
+			in_dkey(dkey, data[cut[i]].snap0, data[cut[i]].id0, i);
 		}
 		data2[0].last_ind = ncut-1;
 
@@ -3471,9 +3368,7 @@ t0 = std::chrono::steady_clock::now();
 		// Data Key
 		//-----
 		ControlKey dkey(key.size(), -1);
-		//dkey[0] 	= key[0].key;
 		dkey[0] 	= key[0];
-		// dkey is only called by snap0 and id0
 
 
 		if(myrank==0)LOG() <<"    Ctree) Initial allocating for "<<gal.size()<<" galaxies";
@@ -3536,10 +3431,7 @@ t0 = std::chrono::steady_clock::now();
 			}
 
 			for(CT_I32 k=0; k<data[0].last_ind+1; k++){
-				if(data[k].snap0 + dkey[0]*data[k].id0 >= (CT_I32) dkey.size()){
-					dkey.resize(dkey.size() + vh.ctree_nstep);
-				}
-				if(data[k].stat >= 0) dkey[ data[k].snap0 + dkey[0]*data[k].id0 ] = k;
+				if(data[k].stat >= 0) in_dkey(dkey, data[k].snap0, data[k].id0, k);
 			}
 
 

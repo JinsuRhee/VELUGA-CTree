@@ -251,13 +251,6 @@ namespace Tree{
 		v.insert(v.begin(), val);
 	}
 
-	inline Tree_BID getkey(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		//return key[ snap + key[0].key * id ].ind;
-		return key[ snap + key[0]*id ] > 0 ? key[ snap + key[0]*id ] : -1;
-		
-	}
-
-
 	inline void re_key(TreeKeyArray& key, Tree_BID ind){
 
 		Tree_BID newsize = key.size()*1.1;
@@ -273,8 +266,8 @@ namespace Tree{
 
     inline Tree_BID get_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
     	Tree_BID keyval = snap + key[0]*id;
-    	if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
-    	return key[keyval];
+    	if(keyval >= (Tree_BID) key.size()) return -1;
+    	else return key[keyval];
     }
 
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
@@ -302,7 +295,7 @@ namespace Tree{
 	}
 
 	inline bool istree(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		if(keyval > 0){
 			return true;
@@ -313,7 +306,7 @@ namespace Tree{
 	}
 
 	inline TreeSt gettree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt tree0;
 
@@ -397,7 +390,7 @@ namespace Tree{
 			return;
 		}
 
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt& tree0 = tree[ keyval ];
 
@@ -430,7 +423,7 @@ namespace Tree{
 
 	// remove connection point before cut_snap
 	inline void modifytree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_Snap cut_snap){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 
 		TreeSt& tree0	= tree[keyval];
 
@@ -525,7 +518,6 @@ namespace Tree{
 	}
 
 	inline void modifytree_byindex(TreeArray& tree, TreeKeyArray& key, Tree_BID bid, Tree_Snap cut_snap){
-		//Tree_BID keyval = getkey(key, snap, id);
 
 		TreeSt& tree0	= tree[bid];
 

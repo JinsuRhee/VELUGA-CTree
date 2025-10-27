@@ -428,7 +428,7 @@ namespace Makebr{
 
 				//keyval = Evoltmp[0].snapc + key[0].key * Evoltmp[0].idc;
 				//keyind0 = key[keyval].ind;
-				keyind0 	= Tree::getkey(key, Evoltmp[0].snapc, Evoltmp[0].idc);
+				keyind0 	= Tree::get_key(key, Evoltmp[0].snapc, Evoltmp[0].idc);
 
 				for(IO_VR::VRT_GID m=1; m<(IO_VR::VRT_GID) Evoltmp.size(); m++){
 
@@ -436,7 +436,7 @@ namespace Makebr{
 						Tree::treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					}
 
-					keyind = Tree::getkey(key, Evoltmp[m].snapc, Evoltmp[m].idc);
+					keyind = Tree::get_key(key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					//keyind = key[keyval].ind;
 
 					if((std::int32_t) tree[keyind].id.size() < vh.minbranchlength){
