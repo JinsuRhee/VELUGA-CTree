@@ -2280,7 +2280,7 @@ t0 = std::chrono::steady_clock::now();
 				if(data[k].stat >= 0) in_dkey(dkey, data[k].snap0, data[k].id0, k);
 			}
 
-			
+
 			link(vh, data, dkey, tree, key, sinfo, snap_curr);
 			classify(vh, data, sinfo, snap_curr, number);
 
@@ -2516,9 +2516,6 @@ t0 = std::chrono::steady_clock::now();
 
 		classify(vh, data, sinfo, vh.snapi, number);
 		finalize(vh, data, dkey, tree, key, sinfo, vh.snapi, number);
-		LOG()<<" finialize";
-		LOG()<<" merging ?";
-
 	}
 
 	//----
