@@ -19,6 +19,7 @@ namespace Ctree{
     void in_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id, CT_I32 ind){
     	CT_I32 keyval = snap + dkey[0]*id;
     	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
+    	if(keyval>=dkey.size()) LOG()<<" ?? "<<snap<<" / "<<id<<" / "<<keyval;
     	dkey[keyval]	= ind;
     }
     CT_I32 get_dkey(ControlKey& dkey, CT_I32 snap, CT_I32 id){
@@ -1167,28 +1168,39 @@ if(myrank == 0){
 
 t0 = std::chrono::steady_clock::now();
 		// Gathering all checkpoints
-		
-		GatherLinkArray checkarr;
-		checkarr.resize(dkey.size());
-
+		std::vector<CT_I32> data_ind(data[0].last_ind+1);
+		CT_I32 nind1 = 0;
 		CT_I32 nall = 0;
-		
 
 		// include not finished branch
 		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
 			if(data[i].list_n >= 1){
-				for(CT_I32 j=0; j<data[i].list_n; j++){
-					if(data[i].list[j].merit < vh.meritlimit) continue;
-
-					nall ++;
-
-					CT_I32 ckey0	= data[i].list[j].snap + dkey[0] * data[i].list[j].id;
-
-					if(ckey0 >= (CT_I32)checkarr.size()) checkarr.resize(ckey0+10000);
-					checkarr[ckey0].ind.push_back(i);
-
-				}
+				data_ind[nind1] 	= i;
+				nind1 ++;
+				nall 	+= data[i].list_n;
 			}
+		}
+		data_ind.resize(nind1);
+
+		CheckArray checkarr(nall);
+
+
+		CT_I32 i0 = 0;
+		CT_I32 i1;
+
+		for(CT_I32 i=0; i<nind1; i++){
+			i1 	= i0 + data[data_ind[i]].list_n - 1;
+
+			for(CT_I32 j=i0; j<i1+1; j++){
+				checkarr[j].merit 	= data[data_ind[i]].list[j-i0].merit;
+				checkarr[j].id 		= data[data_ind[i]].list[j-i0].id;
+				checkarr[j].snap 	= data[data_ind[i]].list[j-i0].snap;
+				checkarr[j].id0 	= data[data_ind[i]].id0;
+				checkarr[j].snap0	= data[data_ind[i]].snap0;
+				checkarr[j].ind 	= data_ind[i];
+			}
+
+			i0 	= i1 + 1;
 		}
 
 if(myrank == 0){
@@ -1203,14 +1215,14 @@ if(myrank == 0){
 		//  -2  : other branch has higher merit (fragmented)
 
 		std::vector<CT_I32> islink(ncut, CT_I32{1});
+		std::vector<CT_I32> ischeck(nall, CT_I32{0});
 		CheckArray checkcon(nall);
 
+		CT_I32 nischeck;
 		bool istree;
 		Tree::TreeSt tree0;
 
 		CT_Merit this_merit, other_merit;
-
-		CT_I32 nischeck;
 
 t0 = std::chrono::steady_clock::now();
 
@@ -1232,15 +1244,11 @@ t0 = std::chrono::steady_clock::now();
 				islink[i] = -1;
 				continue;
 			}
-			
-			nischeck 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind.size();
-			if(nischeck>0){
-				for(CT_I32 j=0; j<nischeck; j++){
-					CT_I32 ckey0 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind[j];
-					checkcon[j].id 		= next_point[i].id;
-					checkcon[j].snap 	= next_point[i].snap;
-					checkcon[j].snap0 	= data[ckey0].snap0;
-					checkcon[j].id0 	= data[ckey0].id0;
+			nischeck = 0;
+			for(CT_I32 j=0; j<nall; j++){
+				if(checkarr[j].snap == next_point[i].snap && checkarr[j].id == next_point[i].id && checkarr[j].merit > vh.meritlimit){
+					ischeck[nischeck] = j;
+					nischeck ++;
 				}
 			}
 
@@ -1250,6 +1258,8 @@ t0 = std::chrono::steady_clock::now();
 
 				// merit comparison
 				for(CT_I32 j=0; j<nischeck; j++){
+					checkcon[j] 	= checkarr[ischeck[j]];
+
 					istree 	= Tree::istree(key, checkcon[j].snap0, checkcon[j].id0);
 					if(!istree){
 						LOG()<< " no tree !?";
@@ -1258,7 +1268,9 @@ t0 = std::chrono::steady_clock::now();
 					}
 
 					tree0 	= Tree::gettree(tree, key, checkcon[j].snap0, checkcon[j].id0);					
-					checkcon[j].merit 	= brcompare(vh, checkcon[j].snap, checkcon[j].id, tree0, checkcon[j].snap+1);					
+					checkcon[j].merit 	= brcompare(vh, checkcon[j].snap, checkcon[j].id, tree0, checkcon[j].snap+1);
+
+					
 				}
 
 				// merit comparison2
@@ -1268,7 +1280,6 @@ t0 = std::chrono::steady_clock::now();
 				for(CT_I32 j=0; j<nischeck; j++){
 
 					if(checkcon[j].id0 == data[ind].id0 && checkcon[j].snap0 == data[ind].snap0){
-					//if( get_dkey(checkkey2, checkcon[j].snap0, checkcon[j].id0) == ind ){
 						this_merit 	= checkcon[j].merit;
 					}else{
 						if(checkcon[j].merit > other_merit){
@@ -1314,9 +1325,20 @@ if(myrank == 0){
 
 		}
 #endif
+if(myrank==0){
 
+CT_I32 ll=0;
+CT_I32 uu=0;
+CT_I32 zz=0;
+	for(CT_I32 i=0; i<ncut; i++){
+		if(i<100) LOG()<<"is link = "<<islink[i];
 
-
+		if(islink[i]>0) ll++;
+		else if(islink[i]<0) uu++;
+		else zz++;
+	}	
+	LOG()<<" total = "<<ll<<" / "<<uu<<" / "<<zz;
+}
 		// Close controls with islink < 0
 		Tree::Tree_BID keyval;
 t0 = std::chrono::steady_clock::now();

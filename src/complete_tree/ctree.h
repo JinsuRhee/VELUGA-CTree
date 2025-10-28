@@ -139,6 +139,14 @@ namespace Ctree{
 
     using CollectArray = std::vector<CollectSt>;
 
+    struct GatherLink{
+    	std::vector<CT_I32> ind;
+    };
+
+    using GatherLinkArray = std::vector<GatherLink>;
+
+    
+
     struct CheckSt{
     	CT_Merit merit = 0;
     	CT_ID id = 0;
