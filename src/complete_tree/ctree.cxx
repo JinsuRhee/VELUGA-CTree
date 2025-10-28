@@ -2267,6 +2267,20 @@ t0 = std::chrono::steady_clock::now();
 
 		CT_I32 count_n = 0;
 		while(true){
+
+			//----- dkey initialize
+			dkey.resize(key.size());
+
+			//OMP HERE?
+			for(CT_I32 k=1; k<(CT_I32) dkey.size();k++){
+				dkey[k] = -1;
+			}
+
+			for(CT_I32 k=0; k<data[0].last_ind+1; k++){
+				if(data[k].stat >= 0) in_dkey(dkey, data[k].snap0, data[k].id0, k);
+			}
+
+			
 			link(vh, data, dkey, tree, key, sinfo, snap_curr);
 			classify(vh, data, sinfo, snap_curr, number);
 
