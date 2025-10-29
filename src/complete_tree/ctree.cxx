@@ -361,7 +361,7 @@ namespace Ctree{
 
 		pid2.resize(uncut);
 
-		pid2[0].n_con 	= vh.ctree_n_step_dn * (n_step_bw0+1);
+		pid2[0].n_con 	= (n_step_bw0+1);
 		return pid2;
 	}
 
@@ -593,7 +593,7 @@ namespace Ctree{
 		PIDArray pid2;
 		pid2 	= get_coreptcl(vh, pid);
 
-		if(ncheck == 1) pid2[0].n_con = 1;
+		if(ncheck == 1) pid2[0].n_con = 1.;
 
 		return pid2;
 	}
@@ -965,7 +965,7 @@ namespace Ctree{
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n * vh.ctree_n_step_dn),2.) * std::pow( ((CT_Merit )n_occ * vh.ctree_n_step_dn),2.);
+		CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
 
 		return factor*meritdum;
 		
@@ -1145,17 +1145,27 @@ auto t0 = std::chrono::steady_clock::now();
 
 			dum_merit = -1.;
 			for(CT_I32 j=0; j<data[i].list_n; j++){
+				if(data[ind].list[j].merit >= dum_merit) dum_merit 	= data[ind].list[j].merit;
+			}
 
-				if(data[ind].list[j].merit >= dum_merit){
-					dum_merit 	= data[ind].list[j].merit;
-
+			for(CT_I32 j=0; j<data[i].list_n; j++){
+				if(data[ind].list[j].merit >= vh.ctree_skipnextfrac*dum_merit){
 					next_point[i].id 	= data[ind].list[j].id;
 					next_point[i].snap 	= data[ind].list[j].snap;
 					next_point[i].merit = data[ind].list[j].merit;
-
-					// link to closer snapshot if the merit scoes is enough high
-					if(dum_merit >= 0.5 * vh.ctree_minfrac) break;
+					break;			
 				}
+//
+//				if(data[ind].list[j].merit >= dum_merit){
+//					dum_merit 	= data[ind].list[j].merit;
+//
+//					next_point[i].id 	= data[ind].list[j].id;
+//					next_point[i].snap 	= data[ind].list[j].snap;
+//					next_point[i].merit = data[ind].list[j].merit;
+//
+//					// link to closer snapshot if the merit scoes is enough high
+//					if(dum_merit >= 0.5 * vh.ctree_minfrac) break;
+//				}
 			}
 		}
 
@@ -1243,7 +1253,6 @@ t0 = std::chrono::steady_clock::now();
 					checkcon[j].id0 	= data[ckey0].id0;
 				}
 			}
-
 			if(nischeck == 0){ // no link
 				islink[i] = -1;
 			} else if(nischeck >= 2){ // connection is overapped
@@ -1266,7 +1275,6 @@ t0 = std::chrono::steady_clock::now();
 				other_merit = -1.;
 
 				for(CT_I32 j=0; j<nischeck; j++){
-
 					if(checkcon[j].id0 == data[ind].id0 && checkcon[j].snap0 == data[ind].snap0){
 					//if( get_dkey(checkkey2, checkcon[j].snap0, checkcon[j].id0) == ind ){
 						this_merit 	= checkcon[j].merit;
@@ -1316,8 +1324,9 @@ if(myrank == 0){
 #endif
 
 
-
-		// Close controls with islink < 0
+		// Change Controls based on islink
+		// 	-1 close control
+		// 	-2 just remove list
 		Tree::Tree_BID keyval;
 t0 = std::chrono::steady_clock::now();
 #ifdef CTREE_USE_OMP
@@ -1326,37 +1335,76 @@ t0 = std::chrono::steady_clock::now();
 			shared(ncut, islink, data, cut, next_point, snap_curr, vh, key, tree)
 #endif
 		for(CT_I32 i=0; i<ncut; i++){
-			if(islink[i] < 0){
+			keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
+			Tree::TreeSt& tree0 = tree[keyval];
 
+			if(islink[i] == -1){
 				data[cut[i]].stat = -1;
-
-				keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
-
-				//data[cut[i]].snap0 + key[0].key * data[cut[i]].id0;
-
-				Tree::TreeSt& tree0 = tree[keyval];
-
-
-
-				if(islink[i] == -1){
-					tree0.stat = -1;
-				}else if(islink[i] == -2){
-					tree0.stat 	= -2;
-
-					
-					keyval 	= Tree::get_key(key, next_point[i].snap, next_point[i].id);
-					tree0.frag_bid 	= keyval;
-
-				}
-
+				tree0.stat = -1;
 
 				next_point[i].id 	= -1;
 				next_point[i].snap 	= -1;
 
 				ctfree(vh, data, cut[i], -1, -1, snap_curr);
 
+			}else if(islink[i] == -2){
+				CT_I32 list_ind=0;
+
+				for(CT_I32 j=0; j<data[cut[i]].list_n; j++){
+					if( data[cut[i]].list[j].snap == next_point[i].snap && data[cut[i]].list[j].id == next_point[i].id){
+						list_ind = j;
+						break;
+					}
+				}
+
+				if(list_ind == vh.ctree_n_search-1){
+					data[cut[i]].stat = -1;
+					tree0.stat 	= -2;
+					
+					keyval 	= Tree::get_key(key, next_point[i].snap, next_point[i].id);
+					tree0.frag_bid 	= keyval;
+
+					next_point[i].id 	= -1;
+					next_point[i].snap 	= -1;
+
+					ctfree(vh, data, cut[i], -1, -1, snap_curr);
+				}else{
+					data[cut[i]].list.erase(data[cut[i]].list.begin() + list_ind);
+					data[cut[i]].list.resize(data[cut[i]].list.size() + 1);				
+					data[cut[i]].list_n --;
+				}
+
 			}
+
+
+//			if(islink[i] < 0){
+//
+//				data[cut[i]].stat = -1;
+//
+//				keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
+//
+//				//data[cut[i]].snap0 + key[0].key * data[cut[i]].id0;
+//
+//				Tree::TreeSt& tree0 = tree[keyval];
+//
+//
+//
+//				if(islink[i] == -1){
+//					tree0.stat = -1;
+//				}else if(islink[i] == -2){
+//					
+//
+//				}
+//
+//
+//				next_point[i].id 	= -1;
+//				next_point[i].snap 	= -1;
+//
+//				ctfree(vh, data, cut[i], -1, -1, snap_curr);
+//
+//			}
 		}
+
 
 if(myrank == 0){
 	auto t1 = std::chrono::steady_clock::now();
@@ -2011,6 +2059,7 @@ t0 = std::chrono::steady_clock::now();
 		// data [ ind ]
 		data[job.ind].stat = -1;
 		ctfree(vh, data, job.ind, -1, -1, snap_curr);
+		//ctfree(vh, data, job.ind, data[job.ind].snap, data[job.ind].id, snap_curr);
 	}
 
 	void DoJob3b(Tree::TreeArray& tree, Tree::Tree_BID org_bid, Tree::Tree_BID com_bid){
@@ -2407,7 +2456,10 @@ t0 = std::chrono::steady_clock::now();
 				savedata(vh, data, sinfo[i].snum);
 				savetree_ctree(vh, tree, key, sinfo[i].snum);
 			}
-
+if(myrank==0 && sinfo[i].snum % vh.ctree_makecheck != 0 && sinfo[i].snum >= 600){
+	savedata(vh, data, sinfo[i].snum);
+	savetree_ctree(vh, tree, key, sinfo[i].snum);
+} //123123
 			//----- dkey initialize
 			dkey.resize(key.size());
 
@@ -2469,7 +2521,11 @@ t0 = std::chrono::steady_clock::now();
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
-
+CT_I32 dd = get_dkey(dkey, 620, 9);
+if(myrank == 0 && dd >= 0){
+	LOG()<<"ID 9 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
+	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
+}
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
 			link(vh, data, dkey, tree, key, sinfo, sinfo[i].snum);
