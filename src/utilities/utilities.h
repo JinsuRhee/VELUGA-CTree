@@ -53,12 +53,12 @@ constexpr std::int32_t savetree_gettype() {
     else return -1;
 }
 
-void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
+void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, bool usename);
 
 
 
 //----- Load related (should be modulated in the future)
-void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey);
+void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, bool usename);
 
 template <typename T>
 static inline void loadtree_read(std::istream& in, T& v) {

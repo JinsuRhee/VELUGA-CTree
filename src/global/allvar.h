@@ -26,7 +26,7 @@ namespace vctree_parameters{
   	//inline int32_t tarr_size = 10000;
   	inline int32_t ctree_nstep 	= 10000;
   	inline int32_t ctree_npid 	= 100000;
-  	
+  	inline double ctree_skipfrac_maxmerit = 0.5;
 }
 
 
@@ -108,6 +108,7 @@ namespace vctree_set{
   		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
   		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
   		double ctree_minfrac 	= 0.25;//;vctree_parameters::ctree_minfrac;
+  		double ctree_skipnextfrac 	= vctree_parameters::ctree_skipfrac_maxmerit;
 
 	};
 }

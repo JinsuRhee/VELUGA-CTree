@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 
     if(vh.brtype == "TF"){
       Makebr::mainloop(vh, tree, key);
-      if(myrank == 0) savetree_base(vh, tree, key);
+      if(myrank == 0) savetree_base(vh, tree, key, true);
     }
     else{
       if(myrank == 0) LOG() <<"  No corresponding branch type";
@@ -92,9 +92,9 @@ int main(int argc, char** argv) {
   //-----
   // Load Existing tree
   //-----
-  if(vh.loadtree == "Y"){
+  if(vh.loadtree == "Y" && vh.branchmaker != "Y"){
     if(myrank==0) LOG() <<"  Reading to Exsiting Tree";
-    loadtree_base(vh, tree, key);
+    loadtree_base(vh, tree, key, true);
   }
 
 #ifdef CTREE_USE_MPI
@@ -118,7 +118,7 @@ int main(int argc, char** argv) {
 
   if(myrank == 0){
     LOG() <<"  Save the Tree & Key";
-    if(myrank == 0) savetree_base(vh, tree, key);
+    if(myrank == 0) savetree_base(vh, tree, key, false);
   }
 
 #ifdef CTREE_USE_MPI

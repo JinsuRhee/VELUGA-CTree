@@ -42,12 +42,10 @@ namespace {
 } // namespace
 
 std::string normalize_iotype(std::string s, bool nocap) {
-    // 앞뒤 공백 제거
     auto not_space = [](unsigned char ch){ return !std::isspace(ch); };
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
     s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
 
-    // 양끝 따옴표 제거
     if (s.size() >= 2) {
         char a = s.front(), b = s.back();
         if ((a=='"' && b=='"') || (a=='\'' && b=='\'')) {
@@ -108,13 +106,13 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
 
     // Branch related
-    else if (lkey=="branchmaker") vh.branchmaker = normalize_iotype(val, true);
-    else if (lkey=="brtype") vh.brtype = normalize_iotype(val, true);
+    else if (lkey=="branchmaker") vh.branchmaker = normalize_iotype(val, false);
+    else if (lkey=="brtype") vh.brtype = normalize_iotype(val, false);
 
     // Load tree
-    else if (lkey=="loadtree") vh.loadtree = normalize_iotype(val, true);
-    else if (lkey=="loadtree_ftree") vh.loadtree_ftree = normalize_iotype(val, false);
-    else if (lkey=="loadtree_fkey") vh.loadtree_fkey = normalize_iotype(val, false);
+    else if (lkey=="loadtree") vh.loadtree = normalize_iotype(val, false);
+    else if (lkey=="loadtree_ftree") vh.loadtree_ftree = normalize_iotype(val, true);
+    else if (lkey=="loadtree_fkey") vh.loadtree_fkey = normalize_iotype(val, true);
     
     // General (String)
     else if (lkey=="horg") {
