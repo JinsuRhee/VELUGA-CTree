@@ -762,7 +762,6 @@ namespace Ctree{
 			int rank = 0, size = 1;
 			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	    	MPI_Comm_size(MPI_COMM_WORLD, &size);
-
 			for(CT_I32 ind : cut){
 				int owner = ind % size;
 				if(owner != rank) continue;
@@ -874,7 +873,6 @@ namespace Ctree{
 			}
 #endif
 		}
-
 
 
 		// Compute Merit
@@ -2057,9 +2055,28 @@ t0 = std::chrono::steady_clock::now();
 
 	void DoJob3a(const vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
 		// data [ ind ]
-		data[job.ind].stat = -1;
-		ctfree(vh, data, job.ind, -1, -1, snap_curr);
-		//ctfree(vh, data, job.ind, data[job.ind].snap, data[job.ind].id, snap_curr);
+
+		CT_I32 list_ind=0;
+
+		for(CT_I32 j=0; j<data[job.ind].list_n; j++){
+			if( data[job.ind].list[j].snap == job.snap && data[job.ind].list[j].snap == job.id ){
+				list_ind = j;
+				break;
+			}
+		}
+
+		if(list_ind == vh.ctree_n_search-1){
+			data[job.ind].stat = -1;
+			ctfree(vh, data, job.ind, -1, -1, snap_curr);
+		}else{
+			data[job.ind].list.erase( data[job.ind].list.begin() + list_ind);
+			data[job.ind].list.resize(data[job.ind].list.size() + 1);
+			data[job.ind].list_n --;
+		}
+
+
+		//data[job.ind].stat = -1;
+		//ctfree(vh, data, job.ind, -1, -1, snap_curr);
 	}
 
 	void DoJob3b(Tree::TreeArray& tree, Tree::Tree_BID org_bid, Tree::Tree_BID com_bid){
@@ -2456,10 +2473,7 @@ t0 = std::chrono::steady_clock::now();
 				savedata(vh, data, sinfo[i].snum);
 				savetree_ctree(vh, tree, key, sinfo[i].snum);
 			}
-if(myrank==0 && sinfo[i].snum % vh.ctree_makecheck != 0 && sinfo[i].snum >= 600){
-	savedata(vh, data, sinfo[i].snum);
-	savetree_ctree(vh, tree, key, sinfo[i].snum);
-} //123123
+
 			//----- dkey initialize
 			dkey.resize(key.size());
 
