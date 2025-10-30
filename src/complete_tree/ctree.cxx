@@ -1367,9 +1367,17 @@ t0 = std::chrono::steady_clock::now();
 
 					ctfree(vh, data, cut[i], -1, -1, snap_curr);
 				}else{
-					data[cut[i]].list.erase(data[cut[i]].list.begin() + list_ind);
-					data[cut[i]].list.resize(data[cut[i]].list.size() + 1);				
+					for(CT_I32 j=list_ind+1; j<data[cut[i]].list_n; j++){
+						data[cut[i]].list[j-1] = data[cut[i]].list[j];
+					}
+
+					data[cut[i]].list[data[cut[i]].list_n-1].id 	= -1;
+					data[cut[i]].list[data[cut[i]].list_n-1].snap 	= -1;
+					data[cut[i]].list[data[cut[i]].list_n-1].merit  = -1.;
 					data[cut[i]].list_n --;
+					//data[cut[i]].list.erase(data[cut[i]].list.begin() + list_ind);
+					//data[cut[i]].list.resize(data[cut[i]].list.size() + 1);				
+					//data[cut[i]].list_n --;
 				}
 
 			}
@@ -2069,9 +2077,18 @@ t0 = std::chrono::steady_clock::now();
 			data[job.ind].stat = -1;
 			ctfree(vh, data, job.ind, -1, -1, snap_curr);
 		}else{
-			data[job.ind].list.erase( data[job.ind].list.begin() + list_ind);
-			data[job.ind].list.resize(data[job.ind].list.size() + 1);
+
+			for(CT_I32 j=list_ind+1; j<data[job.ind].list_n; j++){
+				data[job.ind].list[j-1] = data[job.ind].list[j];
+			}
+
+			data[job.ind].list[data[job.ind].list_n-1].id 		= -1;
+			data[job.ind].list[data[job.ind].list_n-1].snap 	= -1;
+			data[job.ind].list[data[job.ind].list_n-1].merit 	= -1.;
 			data[job.ind].list_n --;
+			//data[job.ind].list.erase( data[job.ind].list.begin() + list_ind);
+			//data[job.ind].list.resize(data[job.ind].list.size() + 1);
+			//data[job.ind].list_n --;
 		}
 
 
