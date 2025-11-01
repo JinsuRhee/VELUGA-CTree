@@ -1133,20 +1133,21 @@ int myrank = mpi_rank();
 		CT_Merit dum_merit;
 		
 auto t0 = std::chrono::steady_clock::now();
-	
+
+
 #ifdef CTREE_USE_OMP
-		#pragma omp parallel for default(none) \
-			private(ind, dum_merit) shared(ncut, cut, data, vh, next_point)
+		#pragma omp parallel for default(shared) \
+			private(ind, dum_merit)
 #endif
 		for(CT_I32 i=0; i<ncut; i++){
 			ind 	= cut[i];
 
 			dum_merit = -1.;
-			for(CT_I32 j=0; j<data[i].list_n; j++){
+			for(CT_I32 j=0; j<data[ind].list_n; j++){
 				if(data[ind].list[j].merit >= dum_merit) dum_merit 	= data[ind].list[j].merit;
 			}
 
-			for(CT_I32 j=0; j<data[i].list_n; j++){
+			for(CT_I32 j=0; j<data[ind].list_n; j++){
 				if(data[ind].list[j].merit >= vh.ctree_skipnextfrac*dum_merit){
 					next_point[i].id 	= data[ind].list[j].id;
 					next_point[i].snap 	= data[ind].list[j].snap;
@@ -1182,6 +1183,8 @@ t0 = std::chrono::steady_clock::now();
 		CT_I32 nall = 0;
 		
 
+
+
 		// include not finished branch
 		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
 			if(data[i].list_n >= 1){
@@ -1191,7 +1194,6 @@ t0 = std::chrono::steady_clock::now();
 					nall ++;
 
 					CT_I32 ckey0	= data[i].list[j].snap + dkey[0] * data[i].list[j].id;
-
 					if(ckey0 >= (CT_I32)checkarr.size()) checkarr.resize(ckey0+10000);
 					checkarr[ckey0].ind.push_back(i);
 
@@ -1235,6 +1237,7 @@ t0 = std::chrono::steady_clock::now();
 			int owner = i % size;
 			if(owner != rank) continue;
 #endif
+	
 
 			if(next_point[i].merit < vh.meritlimit){
 				islink[i] = -1;
@@ -1242,7 +1245,7 @@ t0 = std::chrono::steady_clock::now();
 			}
 			
 			nischeck 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind.size();
-			if(nischeck>0){
+		if(nischeck>0){
 				for(CT_I32 j=0; j<nischeck; j++){
 					CT_I32 ckey0 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind[j];
 					checkcon[j].id 		= next_point[i].id;
@@ -1335,6 +1338,8 @@ t0 = std::chrono::steady_clock::now();
 		for(CT_I32 i=0; i<ncut; i++){
 			keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
 			Tree::TreeSt& tree0 = tree[keyval];
+
+
 
 			if(islink[i] == -1){
 				data[cut[i]].stat = -1;
@@ -2552,11 +2557,18 @@ t0 = std::chrono::steady_clock::now();
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
-CT_I32 dd = get_dkey(dkey, 620, 9);
+CT_I32 dd = get_dkey(dkey, 620, 31);
 if(myrank == 0 && dd >= 0){
-	LOG()<<"ID 9 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
+	LOG()<<"ID 31 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
 	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
 }
+
+dd = get_dkey(dkey, 620, 78);
+if(myrank == 0 && dd >= 0){
+	LOG()<<"ID 31 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
+	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
+}
+
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
 			link(vh, data, dkey, tree, key, sinfo, sinfo[i].snum);
