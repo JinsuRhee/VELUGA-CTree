@@ -133,6 +133,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // Ctree
     else if (lkey=="ctree_minfrac")    { parse_num(val, vh.ctree_minfrac); }
+    else if (lkey=="ctree_meritfrac")    { parse_num(val, vh.ctree_meritfrac); }
     else if (lkey=="ctree_n_search")   { parse_num(val, vh.ctree_n_search); }
     else if (lkey=="ctree_n_step_n")   { parse_num(val, vh.ctree_n_step_n); }
     else if (lkey=="ctree_n_step_dn")  { parse_num(val, vh.ctree_n_step_dn); }

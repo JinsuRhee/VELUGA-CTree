@@ -1148,7 +1148,7 @@ auto t0 = std::chrono::steady_clock::now();
 			}
 
 			for(CT_I32 j=0; j<data[ind].list_n; j++){
-				if(data[ind].list[j].merit >= vh.ctree_skipnextfrac*dum_merit){
+				if(data[ind].list[j].merit >= vh.ctree_meritfrac*dum_merit){
 					next_point[i].id 	= data[ind].list[j].id;
 					next_point[i].snap 	= data[ind].list[j].snap;
 					next_point[i].merit = data[ind].list[j].merit;

@@ -26,7 +26,6 @@ namespace vctree_parameters{
   	//inline int32_t tarr_size = 10000;
   	inline int32_t ctree_nstep 	= 10000;
   	inline int32_t ctree_npid 	= 100000;
-  	inline double ctree_skipfrac_maxmerit = 0.5;
 }
 
 
@@ -75,6 +74,8 @@ namespace vctree_set{
   		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
 
   		// complete_tree related
+  		double ctree_minfrac 	= 0.25;
+		double ctree_meritfrac	= 0.5;
   		int32_t ctree_n_search   = 10;     // number of snapshots to be searched simultaneously
   		int32_t ctree_n_step_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
   		int32_t ctree_n_step_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
@@ -107,8 +108,6 @@ namespace vctree_set{
   		//int32_t tarr_size = vctree_parameters::tarr_size;
   		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
   		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
-  		double ctree_minfrac 	= 0.25;//;vctree_parameters::ctree_minfrac;
-  		double ctree_skipnextfrac 	= vctree_parameters::ctree_skipfrac_maxmerit;
 
 	};
 }
