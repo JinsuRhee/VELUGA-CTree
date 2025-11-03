@@ -361,7 +361,7 @@ namespace Ctree{
 
 		pid2.resize(uncut);
 
-		pid2[0].n_con 	= (n_step_bw0+1);
+		pid2[0].n_con 	= n_step_bw0;
 		return pid2;
 	}
 
@@ -593,7 +593,10 @@ namespace Ctree{
 		PIDArray pid2;
 		pid2 	= get_coreptcl(vh, pid);
 
-		if(ncheck == 1) pid2[0].n_con = 1.;
+		//if(ncheck == 1) pid2[0].n_con = 1.;
+		if(ncheck == 1 && ncheck != pid2[0].n_con) u_stop();
+
+		pid2[0].n_con 	*= ncheck;
 
 		return pid2;
 	}
@@ -1274,7 +1277,6 @@ t0 = std::chrono::steady_clock::now();
 				// merit comparison2
 				this_merit = -1.;
 				other_merit = -1.;
-
 				for(CT_I32 j=0; j<nischeck; j++){
 					if(checkcon[j].id0 == data[ind].id0 && checkcon[j].snap0 == data[ind].snap0){
 					//if( get_dkey(checkkey2, checkcon[j].snap0, checkcon[j].id0) == ind ){
@@ -2557,15 +2559,9 @@ t0 = std::chrono::steady_clock::now();
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
-CT_I32 dd = get_dkey(dkey, 620, 31);
+CT_I32 dd = get_dkey(dkey, 620, 1);
 if(myrank == 0 && dd >= 0){
-	LOG()<<"ID 31 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
-	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
-}
-
-dd = get_dkey(dkey, 620, 78);
-if(myrank == 0 && dd >= 0){
-	LOG()<<"ID 31 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
+	LOG()<<"ID 1 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
 	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
 }
 
