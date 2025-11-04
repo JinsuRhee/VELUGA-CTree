@@ -156,7 +156,7 @@ namespace Ctree{
 	}
 
 // for memory efficient ver
-	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid){
+	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid, CT_I32 merittype){
 
 		CT_I32 np_snap = pid0.pid.size();
 		CT_I32 np_data = pid.size();
@@ -191,11 +191,12 @@ namespace Ctree{
 
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(none) \
-			shared(np_snap, pid0, merit, np_data)
+			shared(np_snap, pid0, merit, np_data, merittype)
 #endif
 		for(CT_I32 i=0; i<pid0.maxgid+1; i++){
 			if(pid0.n_ptcl2[i] <= 0) continue;
-			merit[i] 	= merit[i] * merit[i] / pid0.n_ptcl2[i] / ((CT_Merit) np_data);
+			if(merittype == 1) merit[i] 	= merit[i] * merit[i] / pid0.n_ptcl2[i] / ((CT_Merit) np_data);
+			if(merittype == 2) merit[i] 	= merit[i] / ((CT_Merit) np_data);
 		}
 
 		//for(CT_I32 i=0; i<np_snap; i++){
@@ -297,6 +298,16 @@ namespace Ctree{
 			}
 		}
 		return ind;
+	}
+
+	CT_I32 findnextsnap(IO::snapinfo& sinfo, CT_I32 snap_curr){
+		for(CT_I32 j=0; j<(CT_I32) sinfo.size(); j++){
+			if(sinfo[j].snum<0) continue;
+			if(sinfo[j].snum > snap_curr){
+				return sinfo[j].snum;
+			}
+		}
+		return -1;
 	}
 
 	// Extract Core Particles
@@ -544,32 +555,58 @@ namespace Ctree{
 	//-----
 	// Collect PID
 	//-----
-	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0){
+	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0, bool opposite){
 
 		PIDArray pid;
 		
-		CT_I32 ind=0;
-		for(CT_I32 i=0; i<tree0.endind+1; i++){
-			if(tree0.snap[i]>=snap0){
-				ind = i;
-				break;
-			}
-		}
-
-		IO_dtype::GalArray gals;
-		gals.resize(vh.ctree_n_step_n);
-
 		CT_I32 ncheck = 0;
 		CT_I32 npart = 0;
-		while(true){
-			gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
+		IO_dtype::GalArray gals;
 
-			npart 	+= gals[ncheck].pid.size();
-			ncheck ++;
-			ind 	+= vh.ctree_n_step_dn;
+		if(!opposite){
+			CT_I32 ind=0;
+			for(CT_I32 i=0; i<tree0.endind+1; i++){
+				if(tree0.snap[i]>=snap0){
+					ind = i;
+					break;
+				}
+			}
 
-			if(ind > tree0.endind) break;
-			if(ncheck >= vh.ctree_n_step_n) break;
+			
+			gals.resize(vh.ctree_n_step_n);
+
+			
+			while(true){
+				gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
+
+				npart 	+= gals[ncheck].pid.size();
+				ncheck ++;
+				ind 	+= vh.ctree_n_step_dn;
+
+				if(ind > tree0.endind) break;
+				if(ncheck >= vh.ctree_n_step_n) break;
+			}
+		}else{
+			CT_I32 ind=0;
+			for(CT_I32 i=0; i<tree0.endind+1; i++){
+				if(tree0.snap[i]<=snap0){
+					ind = i;
+					break;
+				}
+			}
+
+			gals.resize(vh.ctree_n_step_n);
+
+			while(true){
+				gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
+
+				npart 	+= gals[ncheck].pid.size();
+				ncheck ++;
+				ind 	-= vh.ctree_n_step_dn;
+
+				if(ind < 0) break;
+				if(ncheck >= vh.ctree_n_step_n) break;
+			}
 		}
 
 		pid.resize(npart);
@@ -723,6 +760,107 @@ namespace Ctree{
 		return spt;
 	}
 
+	SnapPT readsnap2(const vctree_set::Settings& vh, CT_I32 snap_curr){
+
+		// Target control array
+		SnapPT spt;
+				
+		// collect all particles of galaxies at this snapshot
+		IO_dtype::GalArray gal = IO::r_gal(vh, snap_curr, -1, true);
+
+		CT_I32 nptcl = 0;
+		for(IO_dtype::GalSt g:gal){
+			nptcl += g.npart;
+		}
+
+		//PIDArray pid(nptcl);
+		spt.pid.resize(nptcl);
+		spt.gid.resize(gal.size());
+		spt.n_ptcl.resize(gal.size());
+
+
+		CT_I32 i0, i1;
+		i0 	= 0;
+		i1 	= 0;
+		//CT_PID maxpid=-1;
+		CT_I32 maxgid=-1;
+		for(CT_I32 i=0; i<(CT_I32) gal.size(); i++){
+			if(gal[i].id >= maxgid) maxgid = gal[i].id;
+		}
+		spt.maxgid 	= maxgid;
+
+
+		std::vector<CT_I32> n_ptcl2(maxgid+1, CT_I32{0});
+
+
+		for(CT_I32 i=0; i<(CT_I32) gal.size(); i++){
+		//for(IO_dtype::GalSt g:gal){
+
+			i1 	= i0 + gal[i].npart  - 1;
+			for(CT_I32 j=0; j<(CT_I32) gal[i].npart; j++){
+				spt.pid[j+i0].pid 	= gal[i].pid[j];
+				spt.pid[j+i0].gid 	= gal[i].id;
+
+				//if(gal[i].id >= maxgid) maxgid = gal[i].id;
+				//if(g.pid[i]>=maxpid) maxpid = g.pid[i];
+			}
+			spt.n_ptcl[i]	= gal[i].npart;
+			spt.gid[i] 		= gal[i].id;
+
+			n_ptcl2[gal[i].id]	= gal[i].npart;
+
+			i0 	= i1 + 1;
+		}
+
+		spt.n_ptcl2 	= std::move(n_ptcl2);
+		//spt.maxpid 	= maxpid;
+
+		//spt.pid 	= std::move(pid);
+
+		// Make Hash
+		CT_I32 dN = spt.pid.size();
+		spt.hash.resize(dN);
+		spt.hash_next.resize(dN);
+		std::vector<CT_I32> hash_last(dN);
+
+		for(CT_I32 i=0; i<dN; i++){
+			spt.hash[i] = -1;
+			spt.hash_next[i] = -1;
+			hash_last[i] = -1;
+		}
+
+	
+		CT_I64 pidtmp, ind;
+		//noptcl 	= -92233720368547758;
+
+
+		for(CT_I32 i=0; i<dN; i++){
+
+			pidtmp 	= spt.pid[i].pid;
+
+			//if(pidtmp < noptcl) continue;
+
+			ind 	= std::abs(pidtmp) % dN;
+			if(ind < 0) ind = 0;
+
+			if(spt.hash[ind] < 0){
+				spt.hash[ind] = i;
+			} else{
+				i0 	= spt.hash[ind];
+
+				if(hash_last[i0] < 0){
+					spt.hash_next[i0] = i;
+					hash_last[i0] = i;
+				} else{
+					spt.hash_next[hash_last[i0]] = i;
+					hash_last[i0] = i;
+				}
+			}
+			
+		}
+
+		return spt;
+	}
 	//-----
 	// Compute Merit
 	//-----
@@ -794,7 +932,7 @@ namespace Ctree{
 					// this galaxy has a branch. Collect particles along its branch
 					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
 
-					cpid 	= collectpidalongbranch(vh, tree0, data[ind].snap);
+					cpid 	= collectpidalongbranch(vh, tree0, data[ind].snap, false);
 				}
 
 
@@ -859,7 +997,7 @@ namespace Ctree{
 						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
 						u_stop();
 					}
-					cpid 	= collectpidalongbranch(vh, tree0, data[ind].snap);
+					cpid 	= collectpidalongbranch(vh, tree0, data[ind].snap, false);
 				}
 
 
@@ -893,7 +1031,7 @@ namespace Ctree{
 			int owner = ind % size;
 			if(owner != rank) continue;
 
-			MeritSt meritcom = get_merit3(pid0, data[ind].p_list);
+			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			n0 	= data[ind].list_n;
 
@@ -918,7 +1056,7 @@ namespace Ctree{
     	MPI_Barrier(MPI_COMM_WORLD);
 #else
 		for(CT_I32 ind : cut2){
-			MeritSt meritcom = get_merit3(pid0, data[ind].p_list);
+			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			n0 	= data[ind].list_n;
 
@@ -945,7 +1083,7 @@ namespace Ctree{
 		CT_Merit n_occ;
 		std::vector<CT_PID> pid1;
 		
-		PIDArray cpid = collectpidalongbranch(vh, tree0, snap0);
+		PIDArray cpid = collectpidalongbranch(vh, tree0, snap0, false);
 		pid1.resize(cpid.size());
 
 		n_occ 	= (CT_Merit) cpid[0].n_con;
@@ -2613,6 +2751,178 @@ if(myrank == 0 && dd >= 0){
 		finalize(vh, data, dkey, tree, key, sinfo, vh.snapi, number);
 	}
 
+	//-----
+	// Merger Finder
+	//-----
+	void findmerge(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
+
+		int myrank  = mpi_rank();
+		double t11, t22, t33;
+		t22 = 0.;
+		t33 = 0.;
+
+		
+
+		//-----
+		// Get Basic Information in each snapshot
+		//-----
+		if(myrank==0)LOG() <<"    Ctree) Reading snapshot info with "<<vh.simtype<<" format";
+		auto t0 = std::chrono::steady_clock::now();
+		IO::snapinfo sinfo = IO::get_snapinfo(vh);
+		if(myrank == 0){
+			auto t1 = std::chrono::steady_clock::now();
+			t11 = std::chrono::duration<double>(t1 - t0).count();
+		}
+
+		if(myrank==0)LOG() <<"      done in "<<t11<<" [sec] ";
+
+
+		//-----
+		// Collect End points of trees
+		//-----
+		if(myrank==0)LOG() <<"    Ctree) Collect End points of trees";
+		t0 = std::chrono::steady_clock::now();
+		EndArray Endpts( (CT_I32)sinfo.size() + 1 );
+		for(CT_I32 i=0; i<(CT_I32) tree.size(); i++){
+			// skip conditions
+			if(tree[i].endind < 0) continue;
+			if(tree[i].endind < vh.minbranchlength-1) continue;
+			if(tree[i].snap[tree[i].endind] == vh.snapf) continue;
+
+			Endpts[ tree[i].snap[tree[i].endind] ].keyval.push_back(i);
+			Endpts[ tree[i].snap[tree[i].endind] ].nn ++;
+
+		}
+
+		for(CT_I32 i=0; i<(CT_I32) Endpts.size(); i++){
+			if(Endpts[i].nn == 0) continue;
+			Endpts[i].fbid.resize(Endpts[i].nn, -1);
+			Endpts[i].merit.resize(Endpts[i].nn, -1);
+		}
+
+
+		if(myrank == 0){
+			auto t1 = std::chrono::steady_clock::now();
+			t22 = std::chrono::duration<double>(t1 - t0).count();
+		}
+
+		if(myrank==0)LOG() <<"    Ctree) Enter the main time loop";
+
+		//-----
+		// Main Time loop forward in time
+		//-----
+#ifdef CTREE_USE_MPI
+		int rank = 0, size = 1;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	   	MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
+
+			int owner = i % size;
+			if(owner != rank) continue;
+
+			t0 = std::chrono::steady_clock::now();
+			if( sinfo[i].snum<0) continue;
+			if( Endpts[sinfo[i].snum].nn == 0) continue;
+			if( sinfo[i].snum >= vh.snapf) continue;
+
+			CT_snap snap_curr = findnextsnap(sinfo, sinfo[i].snum);
+
+			if(snap_curr < 0) continue;
+
+			// read galaxies
+			SnapPT pid0 	= readsnap2(vh, snap_curr);
+
+			// compute merits
+			for(CT_I32 j=0; j<(CT_I32) Endpts[sinfo[i].snum].nn; j++){
+				Tree::TreeSt& tree0 = tree[Endpts[sinfo[i].snum].keyval[j]];
+				PIDArray pid	= collectpidalongbranch(vh, tree0, tree0.snap[tree0.endind], true);
+				MeritSt meritcom = get_merit3(pid0, pid, 2);
+
+
+				Endpts[sinfo[i].snum].fbid[j] 	= Tree::get_key(key, snap_curr, meritcom.id);
+				Endpts[sinfo[i].snum].merit[j] 	= meritcom.merit;
+			}
+
+			if(myrank == 0){
+				auto t1 = std::chrono::steady_clock::now();
+				t33 = std::chrono::duration<double>(t1 - t0).count();
+			}
+
+			if(myrank == 0) LOG()<<"      "<<sinfo[i].snum<<" with "<<Endpts[sinfo[i].snum].nn<<" branches in "<<t22+t33<<" [sec] ";
+		}
+
+		MPI_Barrier(MPI_COMM_WORLD);
+
+		//Synchronize
+		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
+    		int owner = i % size;
+
+    		std::vector<std::uint8_t> blob_t;
+    		if (rank == owner) blob_t = serialize_ends(Endpts[i]);
+    		bcast_blob_from_owner(owner, blob_t);
+    		if (rank != owner) deserialize_ends(blob_t, Endpts[i]);
+       	}
+		MPI_Barrier(MPI_COMM_WORLD);
+
+
+#else
+		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
+			t0 = std::chrono::steady_clock::now();
+			if(sinfo[i].snum<0) continue;
+			if( Endpts[sinfo[i].snum].nn == 0) continue;
+			if( sinfo[i].snum >= vh.snapf) continue;
+
+			CT_snap snap_curr = findnextsnap(sinfo, sinfo[i].snum);
+			if(snap_curr < 0) continue;
+
+			// read galaxies
+			SnapPT pid0 	= readsnap2(vh, snap_curr);
+
+			// compute merits
+			for(CT_I32 j=0; j<(CT_I32) Endpts[sinfo[i].snum].nn; j++){
+				Tree::TreeSt& tree0 = tree[Endpts[sinfo[i].snum].keyval[j]];
+				PIDArray pid	= collectpidalongbranch(vh, tree0, tree0.snap[tree0.endind], true);
+				MeritSt meritcom = get_merit3(pid0, pid, 2);
+
+
+				Endpts[sinfo[i].snum].fbid[j]	= Tree::get_key(key, snap_curr, meritcom.id);
+				Endpts[sinfo[i].snum].merit[j] 	= meritcom.merit;
+
+			}
+
+			if(myrank == 0){
+				auto t1 = std::chrono::steady_clock::now();
+				t33 = std::chrono::duration<double>(t1 - t0).count();
+			}
+
+			if(myrank == 0) LOG()<<"      "<<sinfo[i].snum<<" with "<<Endpts[sinfo[i].snum].nn<<" branches in "<<t22+t33<<" [sec] ";
+		}
+#endif
+
+
+		// make connection between branches
+		for(CT_I32 i=0; i<(CT_I32) Endpts.size(); i++){
+			if(Endpts[i].nn == 0) continue;
+
+			for(CT_I32 j=0; j<Endpts[i].nn; j++){
+
+				Tree::TreeSt& tree_son = tree[ Endpts[i].keyval[j] ];
+				Tree::TreeSt& tree_par = tree[ Endpts[i].fbid[j] ];
+
+				tree_son.father_bid 	= Endpts[i].fbid[j];
+
+				tree_par.m_id.push_back( tree_son.id[tree_son.endind] );
+				tree_par.m_snap.push_back( tree_son.snap[tree_son.endind] );
+				tree_par.m_bid.push_back( Endpts[i].keyval[j] );
+				tree_par.m_merit.push_back( Endpts[i].merit[j] );
+				tree_par.numprog ++;
+			}
+		}
+
+u_stop();
+	}
+
 	//----
     // MPI Helper
     //-----
@@ -2761,6 +3071,24 @@ if(myrank == 0 && dd >= 0){
 	    out.list_n 		= read_pod<CT_I32>(p, end);
 
 	    //out.last_ind 	= read_pod<CT_I32>(p, end);
+
+	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+	}
+
+	// Serialize & Deserialize for Endpts Array
+	std::vector<std::uint8_t> serialize_ends(const EndSt& x) {
+		std::vector<std::uint8_t> buf;
+		append_vec<Tree::Tree_BID>(buf, x.fbid);
+		append_vec<CT_Merit>(buf, x.merit);
+	    return buf;
+	}
+
+	void deserialize_ends(const std::vector<std::uint8_t>& buf, EndSt& out) {
+		const std::uint8_t* p   = buf.data();
+	    const std::uint8_t* end = p + buf.size();
+
+	    out.fbid			= read_vec<Tree::Tree_BID>(p, end);
+	    out.merit 			= read_vec<CT_Merit>(p, end);
 
 	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}

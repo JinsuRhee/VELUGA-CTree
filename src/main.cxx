@@ -113,6 +113,12 @@ int main(int argc, char** argv) {
 #endif  
 
   //-----
+  // Merger Identifier
+  //-----
+  if(myrank==0) LOG() <<"  Entering to Merger Finder";
+  Ctree::findmerge(vh, tree, key);
+
+  //-----
   // Save Tree
   //-----
 

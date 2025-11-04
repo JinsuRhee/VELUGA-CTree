@@ -163,6 +163,15 @@ namespace Ctree{
     	CT_ID id = -1;
     };
 
+    struct EndSt{
+    	std::vector<Tree::Tree_BID> keyval;
+    	std::vector<Tree::Tree_BID> fbid;
+    	std::vector<CT_Merit> merit;
+    	CT_I32 nn = 0;
+    };
+
+    using EndArray = std::vector<EndSt>;
+
 #ifdef CTREE_USE_MPI
     //----- Link MPI
     struct LinkJob{
@@ -243,9 +252,10 @@ namespace Ctree{
 	void classify(const vctree_set::Settings& vh, ControlArray& data, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number);
 	
 	PIDArray collectpid(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
-	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0);
+	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0, bool opposite);
 
 	SnapPT readsnap(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr);
+	SnapPT readsnap2(const vctree_set::Settings& vh, CT_I32 snap_curr);
 
 	void commerit(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr);
 
@@ -261,10 +271,11 @@ namespace Ctree{
 
 	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, CT_I32 merittype);
 
-	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid);
+	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid, CT_I32 merittype);
 
 	void ctfree(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_I32 s_end, CT_I32 id_end, CT_I32 snap0);
 	CT_I32 wheresnap(IO::snapinfo& sinfo, CT_I32 snap_curr);
+	CT_I32 findnextsnap(IO::snapinfo& sinfo, CT_I32 snap_curr);
 	std::vector<CT_I32> get_control(ControlArray& data, CT_I32 type);
 	void PIDReallocate(const vctree_set::Settings& vh, PIDArray& pid, CT_I32 ind);
 	std::vector<CT_Merit> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid);
@@ -277,7 +288,7 @@ namespace Ctree{
                         //Evoldum& evoldum,
                         //Treelog& treelog);
 
-
+	void findmerge(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
 	//bool tfcname(const vctree_set::Settings& vh);
 	//int findnextsnap(const vctree_set::Settings& vh, const int snap_curr);
 	// For MPI Helper
@@ -319,6 +330,10 @@ namespace Ctree{
 	// ---- Serialize / Deserialize for Tree Array ----
 	std::vector<std::uint8_t> serialize(const Tree::TreeSt& x);
 	void deserialize(const std::vector<std::uint8_t>& buf, Tree::TreeSt& out);
+
+	// ---- Serialize / Deserialize for EndPoints Array ----
+	std::vector<std::uint8_t> serialize_ends(const EndSt& x);
+	void deserialize_ends(const std::vector<std::uint8_t>& buf, EndSt& out);
 
 	void bcast_blob_from_owner(int owner, std::vector<std::uint8_t>& blob);
 
