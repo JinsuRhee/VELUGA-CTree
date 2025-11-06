@@ -541,7 +541,8 @@ namespace Ctree{
 			}
 
 			// determine
-			if((ind - ind0) <= vh.ctree_n_search || (ind1-ind0) < vh.ctree_n_search){
+			//if((ind - ind0) <= vh.ctree_n_search || (ind1-ind0) < vh.ctree_n_search){
+			if( std::abs(ind1 - ind) <= vh.ctree_n_search || std::abs(ind - ind0) <= vh.ctree_n_search) { // best connection is still available within vh.ctree_n_search
 				data[i].stat = 0;
 				number.C ++;
 			} else{
@@ -549,6 +550,7 @@ namespace Ctree{
 				ctfree(vh, data, i, -1, -1, snap_curr);
 				number.B ++;
 			}
+
 		} 
 	}
 
@@ -1415,7 +1417,13 @@ t0 = std::chrono::steady_clock::now();
 				// merit comparison2
 				this_merit = -1.;
 				other_merit = -1.;
+
+CT_I32 dd = get_dkey(dkey, 620, 1);
+
 				for(CT_I32 j=0; j<nischeck; j++){
+if(dd >= 0 && ind == dd && myrank == 0){
+	LOG()<<"--- "<<checkcon[j].snap0<<" / "<<checkcon[j].id0<<" -- "<<checkcon[j].merit;
+}
 					if(checkcon[j].id0 == data[ind].id0 && checkcon[j].snap0 == data[ind].snap0){
 					//if( get_dkey(checkkey2, checkcon[j].snap0, checkcon[j].id0) == ind ){
 						this_merit 	= checkcon[j].merit;
@@ -1463,7 +1471,6 @@ if(myrank == 0){
 
 		}
 #endif
-
 
 		// Change Controls based on islink
 		// 	-1 close control
@@ -1837,7 +1844,7 @@ t0 = std::chrono::steady_clock::now();
 		LOG()<<" Check Link             : "<<howlong3;
 		LOG()<<" Close Link             : "<<howlong4;
 		LOG()<<" Do Link                : "<<howlong5;
-		
+	
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
 		
@@ -2668,8 +2675,6 @@ t0 = std::chrono::steady_clock::now();
 				dt_classify = std::chrono::duration<double>(t1 - t0).count();
 			}
 
-
-
 			if(myrank==0)LOG() <<"        With Tree = "<< number.T;
 			if(myrank==0)LOG() <<"        To be connected = "<< number.C;
 			if(myrank==0)LOG() <<"        Broken = "<< number.B;
@@ -2749,6 +2754,8 @@ if(myrank == 0 && dd >= 0){
 
 		classify(vh, data, sinfo, vh.snapi, number);
 		finalize(vh, data, dkey, tree, key, sinfo, vh.snapi, number);
+
+		findmerge(vh, tree, key);
 	}
 
 	//-----
@@ -2857,11 +2864,17 @@ if(myrank == 0 && dd >= 0){
 		//Synchronize
 		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
     		int owner = i % size;
+    		if( sinfo[i].snum<0) continue;
+			if( Endpts[sinfo[i].snum].nn == 0) continue;
+			if( sinfo[i].snum >= vh.snapf) continue;
+			CT_snap snap_curr = findnextsnap(sinfo, sinfo[i].snum);
+			if(snap_curr < 0) continue;
+
 
     		std::vector<std::uint8_t> blob_t;
-    		if (rank == owner) blob_t = serialize_ends(Endpts[i]);
+    		if (rank == owner) blob_t = serialize_ends(Endpts[sinfo[i].snum]);
     		bcast_blob_from_owner(owner, blob_t);
-    		if (rank != owner) deserialize_ends(blob_t, Endpts[i]);
+    		if (rank != owner) deserialize_ends(blob_t, Endpts[sinfo[i].snum]);
        	}
 		MPI_Barrier(MPI_COMM_WORLD);
 
@@ -2907,6 +2920,8 @@ if(myrank == 0 && dd >= 0){
 
 			for(CT_I32 j=0; j<Endpts[i].nn; j++){
 
+				if(Endpts[i].fbid[j]<0) continue;
+
 				Tree::TreeSt& tree_son = tree[ Endpts[i].keyval[j] ];
 				Tree::TreeSt& tree_par = tree[ Endpts[i].fbid[j] ];
 
@@ -2920,7 +2935,7 @@ if(myrank == 0 && dd >= 0){
 			}
 		}
 
-u_stop();
+
 	}
 
 	//----
@@ -3078,8 +3093,11 @@ u_stop();
 	// Serialize & Deserialize for Endpts Array
 	std::vector<std::uint8_t> serialize_ends(const EndSt& x) {
 		std::vector<std::uint8_t> buf;
-		append_vec<Tree::Tree_BID>(buf, x.fbid);
-		append_vec<CT_Merit>(buf, x.merit);
+		append_pod<CT_I32>(buf, x.nn);
+		if(x.nn >= 1){
+			append_vec<Tree::Tree_BID>(buf, x.fbid);
+			append_vec<CT_Merit>(buf, x.merit);
+		}
 	    return buf;
 	}
 
@@ -3087,8 +3105,12 @@ u_stop();
 		const std::uint8_t* p   = buf.data();
 	    const std::uint8_t* end = p + buf.size();
 
-	    out.fbid			= read_vec<Tree::Tree_BID>(p, end);
-	    out.merit 			= read_vec<CT_Merit>(p, end);
+	    CT_I32 nn 			= read_pod<CT_I32>(p, end);
+
+	    if(nn >= 1){
+		    out.fbid			= read_vec<Tree::Tree_BID>(p, end);
+		    out.merit 			= read_vec<CT_Merit>(p, end);
+		}
 
 	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
