@@ -53,11 +53,16 @@ namespace vctree_set{
 		std::string loadtree_ftree = "";
 		std::string loadtree_fkey  = "";
 
+		char        horg        = 'g';            	  // 'g' or 'h'
+
 		// For VR IO
 		std::string vr_dir_catalog 	= "./catalog/";   // VR output directory
-		std::string vr_dir_tree    = "";              // TreeFrog data is stored
-  		char        horg        = 'g';            	  // 'g' or 'h'
+		//std::string vr_dir_tree    = "";              // TreeFrog data is stored
   		
+  		
+  		// For HM IO
+  		std::string hm_dir_catalog 	= "./catalog/";
+
   		// RAMSES related
   		std::string ramses_dir = "";
   		
@@ -72,6 +77,7 @@ namespace vctree_set{
 
   		// makebr related
   		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
+
 
   		// complete_tree related
   		double ctree_minfrac 	= 0.25;
@@ -91,6 +97,7 @@ namespace vctree_set{
   		std::string tag_npart   = "";
   		std::string tag_merit   = "";
   		std::string tag_nlink   = "";
+  		std::string tf_dir = "";
 
   		// Some utils
   		void finalize_paths() {
@@ -341,13 +348,26 @@ namespace Tree{
 		keyval_org 	= snap + key[0] * id;
 		keyval_new 	= to_snap + key[0] * to_id;
 
+if(id<0) LOG()<<" id <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+if(snap<0) LOG()<<" snap <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+
+if(to_id<0) LOG()<<" to_id <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+if(to_snap<0) LOG()<<" to_snap <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+
+if(keyval_org >= key.size()) LOG()<<" wrong org "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+if(keyval_new >= key.size()) LOG()<<" wrong new "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+
+if(keyval_org < 0) LOG()<<" wrong org <0 : "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+if(keyval_new < 0) LOG()<<" wrong new <0 : "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+
+    	in_key(key, to_snap, to_id, key[keyval_org]);
 		//key[keyval_new].ind = key[keyval_org].ind;
-		key[keyval_new] 	= key[keyval_org];
+		//key[keyval_new] 	= key[keyval_org];
 
 		//TreeSt& treedum 	= tree[ key[keyval_org].ind ];
 		TreeSt& treedum 	= tree[ key[keyval_org] ];
 
-		
+
 //int myrank  = mpi_rank();
 //if(myrank ==0 && snap == 49 && id == 1 && )
 //{
