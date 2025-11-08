@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     }
   }
 
+
   // Load Configuration
   vctree_set::Settings vh;
   if( !g_load_config(argv[1], vh) ){

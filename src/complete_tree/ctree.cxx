@@ -32,7 +32,7 @@ namespace Ctree{
     }
 
 
-	void expandbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link){
+	void expandbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link){
 		
 		// this should be snap0 & id0 in mpi parallelization
 		bool istree = Tree::istree(key, data[ind].snap0, data[ind].id0);
@@ -59,7 +59,7 @@ namespace Ctree{
 	}
 
 
-	void makenewbr(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_snap snap0, CT_ID id0, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
+	void makenewbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_snap snap0, CT_ID id0, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
 
 		Tree::TreeSt newtree;
 
@@ -248,7 +248,7 @@ namespace Ctree{
 	}
 
 	// Reallocate PID Array
-	void PIDReallocate(const vctree_set::Settings& vh, PIDArray& pid, CT_I32 ind){
+	void PIDReallocate(vctree_set::Settings& vh, PIDArray& pid, CT_I32 ind){
 		if((CT_I32) pid.size() > ind) return;
 		CT_I32 stepsize = vh.ctree_npid;
 		CT_I32 nn = 1;
@@ -261,7 +261,7 @@ namespace Ctree{
 	}
 
 	// merit related
-	std::vector<CT_Merit> get_weight(const vctree_set::Settings& vh, std::vector<CT_PID> pid){
+	std::vector<CT_Merit> get_weight(vctree_set::Settings& vh, std::vector<CT_PID> pid){
 		CT_I32 npart = pid.size();
 		std::vector<CT_Merit> weight(npart);
 		
@@ -311,7 +311,7 @@ namespace Ctree{
 	}
 
 	// Extract Core Particles
-	PIDArray get_coreptcl(const vctree_set::Settings& vh, PIDArray& pid){
+	PIDArray get_coreptcl(vctree_set::Settings& vh, PIDArray& pid){
 
 		CT_I32 npid = pid.size();
 
@@ -377,7 +377,7 @@ namespace Ctree{
 	}
 
 	// Free
-	void ctfree(const vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_I32 s_end, CT_I32 id_end, CT_I32 snap0){
+	void ctfree(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_I32 s_end, CT_I32 id_end, CT_I32 snap0){
 
 		CT_I32 ncut;
 		data[ind].detstat 	= -1;
@@ -447,7 +447,7 @@ namespace Ctree{
 	}
 
 	// Reallocate Control Array
-	void reallocate(const vctree_set::Settings& vh, ControlArray& data, CT_I32 nn){
+	void reallocate(vctree_set::Settings& vh, ControlArray& data, CT_I32 nn){
 		CT_I32 old_n = data.size();
 		data.reserve(old_n + nn);
 		for(CT_I32 i=0; i<nn; i++) data.emplace_back(vh);
@@ -457,7 +457,7 @@ namespace Ctree{
 	//-----
 	// Input Galaxy to control array
 	//-----
-	void inputgal(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, IO_dtype::GalArray& gal){
+	void inputgal(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, IO_dtype::GalArray& gal){
 
 		CT_I32 i0, i1, dsize, nstep;
 
@@ -503,7 +503,7 @@ namespace Ctree{
 	//-----
 	// TREE CLASSIFICATION
 	//-----
-	void classify(const vctree_set::Settings& vh, ControlArray& data, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number){
+	void classify(vctree_set::Settings& vh, ControlArray& data, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number){
 		//Log Initialize
 		number.T = 0;
 		number.B = 0;
@@ -557,7 +557,7 @@ namespace Ctree{
 	//-----
 	// Collect PID
 	//-----
-	PIDArray collectpidalongbranch(const vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0, bool opposite){
+	PIDArray collectpidalongbranch(vctree_set::Settings& vh, Tree::TreeSt& tree0, CT_I32 snap0, bool opposite){
 
 		PIDArray pid;
 		
@@ -644,7 +644,7 @@ namespace Ctree{
 	//-----
 	// Read Snapshot particles
 	//-----
-	SnapPT readsnap(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr){
+	SnapPT readsnap(vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr){
 
 		// Target control array
 		SnapPT spt;
@@ -762,7 +762,7 @@ namespace Ctree{
 		return spt;
 	}
 
-	SnapPT readsnap2(const vctree_set::Settings& vh, CT_I32 snap_curr){
+	SnapPT readsnap2(vctree_set::Settings& vh, CT_I32 snap_curr){
 
 		// Target control array
 		SnapPT spt;
@@ -867,7 +867,7 @@ namespace Ctree{
 	// Compute Merit
 	//-----
 
-	void commerit(const vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr){
+	void commerit(vctree_set::Settings& vh, ControlArray& data, Tree::TreeArray& tree, Tree::TreeKeyArray& key, SnapPT& pid0, CT_I32 snap_curr){
 		// Gather Target
 		//int myrank = mpi_rank();
 
@@ -908,8 +908,7 @@ namespace Ctree{
 			for(CT_I32 ind : cut){
 				int owner = ind % size;
 				if(owner != rank) continue;
-
-				
+			
 				cpid.clear();
 
 
@@ -1077,7 +1076,7 @@ namespace Ctree{
 	//-----
 	// Link Branch
 	//-----
-	CT_Merit brcompare(const vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, Tree::TreeSt& tree0, CT_I32 snap0){
+	CT_Merit brcompare(vctree_set::Settings& vh, CT_I32 s0, CT_I32 id0, Tree::TreeSt& tree0, CT_I32 snap0){
 
 		IO_dtype::GalArray gal0 	= IO::r_gal(vh, s0, id0, true);
 
@@ -1114,7 +1113,7 @@ namespace Ctree{
 		
 	}
 
-	void linkbr(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link, CT_I32 snap_curr){
+	void linkbr(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 id_to_link, CT_I32 snap_to_link, CT_Merit merit_to_link, CT_I32 snap_curr){
 
 		bool istree = Tree::istree(key, data[ind].snap, data[ind].id);
 		if(!istree){
@@ -1240,7 +1239,7 @@ namespace Ctree{
 
 	}
 
-	void link(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr){
+	void link(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr){
 
 double howlong1, howlong2, howlong3, howlong4, howlong5;
 int myrank = mpi_rank();
@@ -2170,23 +2169,23 @@ t0 = std::chrono::steady_clock::now();
 
 	}
 
-	void DoJob1a(const vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
+	void DoJob1a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
 		// data [ ind ]
 		ctfree(vh, data, job.ind, job.snap, job.id, snap_curr);
 	}
 
-	void DoJob1b(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){		// tree[ tind ]
+	void DoJob1b(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){		// tree[ tind ]
 		expandbr(vh, data, job.ind, tree, key, job.id, job.snap, job.merit);
 		// tree[ tind ]
 	}
 
-	void DoJob2a(const vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
+	void DoJob2a(vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
 		Tree::TreeSt c_tree = tree[job.tind2];
 		// data[ ind ]
 		ctfree(vh, data, job.ind, c_tree.snap[0], c_tree.id[0], snap_curr); // data
 	}
 
-	void DoJob2b(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){
+	void DoJob2b(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){
 		// data[ dind ]
 		if(dind>=0){
 			data[dind].stat 	= -1;
@@ -2215,7 +2214,7 @@ t0 = std::chrono::steady_clock::now();
 
 	}
 
-	void DoJob3a(const vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
+	void DoJob3a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
 		// data [ ind ]
 
 		CT_I32 list_ind=0;
@@ -2257,7 +2256,7 @@ t0 = std::chrono::steady_clock::now();
 		tree0.frag_bid = com_bid;
 	}
 
-	void DoJob4a(const vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
+	void DoJob4a(vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_I32 snap_curr){
 		Tree::TreeSt c_tree = tree[job.tind2];
 		// data[ind]
 		ctfree(vh, data, job.ind, c_tree.snap[0], c_tree.id[0], snap_curr);	
@@ -2283,12 +2282,12 @@ t0 = std::chrono::steady_clock::now();
 	
 	}
 
-	void DoJob4d(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){
+	void DoJob4d(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr){
 		data[dind].stat = -1;
 		ctfree(vh, data, dind, -1, -1, snap_curr);
 	}
 
-	void DoJob4e(const vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr, CT_I32* jobtype){
+	void DoJob4e(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_I32 snap_curr, CT_I32* jobtype){
 		if(jobtype[0] == 1){
 			data[dind].stat = 1;
 			ctfree(vh, data, dind, jobtype[1], jobtype[2], snap_curr);
@@ -2302,11 +2301,11 @@ t0 = std::chrono::steady_clock::now();
 	}
 
 
-	CT_Merit link_commerit(const vctree_set::Settings& vh, Tree::TreeSt tree0, CT_I32 snap_to_link, CT_I32 id_to_link, CT_I32 snap_curr){
+	CT_Merit link_commerit(vctree_set::Settings& vh, Tree::TreeSt tree0, CT_I32 snap_to_link, CT_I32 id_to_link, CT_I32 snap_curr){
 		return brcompare(vh, snap_to_link, id_to_link, tree0, snap_curr);
 	}
 
-	LinkJob get_job(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, CT_I32 ind, CT_I32 snap_to_link, CT_I32 id_to_link, CT_Merit merit_to_link, CT_I32 snap_curr){
+	LinkJob get_job(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, CT_I32 ind, CT_I32 snap_to_link, CT_I32 id_to_link, CT_Merit merit_to_link, CT_I32 snap_curr){
 		
 		LinkJob thisjob;
 
@@ -2425,7 +2424,7 @@ t0 = std::chrono::steady_clock::now();
 					
 
 	//
-	void addgal(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 snap_curr){
+	void addgal(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_I32 snap_curr){
 
 		IO_dtype::GalArray gal0 = IO::r_gal(vh, snap_curr, -1, false);
 		IO_dtype::GalArray gal(gal0.size());
@@ -2476,7 +2475,7 @@ t0 = std::chrono::steady_clock::now();
 	}
 
 	//
-	void delgal(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey){
+	void delgal(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey){
 
 		std::vector<CT_I32> cut = get_control(data, -1);
 		CT_I32 ncut = cut.size();
@@ -2495,7 +2494,7 @@ t0 = std::chrono::steady_clock::now();
 
 	}
 	// finalize
-	void finalize(const vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number){
+	void finalize(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_I32 snap_curr, ctree_num& number){
 
 		std::vector<CT_I32> cut 	= get_control(data, 0);
 		CT_I32 ncut = cut.size();
@@ -2534,7 +2533,7 @@ t0 = std::chrono::steady_clock::now();
 
 	// Main Part
 
-	void main(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
+	void main(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
 // Check
 // 	- different merit quantification but compared simultaneously (is this fine?)
 
@@ -2697,6 +2696,8 @@ t0 = std::chrono::steady_clock::now();
 				dt_readsnap = std::chrono::duration<double>(t1 - t0).count();
 			}
 
+if(myrank == 0)LOG()<<"Read snap done";
+
 			//----- Compute Merit
 			t0 = std::chrono::steady_clock::now();
 			commerit(vh, data, tree, key, pid0, sinfo[i].snum);
@@ -2764,7 +2765,7 @@ if(myrank == 0 && dd >= 0){
 	//-----
 	// Merger Finder
 	//-----
-	void findmerge(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
+	void findmerge(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key){
 
 		int myrank  = mpi_rank();
 		double t11, t22, t33;
@@ -3302,7 +3303,7 @@ if(myrank == 0 && dd >= 0){
 #endif
 
 // For Debugging
-	void savetree_ctree(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr){
+	void savetree_ctree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr){
 	    namespace fs = std::filesystem;
 
 	    constexpr std::int32_t TAG_GID = savetree_gettype<Tree::Tree_GID>();
@@ -3455,7 +3456,7 @@ if(myrank == 0 && dd >= 0){
 	}
 
 
-	void loadtree_ctree(const vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr){
+	void loadtree_ctree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_I32 snap_curr){
 
 	    int myrank  = mpi_rank();
 	    // Simple version used
@@ -3592,7 +3593,7 @@ if(myrank == 0 && dd >= 0){
 
 	    }
 	}
-	void savedata(const vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr){
+	void savedata(vctree_set::Settings& vh, ControlArray& data, CT_I32 snap_curr){
 
 
 	    namespace fs = std::filesystem;
@@ -3645,7 +3646,7 @@ if(myrank == 0 && dd >= 0){
 	      
 	}
 
-	ControlArray loaddata(const vctree_set::Settings& vh, CT_I32 snap_curr){
+	ControlArray loaddata(vctree_set::Settings& vh, CT_I32 snap_curr){
 
 
 	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";

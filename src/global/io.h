@@ -30,7 +30,7 @@ namespace IO_dtype{
 
 	using IO_GID 		= std::int32_t; // Catalog galaxy ID type
 	using IO_Snap 		= std::int32_t; // Catalog snapshot number type
-	using IO_PID 		= std::int64_t; // Catalog particle ID type
+	using IO_PID 		= std::int32_t; // Catalog particle ID type
 	using IO_BID 		= std::int32_t; // Branch ID type
 
 	// For Snapshot info data type
@@ -334,7 +334,7 @@ namespace IO_HM{
 	    return buf;
 	}
 
-	// ---- SKIP record (버리기) ----
+	// ---- SKIP record  ----
 	inline void skip_f77_record(std::ifstream& ifs) {
 	    int32_t len1 = 0, len2 = 0;
 
@@ -370,6 +370,12 @@ namespace IO_HM{
 	using GalSt = IO_dtype::GalSt;
 	using GalArray = IO_dtype::GalArray;
 
+	inline void in_gpt(std::vector<int32_t>& gpt, HM_I32 id, HM_I32 pointer){
+		if((HM_I32) gpt.size() <= id){
+			gpt.resize(id*2);
+		}
+		gpt[id]	= pointer;
+	}
 	//-----
 	// read Galaxy Catalog
 	//	
@@ -379,7 +385,7 @@ namespace IO_HM{
 	// horg 	→ 'h' or 'g'
 	// read_p_id = true → return particle ID
 
-	inline GalArray r_gal(const vctree_set::Settings& vh, const HM_Snap snap_curr, const HM_GID id0, const bool readpart=false){
+	inline GalArray r_gal(vctree_set::Settings& vh, const HM_Snap snap_curr, const HM_GID id0, const bool readpart=false){
 
 		std::string fname 	= vh.hm_dir_catalog + "/tree_bricks" + i5(snap_curr);
 
@@ -389,22 +395,33 @@ namespace IO_HM{
 			throw std::runtime_error("Failed to open file: " + fname);
 		}
 
-		try{
+		//check the presence of pointer
+		std::vector<int32_t>& gpt = vh.hm_gpointer[snap_curr];
+
+		if(gpt.size()==0){ // have no information about file pointer
+
+			HM_I32 ini_max_id 	= 100000;
+			gpt.resize(ini_max_id);
 			GalArray gal;
 
 			HM_I32 nbodies, nmain, nsub, nall;
+			HM_I32 curr_pt = 0;
 
 			// READ nbodies
 			auto rec 	= read_f77_record(ifs);
 			std::memcpy(&nbodies, rec.data(), 4);
-			
+			curr_pt += (4+4+4);
+
 			// SKIP FOR DOUBLES (massp, aexp, omega_t, age_univ)
 			for(int k=0; k<4; k++) skip_f77_record(ifs);
+			curr_pt += (4+8+4)*4;
 
 			// Read n_main & n_sub
 			rec 	= read_f77_record(ifs);
 			std::memcpy(&nmain, rec.data(), 4);
 			std::memcpy(&nsub, rec.data() + 4, 4);
+			curr_pt += (4+4*2+4);
+
 
 			nall 	= nmain + nsub;
 
@@ -417,63 +434,83 @@ namespace IO_HM{
 			// Read with loop
 			HM_I32 numpart, gid;
 			std::vector<HM_I32> pid;
+			std::vector<char> rec2;
+
+			HM_I32 curr_pt_old;
 			for(HM_I32 i=0; i<nall; i++){
+
+				curr_pt_old = curr_pt;
 
 				// numpart
 				rec 	= read_f77_record(ifs);
 				std::memcpy(&numpart, rec.data(), 4);
-				
+				curr_pt 	+= (4+4+4);
+
+				// read Particle ID
 				if(readpart){
-					pid.resize(numpart);
-					// read Particle ID
-					rec = read_f77_record(ifs);
-					std::memcpy(pid.data(), rec.data(), numpart * sizeof(HM_I32));
+					rec2 	= read_f77_record(ifs);
+					//pid.resize(numpart);
 				}else{
 					skip_f77_record(ifs);
 				}
+				curr_pt 	+= (4+4*numpart+4);
 				
 				// read ID
 				rec 	= read_f77_record(ifs);
 				std::memcpy(&gid, rec.data(), 4);
+				curr_pt 	+= (4+4+4);
 
 				// skip timestep
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+4+4);
 
 				// skip level ...
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+4*5+4);
 
 				// skip mass
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+8+4);
 
 				// skip x, y, z
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*3+4);
 
 				// skip vx, vy, vz
     			skip_f77_record(ifs);
+    			curr_pt 	+= (4+8*3+4);
 
     			// skip lx, ly, lz
     			skip_f77_record(ifs);
-    
+    			curr_pt 	+= (4+8*3+4);
+
     			// skip shapes
     			skip_f77_record(ifs);
+    			curr_pt 	+= (4+8*4+4);
 
     			// skip energies
     			skip_f77_record(ifs);
+    			curr_pt 	+= (4+8*3+4);
 
     			// skip spin
     			skip_f77_record(ifs);
+    			curr_pt 	+= (4+8+4);
 
     			// skip sigma
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+8+4);
 
 				// skip virial
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*4+4);
 
 				// skip profile
 				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*2+4);
 
 				// input
-
+				in_gpt(gpt, gid, curr_pt_old);
+				
 				if(id0>0){
 					if(id0 == gid){
 						gal[0].snap 	= snap_curr;
@@ -482,13 +519,7 @@ namespace IO_HM{
 
 						if(readpart){
 							gal[0].pid.resize(numpart);
-							std::transform(pid.begin(), pid.end(), gal[0].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
-							//if(sizeof(pid[0]) == sizeof(HM_PID)){
-							//	gal[0].pid 	= pid;
-							//}else{
-							//	std::transform(pid.begin(), pid.end(), gal[0].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
-							//}
-							pid.clear();
+							std::memcpy(gal[0].pid.data(), rec2.data(), numpart * sizeof(HM_PID));
 						}
 					}
 				}else{
@@ -498,21 +529,134 @@ namespace IO_HM{
 
 					if(readpart){
 						gal[i].pid.resize(numpart);
-						std::transform(pid.begin(), pid.end(), gal[i].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
-						//if(sizeof(pid[0]) == sizeof(HM_PID)){
-						//	//gal[i].pid 	= std::move(pid);	
-						//}else{
-						//	std::transform(pid.begin(), pid.end(), gal[i].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
-						//}
-						pid.clear();
+						std::memcpy(gal[i].pid.data(), rec2.data(), numpart * sizeof(HM_PID));
 					}
 				}
 			}
 
 
 			return gal;
-		}catch (...) {
-	        throw;
+		}else{
+			GalArray gal;
+
+			HM_I32 nbodies, nmain, nsub, nall;
+			HM_I32 numpart, gid;
+			std::vector<char> rec2;
+
+			if(id0>0){
+				gal.resize(1);
+				ifs.seekg(gpt[id0], std::ios::cur);
+
+				// numpart
+				auto rec 	= read_f77_record(ifs);
+				std::memcpy(&numpart, rec.data(), 4);
+				
+				// read Particle ID
+				if(readpart){
+					rec2 	= read_f77_record(ifs);
+					//pid.resize(numpart);
+				}else{
+					skip_f77_record(ifs);
+				}
+								
+				// read ID
+				rec 	= read_f77_record(ifs);
+				std::memcpy(&gid, rec.data(), 4);
+			
+				gal[0].snap 	= snap_curr;
+				gal[0].id 		= gid;
+				gal[0].npart 	= numpart;
+
+				if(readpart){
+					gal[0].pid.resize(numpart);
+					std::memcpy(gal[0].pid.data(), rec2.data(), numpart * sizeof(HM_PID));
+				}
+
+			}else{
+				// READ nbodies
+				auto rec 	= read_f77_record(ifs);
+				std::memcpy(&nbodies, rec.data(), 4);
+
+
+				// SKIP FOR DOUBLES (massp, aexp, omega_t, age_univ)
+				for(int k=0; k<4; k++) skip_f77_record(ifs);
+				
+				// Read n_main & n_sub
+				rec 	= read_f77_record(ifs);
+				std::memcpy(&nmain, rec.data(), 4);
+				std::memcpy(&nsub, rec.data() + 4, 4);
+
+
+				nall 	= nmain + nsub;
+
+				gal.resize(nall);
+
+
+				// Read with loop
+				for(HM_I32 i=0; i<nall; i++){
+
+					// numpart
+					rec 	= read_f77_record(ifs);
+					std::memcpy(&numpart, rec.data(), 4);
+
+					// read Particle ID
+					if(readpart){
+						rec2 	= read_f77_record(ifs);
+					}else{
+						skip_f77_record(ifs);
+						}
+					// read ID
+					rec 	= read_f77_record(ifs);
+					std::memcpy(&gid, rec.data(), 4);
+
+					// skip timestep
+					skip_f77_record(ifs);
+
+					// skip level ...
+					skip_f77_record(ifs);
+
+					// skip mass
+					skip_f77_record(ifs);
+
+					// skip x, y, z
+					skip_f77_record(ifs);
+
+					// skip vx, vy, vz
+	    			skip_f77_record(ifs);
+
+	    			// skip lx, ly, lz
+	    			skip_f77_record(ifs);
+
+	    			// skip shapes
+	    			skip_f77_record(ifs);
+
+	    			// skip energies
+	    			skip_f77_record(ifs);
+
+	    			// skip spin
+	    			skip_f77_record(ifs);
+
+	    			// skip sigma
+					skip_f77_record(ifs);
+
+					// skip virial
+					skip_f77_record(ifs);
+
+					// skip profile
+					skip_f77_record(ifs);
+				
+					gal[i].snap 	= snap_curr;
+					gal[i].id 		= gid;
+					gal[i].npart 	= numpart;
+
+					if(readpart){
+						gal[i].pid.resize(numpart);
+						std::memcpy(gal[i].pid.data(), rec2.data(), numpart * sizeof(HM_PID));
+					}
+				}
+							
+			}
+			return gal;
 	    }
 		
 		
@@ -588,7 +732,7 @@ namespace IO {
 	}
 
 	//----- Read Catalog
-	inline IO_dtype::GalArray r_gal(const vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
+	inline IO_dtype::GalArray r_gal(vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
 		if(vh.iotype == "VR"){
 			return IO_VR::r_gal(vh, snap_curr, id0, readpart);
 		}else if(vh.iotype == "HM"){

@@ -62,6 +62,7 @@ namespace vctree_set{
   		
   		// For HM IO
   		std::string hm_dir_catalog 	= "./catalog/";
+  		std::vector< std::vector<int32_t> > hm_gpointer;
 
   		// RAMSES related
   		std::string ramses_dir = "";
@@ -102,7 +103,7 @@ namespace vctree_set{
   		// Some utils
   		void finalize_paths() {
   			if (iotype == "VR"){
-  				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "Galaxy/VR_Galaxy" : "Halo/VR_Halo");
+  				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
   				//if (vr_dir_tree.empty()) {
       			//	vr_dir_tree = vr_dir_catalog + "../tree/tfout";
     			//}
