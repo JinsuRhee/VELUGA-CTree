@@ -103,9 +103,9 @@ namespace vctree_set{
   		void finalize_paths() {
   			if (iotype == "VR"){
   				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "Galaxy/VR_Galaxy" : "Halo/VR_Halo");
-  				if (vr_dir_tree.empty()) {
-      				vr_dir_tree = vr_dir_catalog + "../tree/tfout";
-    			}
+  				//if (vr_dir_tree.empty()) {
+      			//	vr_dir_tree = vr_dir_catalog + "../tree/tfout";
+    			//}
   			}
   		}
 
@@ -342,23 +342,11 @@ namespace Tree{
 		//Tree_Snap p_snap, Tree_GID p_id, Tree_merit p_merit, 
 		//Tree_Snap d_snap, Tree_GID d_id){
 
-		Tree_BID keyval_org, keyval_new;
+		Tree_BID keyval_org;//, keyval_new;
 		//keyval_org 	= snap + key[0].key * id;
 		//keyval_new 	= to_snap + key[0].key * to_id;
 		keyval_org 	= snap + key[0] * id;
-		keyval_new 	= to_snap + key[0] * to_id;
-
-if(id<0) LOG()<<" id <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-if(snap<0) LOG()<<" snap <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-
-if(to_id<0) LOG()<<" to_id <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-if(to_snap<0) LOG()<<" to_snap <0 "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-
-if(keyval_org >= key.size()) LOG()<<" wrong org "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-if(keyval_new >= key.size()) LOG()<<" wrong new "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-
-if(keyval_org < 0) LOG()<<" wrong org <0 : "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
-if(keyval_new < 0) LOG()<<" wrong new <0 : "<<snap<<" / "<<id<<" / "<<to_snap<<" / "<<to_id<<" / "<<keyval_org<<" / "<<keyval_new;
+		//keyval_new 	= to_snap + key[0] * to_id;
 
     	in_key(key, to_snap, to_id, key[keyval_org]);
 		//key[keyval_new].ind = key[keyval_org].ind;

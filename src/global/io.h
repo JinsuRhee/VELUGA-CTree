@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <filesystem>   // C++17
 #include <fstream>
 #include <hdf5.h>
@@ -14,6 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
 
 
 namespace fs = std::filesystem;
@@ -58,6 +60,9 @@ namespace IO_dtype{
 	using GalArray = std::vector<GalSt>;
 }
 
+//-----
+// FOR VELOCIraptor catalog
+//-----
 namespace IO_VR{
 	inline std::string zfill_longlong(long long x, int width) {
 	    std::ostringstream oss;
@@ -279,6 +284,244 @@ namespace IO_VR{
 }
 
 //-----
+// For HaloMaker catalog
+//-----
+namespace IO_HM{
+	inline std::string zfill_longlong(long long x, int width) {
+	    std::ostringstream oss;
+	    oss << std::setfill('0') << std::setw(width) << x;
+	    return oss.str();
+	}
+
+	// Endian swap
+	inline uint16_t bswap16(uint16_t x) { return __builtin_bswap16(x); }
+	inline uint32_t bswap32(uint32_t x) { return __builtin_bswap32(x); }
+	inline uint64_t bswap64(uint64_t x) { return __builtin_bswap64(x); }
+	template <typename T>
+	T bswap(T v) {
+    	if constexpr (sizeof(T) == 2) {
+        	uint16_t x; std::memcpy(&x, &v, 2);
+        	x = bswap16(x);
+        	std::memcpy(&v, &x, 2);
+    	} else if constexpr (sizeof(T) == 4) {
+        	uint32_t x; std::memcpy(&x, &v, 4);
+        	x = bswap32(x);
+        	std::memcpy(&v, &x, 4);
+    	} else if constexpr (sizeof(T) == 8) {
+        	uint64_t x; std::memcpy(&x, &v, 8);
+        	x = bswap64(x);
+        	std::memcpy(&v, &x, 8);
+    	}
+    	return v;
+	}
+
+	inline std::vector<char> read_f77_record(std::ifstream& ifs) {
+	    int32_t len1 = 0, len2 = 0;
+
+	    if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
+	        throw std::runtime_error("Failed to read record header");
+
+	    std::vector<char> buf(len1);
+	    if (!ifs.read(buf.data(), len1))
+	        throw std::runtime_error("Failed to read record payload");
+
+	    if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
+	        throw std::runtime_error("Failed to read record footer");
+
+	    if (len1 != len2)
+	        throw std::runtime_error("Record length mismatch");
+
+	    return buf;
+	}
+
+	// ---- SKIP record (버리기) ----
+	inline void skip_f77_record(std::ifstream& ifs) {
+	    int32_t len1 = 0, len2 = 0;
+
+	    // header
+	    if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
+	        throw std::runtime_error("Failed to read record header");
+
+	    // payload 건너뛰기
+	    if (!ifs.seekg(len1, std::ios::cur))
+	        throw std::runtime_error("Failed to skip record payload");
+
+	    // footer
+	    if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
+	        throw std::runtime_error("Failed to read record footer");
+
+	    if (len1 != len2)
+	        throw std::runtime_error("Record length mismatch on skip");
+	}
+
+	//-----
+	// Data Types
+	//-----
+	using HM_GID 		= IO_dtype::IO_GID;//std::int32_t;		// for galaxy ID
+	using HM_Snap 		= IO_dtype::IO_Snap;//std::int32_t;
+	using HM_PID 	 	= IO_dtype::IO_PID;//std::int64_t;		// for particle ID
+	using HM_merit		= IO_dtype::IO_double;//double;
+	using HM_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
+	using HM_I32		= IO_dtype::IO_I32;//std::int32_t;
+	using HM_I64 		= IO_dtype::IO_I64;
+	using HM_double 	= IO_dtype::IO_double;
+
+	//----- For galaxy array
+	using GalSt = IO_dtype::GalSt;
+	using GalArray = IO_dtype::GalArray;
+
+	//-----
+	// read Galaxy Catalog
+	//	
+	//-----
+	// id0 < 0  → All galaxies
+	// id0 >= 0 → A Galaxy corresponding to this ID
+	// horg 	→ 'h' or 'g'
+	// read_p_id = true → return particle ID
+
+	inline GalArray r_gal(const vctree_set::Settings& vh, const HM_Snap snap_curr, const HM_GID id0, const bool readpart=false){
+
+		std::string fname 	= vh.hm_dir_catalog + "/tree_bricks" + i5(snap_curr);
+
+		std::ifstream ifs(fname, std::ios::binary);
+
+		if(!ifs){
+			throw std::runtime_error("Failed to open file: " + fname);
+		}
+
+		try{
+			GalArray gal;
+
+			HM_I32 nbodies, nmain, nsub, nall;
+
+			// READ nbodies
+			auto rec 	= read_f77_record(ifs);
+			std::memcpy(&nbodies, rec.data(), 4);
+			
+			// SKIP FOR DOUBLES (massp, aexp, omega_t, age_univ)
+			for(int k=0; k<4; k++) skip_f77_record(ifs);
+
+			// Read n_main & n_sub
+			rec 	= read_f77_record(ifs);
+			std::memcpy(&nmain, rec.data(), 4);
+			std::memcpy(&nsub, rec.data() + 4, 4);
+
+			nall 	= nmain + nsub;
+
+			if(id0>0){
+				gal.resize(1);
+			}else{
+				gal.resize(nall);
+			}
+
+			// Read with loop
+			HM_I32 numpart, gid;
+			std::vector<HM_I32> pid;
+			for(HM_I32 i=0; i<nall; i++){
+
+				// numpart
+				rec 	= read_f77_record(ifs);
+				std::memcpy(&numpart, rec.data(), 4);
+				
+				if(readpart){
+					pid.resize(numpart);
+					// read Particle ID
+					rec = read_f77_record(ifs);
+					std::memcpy(pid.data(), rec.data(), numpart * sizeof(HM_I32));
+				}else{
+					skip_f77_record(ifs);
+				}
+				
+				// read ID
+				rec 	= read_f77_record(ifs);
+				std::memcpy(&gid, rec.data(), 4);
+
+				// skip timestep
+				skip_f77_record(ifs);
+
+				// skip level ...
+				skip_f77_record(ifs);
+
+				// skip mass
+				skip_f77_record(ifs);
+
+				// skip x, y, z
+				skip_f77_record(ifs);
+
+				// skip vx, vy, vz
+    			skip_f77_record(ifs);
+
+    			// skip lx, ly, lz
+    			skip_f77_record(ifs);
+    
+    			// skip shapes
+    			skip_f77_record(ifs);
+
+    			// skip energies
+    			skip_f77_record(ifs);
+
+    			// skip spin
+    			skip_f77_record(ifs);
+
+    			// skip sigma
+				skip_f77_record(ifs);
+
+				// skip virial
+				skip_f77_record(ifs);
+
+				// skip profile
+				skip_f77_record(ifs);
+
+				// input
+
+				if(id0>0){
+					if(id0 == gid){
+						gal[0].snap 	= snap_curr;
+						gal[0].id 		= gid;
+						gal[0].npart 	= numpart;
+
+						if(readpart){
+							gal[0].pid.resize(numpart);
+							std::transform(pid.begin(), pid.end(), gal[0].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
+							//if(sizeof(pid[0]) == sizeof(HM_PID)){
+							//	gal[0].pid 	= pid;
+							//}else{
+							//	std::transform(pid.begin(), pid.end(), gal[0].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
+							//}
+							pid.clear();
+						}
+					}
+				}else{
+					gal[i].snap 	= snap_curr;
+					gal[i].id 		= gid;
+					gal[i].npart 	= numpart;
+
+					if(readpart){
+						gal[i].pid.resize(numpart);
+						std::transform(pid.begin(), pid.end(), gal[i].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
+						//if(sizeof(pid[0]) == sizeof(HM_PID)){
+						//	//gal[i].pid 	= std::move(pid);	
+						//}else{
+						//	std::transform(pid.begin(), pid.end(), gal[i].pid.begin(), [](HM_I32 x){return static_cast<HM_PID>(x);});
+						//}
+						pid.clear();
+					}
+				}
+			}
+
+
+			return gal;
+		}catch (...) {
+	        throw;
+	    }
+		
+		
+	}
+
+
+
+}
+//-----
 // IO for RAMSES
 //-----
 namespace IO_RAMSES{
@@ -348,6 +591,8 @@ namespace IO {
 	inline IO_dtype::GalArray r_gal(const vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
 		if(vh.iotype == "VR"){
 			return IO_VR::r_gal(vh, snap_curr, id0, readpart);
+		}else if(vh.iotype == "HM"){
+			return IO_HM::r_gal(vh, snap_curr, id0, readpart);
 		} else{
 			LOG()<<"Should be implemented for different IO Type";
 			u_stop();

@@ -99,7 +99,10 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // VR related
     else if (lkey=="vr_dir_catalog") vh.vr_dir_catalog = normalize_iotype(val, true);
-    else if (lkey=="vr_dir_tree") vh.vr_dir_tree = normalize_iotype(val, true);
+    //else if (lkey=="vr_dir_tree") vh.vr_dir_tree = normalize_iotype(val, true);
+
+    // HMaker related
+    else if (lkey=="hm_dir_catalog") vh.hm_dir_catalog = normalize_iotype(val, true);
 
     // Ramses related
     else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
@@ -108,6 +111,10 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     // Branch related
     else if (lkey=="branchmaker") vh.branchmaker = normalize_iotype(val, false);
     else if (lkey=="brtype") vh.brtype = normalize_iotype(val, false);
+    else if (lkey=="treedir") vh.treedir = normalize_iotype(val, false);
+
+    //// -- TreeFrog
+    else if (lkey=="tf_dir") vh.tf_dir = normalize_iotype(val, true);
 
     // Load tree
     else if (lkey=="loadtree") vh.loadtree = normalize_iotype(val, false);
@@ -118,7 +125,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="horg") {
       if (!val.empty()) vh.horg = (char)std::tolower((unsigned char)val[0]);
     }
-    else if(lkey=="treedir") vh.treedir = normalize_iotype(val, false);
+    
       
     // General (number)
     else if (lkey=="snapi")  { parse_num(val, vh.snapi); }

@@ -974,7 +974,7 @@ namespace Ctree{
 				gal0 	= IO::r_gal(vh, data[ind].snap, data[ind].id, true);
 
 
-				if(!istree(key, data[ind].snap, data[ind].id)){ 
+				if(!Tree::istree(key, data[ind].snap, data[ind].id)){ 
 					// no treee for this galaxy (read from a single snapshot)
 
 					cpid2.resize(gal0[0].pid.size());
@@ -995,10 +995,10 @@ namespace Ctree{
 					// this galaxy has a branch. Collect particles along its branch
 					tree0 = Tree::gettree(tree, key, data[ind].snap, data[ind].id);
 
-					if(ntcut == 0){
-						LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
-						u_stop();
-					}
+					//if(ntcut == 0){
+					//	LOG()<<"Weird branch: Snap = "<<data[ind].snap0<<" / ID = "<<data[ind].id0;
+					//	u_stop();
+					//}
 					cpid 	= collectpidalongbranch(vh, tree0, data[ind].snap, false);
 				}
 
@@ -1006,13 +1006,13 @@ namespace Ctree{
 				// store to control array
 				data[ind].p_list 	= std::move(cpid);
 				data[ind].n_ptcl 	= data[ind].p_list.size();
-				data[ind].pos[0]	= gal0[0].xc;
-				data[ind].pos[1]	= gal0[0].yc;
-				data[ind].pos[2]	= gal0[0].zc;
+				//data[ind].pos[0]	= gal0[0].xc;
+				//data[ind].pos[1]	= gal0[0].yc;
+				//data[ind].pos[2]	= gal0[0].zc;
 
-				data[ind].vel[0]	= gal0[0].vxc;
-				data[ind].vel[1]	= gal0[0].vyc;
-				data[ind].vel[2]	= gal0[0].vzc;
+				//data[ind].vel[0]	= gal0[0].vxc;
+				//data[ind].vel[1]	= gal0[0].vyc;
+				//data[ind].vel[2]	= gal0[0].vzc;
 			}
 #endif
 		}
@@ -1033,9 +1033,10 @@ namespace Ctree{
 			int owner = ind % size;
 			if(owner != rank) continue;
 
-			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
-
 			n0 	= data[ind].list_n;
+			if(n0 >= vh.ctree_n_search) continue;
+
+			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			data[ind].list[n0].merit 	= meritcom.merit;
 			data[ind].list[n0].id		= meritcom.id;
@@ -1061,6 +1062,7 @@ namespace Ctree{
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			n0 	= data[ind].list_n;
+			if(n0 >= vh.ctree_n_search) continue;
 
 			data[ind].list[n0].merit 	= meritcom.merit;
 			data[ind].list[n0].id		= meritcom.id;
@@ -2702,6 +2704,7 @@ t0 = std::chrono::steady_clock::now();
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
+
 CT_I32 dd = get_dkey(dkey, 620, 1);
 if(myrank == 0 && dd >= 0){
 	LOG()<<"ID 1 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
