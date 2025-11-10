@@ -317,9 +317,11 @@ namespace Tree{
 		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt tree0;
-
+int rank = 0, size = 1;
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
 		if(!istree(key, snap, id)){
-			LOG()<<"no tree matched";
+			LOG()<<"no tree matched: "<<snap<<" / "<<id<<" / "<<rank;
 			int errcode = 1;
     		MPI_Abort(MPI_COMM_WORLD, errcode);
     		std::exit(errcode);

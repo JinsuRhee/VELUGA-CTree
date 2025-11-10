@@ -1368,6 +1368,7 @@ if(myrank == 0){
 
 t0 = std::chrono::steady_clock::now();
 
+
 #ifdef CTREE_USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
 		int rank = 0, size = 1;
@@ -1389,7 +1390,7 @@ t0 = std::chrono::steady_clock::now();
 			}
 			
 			nischeck 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind.size();
-		if(nischeck>0){
+			if(nischeck>0){
 				for(CT_I32 j=0; j<nischeck; j++){
 					CT_I32 ckey0 	= checkarr[ next_point[i].snap + dkey[0]*next_point[i].id ].ind[j];
 					checkcon[j].id 		= next_point[i].id;
@@ -1419,12 +1420,9 @@ t0 = std::chrono::steady_clock::now();
 				this_merit = -1.;
 				other_merit = -1.;
 
-CT_I32 dd = get_dkey(dkey, 620, 1);
+
 
 				for(CT_I32 j=0; j<nischeck; j++){
-if(dd >= 0 && ind == dd && myrank == 0){
-	LOG()<<"--- "<<checkcon[j].snap0<<" / "<<checkcon[j].id0<<" -- "<<checkcon[j].merit;
-}
 					if(checkcon[j].id0 == data[ind].id0 && checkcon[j].snap0 == data[ind].snap0){
 					//if( get_dkey(checkkey2, checkcon[j].snap0, checkcon[j].id0) == ind ){
 						this_merit 	= checkcon[j].merit;
@@ -1442,7 +1440,7 @@ if(dd >= 0 && ind == dd && myrank == 0){
 				}
 
 				// determine
-				if(this_merit < other_merit){
+				if(this_merit <= other_merit){
 					islink[i] = -2;
 
 
@@ -1579,7 +1577,6 @@ if(myrank == 0){
 		
 		ind = 0;
 t0 = std::chrono::steady_clock::now();
-	
 
 #ifdef CTREE_USE_MPI
 		MPI_Barrier(MPI_COMM_WORLD);
@@ -1602,6 +1599,8 @@ t0 = std::chrono::steady_clock::now();
 			if(rank_index < ncut){
 				ind 	= cut[rank_index];
 
+
+
 				if(!(data[ind].stat == -1 || islink[rank_index] < 0)){
 					snap_to_link 	= next_point[rank_index].snap;
 					id_to_link 		= next_point[rank_index].id;
@@ -1611,7 +1610,6 @@ t0 = std::chrono::steady_clock::now();
 
 				}
 			}
-
 
 			// Remove a que for overlapped ones
 			check_overlap(NEXT_T, thisjob, thisjob.ind, ind, cut, next_point, islink, rank_index);
@@ -1799,7 +1797,7 @@ t0 = std::chrono::steady_clock::now();
         	int done_count = 0;
         	MPI_Allreduce(&jobdone, &done_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
-        	
+
         	if (done_count == size) break;
 		}
 
@@ -1846,6 +1844,7 @@ t0 = std::chrono::steady_clock::now();
 		LOG()<<" Close Link             : "<<howlong4;
 		LOG()<<" Do Link                : "<<howlong5;
 	
+
 		//savedata(vh, data, snap_curr);
 		//savetree_ctree(vh, tree, key, snap_curr);
 		
@@ -2696,7 +2695,7 @@ t0 = std::chrono::steady_clock::now();
 				dt_readsnap = std::chrono::duration<double>(t1 - t0).count();
 			}
 
-if(myrank == 0)LOG()<<"Read snap done";
+
 
 			//----- Compute Merit
 			t0 = std::chrono::steady_clock::now();
@@ -2711,6 +2710,9 @@ if(myrank == 0 && dd >= 0){
 	LOG()<<"ID 1 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
 	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
 }
+
+
+
 
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
@@ -2749,6 +2751,7 @@ if(myrank == 0 && dd >= 0){
 				LOG()<<"          Add new galaxies in    "<<dt_addgal;
 				LOG()<<"          Delete broken gals in  "<<dt_delgal;
 				LOG()<<" 	";
+
 			}
 
 #ifdef CTREE_USE_MPI
