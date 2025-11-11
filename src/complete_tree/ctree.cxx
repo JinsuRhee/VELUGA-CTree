@@ -551,6 +551,19 @@ namespace Ctree{
 				number.B ++;
 			}
 
+			// if there is a too big jump
+			if(data[i].list_n >= 2){
+				CT_I32 njump = 0;
+				for(CT_I32 j=1; j<data[i].list_n; j++){
+					njump	= data[i].list[j-1].snap - data[i].list[j].snap;
+					if(njump > vh.ctree_n_search){
+						data[i].stat = -1;
+						ctfree(vh, data, i, -1, -1, snap_curr);
+						number.B ++;
+					}
+				}
+			}
+
 		} 
 	}
 
@@ -1278,7 +1291,6 @@ int myrank = mpi_rank();
 		
 auto t0 = std::chrono::steady_clock::now();
 
-
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(shared) \
 			private(ind, dum_merit)
@@ -1617,7 +1629,7 @@ t0 = std::chrono::steady_clock::now();
 			check_overlap(NEXT_T, thisjob, thisjob.tind, ind, cut, next_point, islink, rank_index);
 			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, islink, rank_index);
 			ncut 	= cut.size(); // update ncut
-
+			
 			// Gather que
 			int owner;
 			owner = thisjob.ind % size;
@@ -1784,7 +1796,7 @@ t0 = std::chrono::steady_clock::now();
 
 			// synchronize data & reset dkey
 			syn_data(thisjob, data, dkey);
-
+			
 			// synchronize tree & reset key
 			syn_tree(thisjob, tree, key);
 
