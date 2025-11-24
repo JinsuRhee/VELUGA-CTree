@@ -147,7 +147,8 @@ namespace Makebr{
 
 		treesize 	= maxsnap + vh.treekey * log.max_id + 1;
 
-		tree.resize(treesize);
+		//tree.resize(treesize);
+		tree.resize(log.max_id);
 		key.resize(treesize, {-1});
 		//key[0].key 	= vh.treekey;		// key also stored in the first element
 		key[0]		= vh.treekey;

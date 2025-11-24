@@ -278,6 +278,15 @@ namespace Tree{
     	else return key[keyval];
     }
 
+    inline void tree_resize(TreeArray& tree, Tree_BID bid){
+            if( (Tree_BID) tree.size() > bid) return;
+
+            Tree_BID stepsize = 10000 + bid - tree.size();
+
+            tree.resize(stepsize);
+            return;
+
+    }
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
 		Tree_Snap snap, Tree_GID id){
 
@@ -289,9 +298,10 @@ namespace Tree{
 		key[keyval]		= tree[0].lind;
 		//key[keyval].ind = tree[0].lind;
 
-		if(tree[0].lind >= (Tree_BID) tree.size()){
-			tree.resize(tree.size() + tree_stepsize);
-		}
+		tree_resize(tree, tree[0].lind);
+		//if(tree[0].lind >= (Tree_BID) tree.size()){
+		//	tree.resize(tree.size() + tree_stepsize);
+		//}
 
 		TreeSt& treedum 	= tree[ tree[0].lind ];
 

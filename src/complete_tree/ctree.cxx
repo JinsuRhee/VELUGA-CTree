@@ -577,12 +577,13 @@ namespace Ctree{
 		CT_I32 ncheck = 0;
 		CT_I32 npart = 0;
 		IO_dtype::GalArray gals;
-
+		CT_I32 id0=0;
 		if(!opposite){
 			CT_I32 ind=0;
 			for(CT_I32 i=0; i<tree0.endind+1; i++){
 				if(tree0.snap[i]>=snap0){
 					ind = i;
+					id0 = tree.id[i];
 					break;
 				}
 			}
@@ -606,6 +607,7 @@ namespace Ctree{
 			for(CT_I32 i=0; i<tree0.endind+1; i++){
 				if(tree0.snap[i]<=snap0){
 					ind = i;
+					id0 = tree.id[i];
 					break;
 				}
 			}
@@ -646,7 +648,12 @@ namespace Ctree{
 		pid2 	= get_coreptcl(vh, pid);
 
 		//if(ncheck == 1) pid2[0].n_con = 1.;
-		if(ncheck == 1 && ncheck != pid2[0].n_con) u_stop();
+		if(ncheck == 1 && ncheck != pid2[0].n_con){
+			LOG()<<"Miss-match of ncheck and n_con : "<<ncheck<<" / "<<pid2[0].n_con;
+			LOG()<<"	snap 0 = "<<snap0<<" / id0 = "<<id0;
+			LOG()<<"	need to check for particle ID";
+			u_stop();
+		}
 
 		pid2[0].n_con 	*= ncheck;
 
@@ -2716,15 +2723,6 @@ t0 = std::chrono::steady_clock::now();
 				auto t1 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
-
-CT_I32 dd = get_dkey(dkey, 620, 1);
-if(myrank == 0 && dd >= 0){
-	LOG()<<"ID 1 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
-	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
-}
-
-
-
 
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
