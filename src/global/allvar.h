@@ -281,7 +281,7 @@ namespace Tree{
     inline void tree_resize(TreeArray& tree, Tree_BID bid){
             if( (Tree_BID) tree.size() > bid) return;
 
-            Tree_BID stepsize = 10000 + bid - tree.size();
+            Tree_BID stepsize = 10000 + bid;
 
             tree.resize(stepsize);
             return;
