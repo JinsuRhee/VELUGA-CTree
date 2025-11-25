@@ -440,7 +440,7 @@ namespace Makebr{
 					keyind = Tree::get_key(key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					//keyind = key[keyval].ind;
 
-					if((std::int32_t) tree[keyind].id.size() < vh.minbranchlength){
+					if((std::int32_t) tree[keyind].endind < vh.minbranchlength){
 						continue;
 					}
 
