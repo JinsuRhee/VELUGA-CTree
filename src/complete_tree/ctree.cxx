@@ -604,7 +604,7 @@ namespace Ctree{
 			}
 		}else{
 			CT_I32 ind=0;
-			for(CT_I32 i=0; i<tree0.endind+1; i++){
+			for(CT_I32 i=tree0.endind; i>=0; i--){
 				if(tree0.snap[i]<=snap0){
 					ind = i;
 					id0 = tree.id[i];
@@ -655,7 +655,7 @@ namespace Ctree{
 			u_stop();
 		}
 
-		pid2[0].n_con 	*= ncheck;
+		//pid2[0].n_con 	*= ncheck;
 
 		return pid2;
 	}
