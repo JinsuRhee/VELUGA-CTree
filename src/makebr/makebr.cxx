@@ -29,6 +29,10 @@ namespace Makebr{
 		//----- Change the TF output name to synchronize the exact snapshot list
 		if(myrank == 0) tfcname(vh);
 
+#ifdef CTREE_USE_MPI
+		MPI_Barrier(MPI_COMM_WORLD);
+#endif
+		
 		//----- Gather snapshot list
 		std::vector<IO_VR::VRT_Snap> snaplist;
 		IO_VR::VRT_Snap maxsnap = -1;
@@ -424,7 +428,7 @@ namespace Makebr{
 
 				//keyval = Evoltmp[0].snapc + key[0].key * Evoltmp[0].idc;
 				//keyind0 = key[keyval].ind;
-				keyind0 	= Tree::getkey(key, Evoltmp[0].snapc, Evoltmp[0].idc);
+				keyind0 	= Tree::get_key(key, Evoltmp[0].snapc, Evoltmp[0].idc);
 
 				for(IO_VR::VRT_GID m=1; m<(IO_VR::VRT_GID) Evoltmp.size(); m++){
 
@@ -432,7 +436,7 @@ namespace Makebr{
 						Tree::treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					}
 
-					keyind = Tree::getkey(key, Evoltmp[m].snapc, Evoltmp[m].idc);
+					keyind = Tree::get_key(key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					//keyind = key[keyval].ind;
 
 					if((std::int32_t) tree[keyind].id.size() < vh.minbranchlength){
@@ -498,7 +502,7 @@ namespace Makebr{
 			// Filename
         	char buf[256];
         	std::snprintf(buf, sizeof(buf), "tree.snapshot_%04dVELOCIraptor.tree", snap_next);
-        	std::string dumfname = vh.vr_dir_tree + "/" + buf;
+        	std::string dumfname = vh.tf_dir + "/" + buf;
         		
         	// Is File?
         	if (fs::exists(dumfname)) {
@@ -515,7 +519,7 @@ namespace Makebr{
 	bool is_snap(const vctree_set::Settings& vh, const IO_VR::VRT_Snap snap_curr){
 		char buf[256];
     	std::snprintf(buf, sizeof(buf), "tree.snapshot_%04dVELOCIraptor.tree", snap_curr);
-    	std::string dumfname = vh.vr_dir_tree + "/" + buf;
+    	std::string dumfname = vh.tf_dir + "/" + buf;
     		
     	// Is File?
     	if (fs::exists(dumfname)) {
@@ -565,7 +569,7 @@ namespace Makebr{
 	bool tfcname(const vctree_set::Settings& vh){
 
 		try {
-    		const fs::path tfout = fs::path(vh.vr_dir_tree);
+    		const fs::path tfout = fs::path(vh.tf_dir);
 
     		// Read snaplist
     		std::vector<int> slist;
@@ -647,7 +651,7 @@ namespace Makebr{
 	TFSt readtreefrog(const vctree_set::Settings& vh, const MBRHeader& mbh, const MBR_Snap& snap_curr){
 
 
-		std::string tfname 	= vh.vr_dir_tree + "/tree.snapshot_" + i4(snap_curr) + "VELOCIraptor.tree";
+		std::string tfname 	= vh.tf_dir + "/tree.snapshot_" + i4(snap_curr) + "VELOCIraptor.tree";
 	
 	    hid_t file_id = H5Fopen(tfname.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	    if (file_id < 0) throw std::runtime_error("Failed to open file: " + tfname);

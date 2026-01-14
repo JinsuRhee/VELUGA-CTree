@@ -20,6 +20,7 @@ namespace IO_RAMSES{
 		std::vector<IO::IO_I32> snaplist;
 		IO::IO_I32 maxsnap = -1;
 		for(IO::IO_I32 i=vh.snapi; i<vh.snapf+1; i++){
+if(i==148) continue;
 			if(!is_snap(vh, i)) continue;
 			snaplist.push_back(i);
 			if(i > maxsnap) maxsnap = i;		

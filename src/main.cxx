@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
     }
   }
 
+
   // Load Configuration
   vctree_set::Settings vh;
   if( !g_load_config(argv[1], vh) ){
@@ -70,16 +71,19 @@ int main(int argc, char** argv) {
   //-----
   Tree::TreeArray tree;
   Tree::TreeKeyArray key;
-  if(vh.iotype == "VR"){
+
+  if(vh.branchmaker == "Y"){
     if(myrank == 0) LOG() <<"  Entering to MakeBr";
-    //Makebr::mainloop(vh, tree, key);
-  }else{
-    //TODO 123123
-    //For Other OUTPUT
+
+    if(vh.brtype == "TF"){
+      Makebr::mainloop(vh, tree, key);
+      if(myrank == 0) savetree_base(vh, tree, key, true);
+    }
+    else{
+      if(myrank == 0) LOG() <<"  No corresponding branch type";
+      u_stop();      
+    }
   }
-
-
-
 
 #ifdef CTREE_USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
@@ -88,12 +92,10 @@ int main(int argc, char** argv) {
   //-----
   // Load Existing tree
   //-----
-  if(myrank==0){
-    LOG() <<"  Reading to Exsiting Tree";
+  if(vh.loadtree == "Y" && vh.branchmaker != "Y"){
+    if(myrank==0) LOG() <<"  Reading to Exsiting Tree";
+    loadtree_base(vh, tree, key, true);
   }
-  //Tree::TreeArray tree2;
-  //Tree::TreeKeyArray key2;
-  //loadtree(vh, tree, key);
 
 #ifdef CTREE_USE_MPI
   MPI_Barrier(MPI_COMM_WORLD);
@@ -106,21 +108,17 @@ int main(int argc, char** argv) {
   Ctree::main(vh, tree, key);
 
   
-
-LOG()<<" merit comparison check";
-LOG()<<" without makebr? save in process, load it. case for single tree";
-LOG()<<" commerit2 mpi";
+#ifdef CTREE_USE_MPI
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif  
 
   //-----
   // Save Tree
   //-----
-#ifdef CTREE_USE_MPI
-  MPI_Barrier(MPI_COMM_WORLD);
-#endif
 
   if(myrank == 0){
     LOG() <<"  Save the Tree & Key";
-    if(myrank == 0) savetree(vh, tree, key);
+    if(myrank == 0) savetree_base(vh, tree, key, false);
   }
 
 #ifdef CTREE_USE_MPI

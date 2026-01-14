@@ -49,7 +49,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
-
 #-----
 # Make executable
 #-----
@@ -64,6 +63,7 @@ add_executable(veluga_ctree
 #  src/utilities.cxx
 #  src/makebr.cxx
 )
+
 
 #-----
 # MPI
@@ -86,8 +86,22 @@ endif()
 #-----
 # HDF5
 #-----
-find_package(HDF5 REQUIRED COMPONENTS C CXX)
-target_link_libraries(veluga_ctree PRIVATE HDF5::HDF5)
+#find_package(HDF5 REQUIRED COMPONENTS C CXX)
+#target_link_libraries(veluga_ctree PRIVATE HDF5::HDF5)
+set(HDF5_PREFER_PARALLEL TRUE)
+
+find_package(HDF5 CONFIG QUIET COMPONENTS C CXX)
+
+if (TARGET HDF5::HDF5)
+  message(STATUS "Using HDF5 imported target")
+  target_link_libraries(veluga_ctree PRIVATE HDF5::HDF5)
+  target_include_directories(veluga_ctree PRIVATE ${HDF5_INCLUDE_DIRS})
+else()
+  find_package(HDF5 REQUIRED COMPONENTS C CXX)
+  message(STATUS "Using HDF5 variables (no imported target)")
+  target_link_libraries(veluga_ctree PRIVATE ${HDF5_CXX_LIBRARIES} ${HDF5_LIBRARIES})
+  target_include_directories(veluga_ctree PRIVATE ${HDF5_INCLUDE_DIRS})
+endif()
 
 #-----
 # GCC > 9

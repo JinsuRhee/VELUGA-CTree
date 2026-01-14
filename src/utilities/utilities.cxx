@@ -75,7 +75,7 @@ void u_stop() {
 
 
 // Save Tree
-void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
+void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, bool usename){
 
     
 
@@ -91,7 +91,9 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
     //-----
     // Save TreeKey
     //-----
-    const std::string path = vh.out_dir + "/ctree_key.dat";
+    std::string path;
+    if(usename == true) path = vh.loadtree_fkey;
+    else path = vh.out_dir + "/ctree_key.dat";
     LOG()<<"    Writing TreeKey in "<<path;
 
     std::ofstream out(path, std::ios::binary);
@@ -127,11 +129,13 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
     //-----
     // Save Tree
     //-----
-    const std::string path2 = vh.out_dir + "/ctree_tree.dat";
-    LOG()<<"    Writing Tree in "<<path;
+    std::string path2;
+    if(usename == true) path2 = vh.loadtree_ftree;
+    else path2 = vh.out_dir + "/ctree_tree.dat";
+    LOG()<<"    Writing Tree in "<<path2;
 
     std::ofstream out2(path2, std::ios::binary);
-    if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path);
+    if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path2);
 
     // 1 GID specifer
     out2.write(reinterpret_cast<const char*>(&TAG_GID), sizeof(TAG_GID));
@@ -228,7 +232,7 @@ void savetree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 }
 
 
-void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey){
+void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, bool usename){
 
     int myrank  = mpi_rank();
     // Simple version used
@@ -236,7 +240,11 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
         // file check
         
 
-        const std::string path = vh.out_dir + "/ctree_key.dat";
+        std::string path; 
+        
+        if(usename == true) path = vh.loadtree_fkey;
+	else path = vh.out_dir + "/ctree_key.dat";
+
         if(myrank==0){
             LOG() << "    Reading TreeKey from " << path;
         }
@@ -282,7 +290,10 @@ void loadtree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArra
 
     {
         
-        const std::string path = vh.out_dir + "/ctree_tree.dat";
+        std::string path;
+        if(usename == true) path = vh.loadtree_ftree;
+	else path = vh.out_dir + "/ctree_tree.dat";
+
         if(myrank==0){
             LOG() << "    Reading TreeKey from " << path;
         }

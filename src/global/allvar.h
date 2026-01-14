@@ -26,7 +26,6 @@ namespace vctree_parameters{
   	//inline int32_t tarr_size = 10000;
   	inline int32_t ctree_nstep 	= 10000;
   	inline int32_t ctree_npid 	= 100000;
-  	inline double ctree_minfrac = 0.25;
 }
 
 
@@ -45,12 +44,26 @@ namespace vctree_set{
 	struct Settings {
 		std::string iotype 		= "VR";			  // IO type
 		std::string	simtype		= "Ramses";		  // Simulation type
+		
+
+		std::string branchmaker = "N";
+		std::string brtype 		= "TF";
+
+		std::string loadtree 	= "Y";
+		std::string loadtree_ftree = "";
+		std::string loadtree_fkey  = "";
+
+		char        horg        = 'g';            	  // 'g' or 'h'
 
 		// For VR IO
 		std::string vr_dir_catalog 	= "./catalog/";   // VR output directory
-		std::string vr_dir_tree    = "";              // TreeFrog data is stored
-  		char        horg        = 'g';            	  // 'g' or 'h'
+		//std::string vr_dir_tree    = "";              // TreeFrog data is stored
   		
+  		
+  		// For HM IO
+  		std::string hm_dir_catalog 	= "./catalog/";
+  		std::vector< std::vector<int32_t> > hm_gpointer;
+
   		// RAMSES related
   		std::string ramses_dir = "";
   		
@@ -66,12 +79,18 @@ namespace vctree_set{
   		// makebr related
   		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
 
+
   		// complete_tree related
+  		double ctree_minfrac 	= 0.25;
+		double ctree_meritfrac	= 0.5;
   		int32_t ctree_n_search   = 10;     // number of snapshots to be searched simultaneously
   		int32_t ctree_n_step_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
   		int32_t ctree_n_step_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
   		double  ctree_rfact      = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
   		int32_t ctree_weighttype = 1; 	   // Weighting type (1 :TF )
+
+  		int32_t ctree_makecheck = -1;
+  		int32_t ctree_loadcheck = -1;
   		// TreeFrog I/O related
   		std::string tag_num     = "";
   		std::string tag_off     = "";
@@ -79,14 +98,15 @@ namespace vctree_set{
   		std::string tag_npart   = "";
   		std::string tag_merit   = "";
   		std::string tag_nlink   = "";
+  		std::string tf_dir = "";
 
   		// Some utils
   		void finalize_paths() {
   			if (iotype == "VR"){
-  				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "Galaxy/VR_Galaxy" : "Halo/VR_Halo");
-  				if (vr_dir_tree.empty()) {
-      				vr_dir_tree = vr_dir_catalog + "../tree/tfout";
-    			}
+  				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
+  				//if (vr_dir_tree.empty()) {
+      			//	vr_dir_tree = vr_dir_catalog + "../tree/tfout";
+    			//}
   			}
   		}
 
@@ -96,7 +116,6 @@ namespace vctree_set{
   		//int32_t tarr_size = vctree_parameters::tarr_size;
   		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
   		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
-  		double ctree_minfrac 	= vctree_parameters::ctree_minfrac;
 
 	};
 }
@@ -240,12 +259,24 @@ namespace Tree{
 		v.insert(v.begin(), val);
 	}
 
-	inline Tree_BID getkey(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		//return key[ snap + key[0].key * id ].ind;
-		return key[ snap + key[0]*id ] > 0 ? key[ snap + key[0]*id ] : -1;
-		
+	inline void re_key(TreeKeyArray& key, Tree_BID ind){
+
+		Tree_BID newsize = key.size()*1.1;
+		if(ind > newsize) newsize = ind+1;
+		key.resize(newsize, {-1});
 	}
 
+    inline void in_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_BID ind){
+    	Tree_BID keyval = snap + key[0]*id;
+    	if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
+    	key[keyval]	= ind;
+    }
+
+    inline Tree_BID get_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
+    	Tree_BID keyval = snap + key[0]*id;
+    	if(keyval >= (Tree_BID) key.size()) return -1;
+    	else return key[keyval];
+    }
 
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
 		Tree_Snap snap, Tree_GID id){
@@ -272,7 +303,7 @@ namespace Tree{
 	}
 
 	inline bool istree(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		if(keyval > 0){
 			return true;
@@ -283,12 +314,14 @@ namespace Tree{
 	}
 
 	inline TreeSt gettree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt tree0;
-
+int rank = 0, size = 1;
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
 		if(!istree(key, snap, id)){
-			LOG()<<"no tree matched";
+			LOG()<<"no tree matched: "<<snap<<" / "<<id<<" / "<<rank;
 			int errcode = 1;
     		MPI_Abort(MPI_COMM_WORLD, errcode);
     		std::exit(errcode);
@@ -312,19 +345,20 @@ namespace Tree{
 		//Tree_Snap p_snap, Tree_GID p_id, Tree_merit p_merit, 
 		//Tree_Snap d_snap, Tree_GID d_id){
 
-		Tree_BID keyval_org, keyval_new;
+		Tree_BID keyval_org;//, keyval_new;
 		//keyval_org 	= snap + key[0].key * id;
 		//keyval_new 	= to_snap + key[0].key * to_id;
 		keyval_org 	= snap + key[0] * id;
-		keyval_new 	= to_snap + key[0] * to_id;
+		//keyval_new 	= to_snap + key[0] * to_id;
 
+    	in_key(key, to_snap, to_id, key[keyval_org]);
 		//key[keyval_new].ind = key[keyval_org].ind;
-		key[keyval_new] 	= key[keyval_org];
+		//key[keyval_new] 	= key[keyval_org];
 
 		//TreeSt& treedum 	= tree[ key[keyval_org].ind ];
 		TreeSt& treedum 	= tree[ key[keyval_org] ];
 
-		
+
 //int myrank  = mpi_rank();
 //if(myrank ==0 && snap == 49 && id == 1 && )
 //{
@@ -367,7 +401,7 @@ namespace Tree{
 			return;
 		}
 
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt& tree0 = tree[ keyval ];
 
@@ -400,7 +434,7 @@ namespace Tree{
 
 	// remove connection point before cut_snap
 	inline void modifytree(TreeArray& tree, TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_Snap cut_snap){
-		Tree_BID keyval = getkey(key, snap, id);
+		Tree_BID keyval = get_key(key, snap, id);
 
 		TreeSt& tree0	= tree[keyval];
 
@@ -414,7 +448,7 @@ namespace Tree{
 				nnn ++;
 			}
 		}
-if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<nnn;
+
 		if(nnn == 0){
 			if(tree0.endind == 0 && tree0.snap[0] == cut_snap && tree0.snap[tree0.endind] == cut_snap){ // single snapshot case
 				treefree(tree, key, snap, id);
@@ -432,7 +466,7 @@ if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<nnn;
 			new_id[i] 		= tree0.id[mod_ind[i]];
 			new_snap[i] 	= tree0.snap[mod_ind[i]];
 			new_merit[i] 	= tree0.p_merit[mod_ind[i]];
-if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<new_snap[i]<<" / "<<new_id[i];
+
 		}
 
 		for(Tree_I32 i=0; i<tree0.endind+1; i++){
@@ -492,17 +526,9 @@ if(snap == 98 && id == 27095 && cut_snap == 98) LOG()<<new_snap[i]<<" / "<<new_i
 				tree0.numprog 	= np;
 			}
 		}
-
-		if(snap == 98 && id == 27095 && cut_snap == 98){
-			LOG()<<tree0.endind;
-			int rank = 0;
-			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-			for(Tree_I32 i=0; i<tree0.endind+1; i++)LOG()<<tree0.snap[i]<<" / "<<tree0.id[i]<<" / "<<rank<<" = 23"<<" / "<<keyval;
-		}
 	}
 
 	inline void modifytree_byindex(TreeArray& tree, TreeKeyArray& key, Tree_BID bid, Tree_Snap cut_snap){
-		//Tree_BID keyval = getkey(key, snap, id);
 
 		TreeSt& tree0	= tree[bid];
 
