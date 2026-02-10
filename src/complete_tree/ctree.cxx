@@ -655,7 +655,7 @@ namespace Ctree{
 			u_stop();
 		}
 
-		//pid2[0].n_con 	*= ncheck;
+		pid2[0].n_con 	*= ncheck;
 
 		return pid2;
 	}
@@ -1127,7 +1127,14 @@ namespace Ctree{
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+
+		CT_Merit factor = 1.;
+		CT_Merit factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_n_step_n), 2)
+		// n_occ = (the occurrence of core particles) X (the snapshots used finding core particles) 
+		// first term gives higher occurrrence have stronger weights
+		// second term gives lower weight to short branches
+
 
 		return factor*meritdum;
 		
