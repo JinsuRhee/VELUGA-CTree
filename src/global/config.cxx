@@ -98,10 +98,23 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // VR related
     else if (lkey=="vr_dir_catalog") vh.vr_dir_catalog = normalize_iotype(val, true);
+    else if (lkey=="vr_dir_catalog_prefix") vh.vr_dir_catalog_prefix = normalize_iotype(val, true);
+    else if (lkey=="vr_dir_catalog_suffix") vh.vr_dir_catalog_suffix = normalize_iotype(val, true);
+    else if (lkey=="vr_dir_catalog_snapdigit") { parse_num(val, vh.vr_dir_catalog_snapdigit); }
     //else if (lkey=="vr_dir_tree") vh.vr_dir_tree = normalize_iotype(val, true);
+
+    // VELUGA related
+    else if (lkey=="veluga_dir_catalog") vh.veluga_dir_catalog = normalize_iotype(val, true);
 
     // HMaker related
     else if (lkey=="hm_dir_catalog") vh.hm_dir_catalog = normalize_iotype(val, true);
+
+    // Any catalog
+    else if (lkey=="any_dir_catalog") vh.any_dir_catalog = normalize_iotype(val, true);
+    else if (lkey=="any_dir_catalog_prefix") vh.any_dir_catalog_prefix = normalize_iotype(val, true);
+    else if (lkey=="any_dir_catalog_suffix") vh.any_dir_catalog_suffix = normalize_iotype(val, true);
+    else if (lkey=="any_dir_catalog_snapdigit") { parse_num(val, vh.any_dir_catalog_snapdigit); }
+
 
     // Ramses related
     //else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);

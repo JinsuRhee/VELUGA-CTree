@@ -55,14 +55,28 @@ namespace vctree_set{
 
 		char        horg        = 'g';            	  // 'g' or 'h'
 
-		// For VR IO
-		std::string vr_dir_catalog 	= "./catalog/";   // VR output directory
+		// For VELUGA IO
+		std::string veluga_dir_catalog 	= "./catalog/";   // VELUGA output directory
 		//std::string vr_dir_tree    = "";              // TreeFrog data is stored
   		
   		
+  		// For VR IO
+		std::string vr_dir_catalog 	= "./catalog/";   // VELUGA output directory
+		std::string vr_dir_catalog_prefix = "";
+		std::string vr_dir_catalog_suffix = "";
+		int32_t vr_dir_catalog_snapdigit = 4;
+
   		// For HM IO
   		std::string hm_dir_catalog 	= "./catalog/";
   		std::vector< std::vector<int32_t> > hm_gpointer;
+
+
+  		// For Arbitrary IO
+		std::string any_dir_catalog 	= "./catalog/";   // VELUGA output directory
+		std::string any_dir_catalog_prefix = "";
+		std::string any_dir_catalog_suffix = "";
+		int32_t any_dir_catalog_snapdigit = 4;
+
 
   		// RAMSES related
   		//std::string ramses_dir = "";     // unflagged
@@ -104,10 +118,7 @@ namespace vctree_set{
   		// Some utils
   		void finalize_paths() {
   			if (iotype == "VELUGA"){
-  				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
-  				//if (vr_dir_tree.empty()) {
-      			//	vr_dir_tree = vr_dir_catalog + "../tree/tfout";
-    			//}
+  				veluga_dir_catalog = veluga_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
   			}
   		}
 

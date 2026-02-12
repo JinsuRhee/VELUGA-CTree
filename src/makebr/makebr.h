@@ -115,9 +115,9 @@ namespace Makebr{
 	using MBRHeader = HeaderSt;
 
 	struct EvolSt{
-		IO_VR::VRT_GID idc, idn;
-		IO_VR::VRT_Snap snapc, snapn;
-		IO_VR::VRT_merit merit;
+		IO_dtype::IO_GID idc, idn;
+		IO_dtype::IO_Snap snapc, snapn;
+		IO_dtype::IO_merit merit;
 	};
 
 	using EvolArray = std::vector<EvolSt>;
@@ -130,9 +130,9 @@ namespace Makebr{
 	
 
 	// For Utilities
-	IO_VR::VRT_GID getmaxid(const IO_VR::GalArray& gal);
+	IO_dtype::IO_GID getmaxid(const IO_dtype::GalArray& gal);
 	MBRHeader setheader(const vctree_set::Settings& vh);
-	bool is_snap(const vctree_set::Settings& vh, const IO_VR::VRT_Snap snap_curr);
+	bool is_snap(const vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr);
 	MBR_Snap findnextsnap(const vctree_set::Settings& vh, const MBR_Snap& snap_curr);
 	bool tfcname(const vctree_set::Settings& vh);
 
@@ -156,8 +156,8 @@ namespace Makebr{
 	void deserialize(const std::vector<std::uint8_t>& buf, Makebr::TFSt& out);
 
 	// ---- Serialize / Deserialize for GalArray ----
-	std::vector<std::uint8_t> serialize(const IO_VR::GalArray& A);
-	void deserialize(const std::vector<std::uint8_t>& buf, IO_VR::GalArray& A);
+	std::vector<std::uint8_t> serialize(const IO_dtype::GalArray& A);
+	void deserialize(const std::vector<std::uint8_t>& buf, IO_dtype::GalArray& A);
 
 	// ---- Serialize / Deserialize for EvolDum ----
 	std::vector<std::uint8_t> serialize(const std::vector<std::pair<TF_id, EvolSt>>& upd);

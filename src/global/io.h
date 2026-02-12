@@ -28,10 +28,12 @@ namespace IO_dtype{
 	using IO_float		= float;
 	using IO_double		= double;
 
+
 	using IO_GID 		= std::int32_t; // Catalog galaxy ID type
 	using IO_Snap 		= std::int32_t; // Catalog snapshot number type
 	using IO_PID 		= std::int32_t; // Catalog particle ID type
 	using IO_BID 		= std::int32_t; // Branch ID type
+	using IO_merit 		= double;
 
 	// For Snapshot info data type
 	struct snapSt{
@@ -64,6 +66,109 @@ namespace IO_dtype{
 // FOR VELOCIraptor catalog
 //-----
 namespace IO_VR{
+	//-----
+	// Data Types
+	//-----
+	using VRT_GID 		= IO_dtype::IO_GID;//std::int32_t;		// for galaxy ID
+	using VRT_Snap 		= IO_dtype::IO_Snap;//std::int32_t;
+	using VRT_PID 	 	= IO_dtype::IO_PID;//std::int64_t;		// for particle ID
+	using VRT_merit		= IO_dtype::IO_merit;//double;
+	using VRT_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
+	using VRT_I32		= IO_dtype::IO_I32;//std::int32_t;
+	using VRT_double 	= IO_dtype::IO_double;
+
+	//----- For galaxy array
+	using GalSt = IO_dtype::GalSt;
+	using GalArray = IO_dtype::GalArray;
+
+//	inline GalArray r_gal(const vctree_set::Settings& vh, const VRT_Snap snap_curr, const VRT_GID id0, const bool readpart=false){
+//		const std::string& id_prefix = "ID_";
+//		int id_zero_pad = 6;
+//	    const std::string& g_group = "G_Prop";
+//	    const std::string& p_group = "P_Prop";
+//	    const std::string& g_npart_name = "G_npart";
+//	    const std::string& p_id_name = "P_ID";
+//	    //std::size_t growth_step = 1;
+//
+//	    std::string fname 	= vh.veluga_dir_catalog + "/snap_" + i4(snap_curr) + ".hdf5";
+//		hid_t fid = H5Fopen(fname.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+//
+//	    if (fid < 0) throw std::runtime_error("Failed to open file: " + fname);
+//
+//
+//	    try {
+//	        
+//	        std::vector<VRT_GID> ids;
+//	        GalArray gal;
+//	        if (id0 < 0) {
+//	            ids = VR_HDF5_rdbyname<VRT_GID>(fid, "ID");
+//	        } else {
+//	            ids = { static_cast<VRT_GID>(id0) };
+//	        }
+//
+//	        gal.resize(ids.size());
+//
+//	        for(VRT_GID i=0; i < (VRT_GID) ids.size(); i++){
+//	        	const auto idv = static_cast<VRT_GID>(ids[i]);
+//	        	const std::string base = id_prefix + zfill_longlong(idv, id_zero_pad); // "ID_000001"
+//	        	const std::string gobj = base + "/" + g_group; // "ID_000001/G_prop"
+//	            const std::string pobj = base + "/" + p_group; // "ID_000001/P_prop"
+//
+//	            gal[i].id 	= static_cast<VRT_GID>(ids[i]);
+//
+//	            std::vector<VRT_GID> np = VR_HDF5_rdbyname<VRT_GID>(fid, gobj + "/" + g_npart_name);
+//	            gal[i].npart = static_cast<VRT_I32>(np[0]);
+//
+//	            // Pos & Vel
+//	            std::vector<VRT_double> dum;
+//
+//				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Xc");
+//	            gal[i].xc = static_cast<VRT_double>(dum[0]);
+//
+//	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Yc");
+//	            gal[i].yc = static_cast<VRT_double>(dum[0]);
+//
+//	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Zc");
+//	            gal[i].zc = static_cast<VRT_double>(dum[0]);
+//
+//	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VXc");
+//	            gal[i].vxc = static_cast<VRT_double>(dum[0]);
+//
+//	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VYc");
+//	            gal[i].vyc = static_cast<VRT_double>(dum[0]);
+//
+//	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VZc");
+//	            gal[i].vzc = static_cast<VRT_double>(dum[0]);
+//
+//
+//	            if(readpart){
+//	            	std::vector<VRT_PID> pid = VR_HDF5_rdbyname<VRT_PID>(fid, pobj + "/" + p_id_name);
+//	            	gal[i].pid 	= pid;
+//	            }
+//
+//	            gal[i].snap 	= snap_curr;
+//	            
+//
+//	            
+//	        }
+//
+//	        H5Fclose(fid);
+//
+//	        
+//	        return gal;
+//	    } catch (...) {
+//	        H5Fclose(fid);
+//	        throw;
+//	    }
+//
+//	}
+}
+
+
+//-----
+// FOR VELUGA catalog
+//-----
+namespace IO_VELUGA{
 	inline std::string zfill_longlong(long long x, int width) {
 	    std::ostringstream oss;
 	    oss << std::setfill('0') << std::setw(width) << x;
@@ -76,7 +181,7 @@ namespace IO_VR{
 	using VRT_GID 		= IO_dtype::IO_GID;//std::int32_t;		// for galaxy ID
 	using VRT_Snap 		= IO_dtype::IO_Snap;//std::int32_t;
 	using VRT_PID 	 	= IO_dtype::IO_PID;//std::int64_t;		// for particle ID
-	using VRT_merit		= IO_dtype::IO_double;//double;
+	using VRT_merit		= IO_dtype::IO_merit;//double;
 	using VRT_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
 	using VRT_I32		= IO_dtype::IO_I32;//std::int32_t;
 	using VRT_double 	= IO_dtype::IO_double;
@@ -209,7 +314,7 @@ namespace IO_VR{
 	    const std::string& p_id_name = "P_ID";
 	    //std::size_t growth_step = 1;
 
-	    std::string fname 	= vh.vr_dir_catalog + "/snap_" + i4(snap_curr) + ".hdf5";
+	    std::string fname 	= vh.veluga_dir_catalog + "/snap_" + i4(snap_curr) + ".hdf5";
 		hid_t fid = H5Fopen(fname.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 
 	    if (fid < 0) throw std::runtime_error("Failed to open file: " + fname);
@@ -780,10 +885,14 @@ namespace IO {
 	//----- Read Catalog
 	inline IO_dtype::GalArray r_gal(vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
 		if(vh.iotype == "VELUGA"){
-			return IO_VR::r_gal(vh, snap_curr, id0, readpart);
+			return IO_VELUGA::r_gal(vh, snap_curr, id0, readpart);
 		}else if(vh.iotype == "HM"){
 			return IO_HM::r_gal(vh, snap_curr, id0, readpart);
-		} else{
+		}else if(vh.iotype == "VR"){
+
+		}else if(vh.iotype == "ANY"){
+
+		}else{
 			LOG()<<"Should be implemented for different IO Type";
 			u_stop();
 		}
