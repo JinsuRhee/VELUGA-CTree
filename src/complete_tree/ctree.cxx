@@ -583,7 +583,7 @@ namespace Ctree{
 			for(CT_I32 i=0; i<tree0.endind+1; i++){
 				if(tree0.snap[i]>=snap0){
 					ind = i;
-					id0 = tree.id[i];
+					id0 = tree0.id[i];
 					break;
 				}
 			}
@@ -607,7 +607,7 @@ namespace Ctree{
 			for(CT_I32 i=tree0.endind; i>=0; i--){
 				if(tree0.snap[i]<=snap0){
 					ind = i;
-					id0 = tree.id[i];
+					id0 = tree0.id[i];
 					break;
 				}
 			}
@@ -1130,7 +1130,7 @@ namespace Ctree{
 		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_core_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
 
 		CT_Merit factor = 1.;
-		CT_Merit factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_core_n), 2)
+		factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_core_n), 2);
 		// n_occ = (the occurrence of core particles) X (the snapshots used finding core particles) 
 		// first term gives higher occurrrence have stronger weights
 		// second term gives lower weight to short branches
