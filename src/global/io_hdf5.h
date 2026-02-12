@@ -87,7 +87,7 @@ namespace rd_vrhdf5{
 	    return buf;
 	}
 
-	// rank 0 스칼라 또는 rank 1 길이 1 허용
+	//
 	template<typename T>
 	inline T read_scalar_dataset(hid_t file_id, const std::string& path) {
 	    if (!H5Lexists(file_id, path.c_str(), H5P_DEFAULT))
@@ -145,7 +145,7 @@ namespace rd_vrhdf5{
 	    return buf;
 	}
 
-	// dataset(객체/이름) 우선, 없으면 동일 위치 attribute 로 대체
+	//
 	template<typename T>
 	inline T read_scalar_dset_or_attr(hid_t file_id,
 	                                  const std::string& object_path,
@@ -166,7 +166,7 @@ namespace rd_vrhdf5{
 	    throw std::runtime_error("Missing dataset and attribute: " + dset_path + " (or attr on " + object_path + ")");
 	}
 
-	// 루트의 ID: dataset("ID") 우선, 없으면 attribute("ID")
+	//
 	template<typename IdT>
 	inline std::vector<IdT> read_ids_dataset_or_attr(hid_t file_id) {
 	    if (H5Lexists(file_id, "ID", H5P_DEFAULT))
@@ -195,12 +195,12 @@ namespace rd_vrhdf5{
 	// -------------------------------
 	// Aggregate return type for VR Catalog
 	// -------------------------------
-	// id, npart 는 항상 채움. p_id 는 read_p_id==true 일 때만 채움.
+	//
 	template<typename IdT, typename NpartT, typename PidT>
 	struct GalArrays {
 	    Makebr::TreeVec<IdT>    id;
 	    Makebr::TreeVec<NpartT> npart;
-	    Makebr::TreeVec<PidT>   p_id; // 선택적 로드
+	    Makebr::TreeVec<PidT>   p_id;
 	};
 
 	// -------------------------------
@@ -273,10 +273,10 @@ namespace rd_vrhdf5{
 	//-----
 	// To Read VR Catalog
 	//-----
-	//==================== 메인 함수: r_gal ====================//
-	// id0 < 0  → 모든 ID 읽기
-	// id0 >= 0 → 해당 ID만 읽기
-	// read_p_id 가 true 이면 "ID_xxxxxx/P_prop/P_ID" 도 읽음
+	//==================== r_gal ====================//
+	// id0 < 0  All galaxies
+	// id0 >= 0 Corresponding galaxy
+	// reading partricles when read_p_id = true
 	template<typename IdT=int32_t, typename NpartT=int32_t, typename PidT=int64_t>
 	inline GalArrays<IdT,NpartT,PidT>
 	r_gal(const std::string& fname,
@@ -296,7 +296,7 @@ namespace rd_vrhdf5{
 	    if (fid < 0) throw std::runtime_error("Failed to open file: " + fname);
 
 	    try {
-	        // 1) ID 목록 결정
+	        // ID list
 	        std::vector<IdT> ids;
 	        if (id0 < 0) {
 	            ids = read_ids_dataset_or_attr<IdT>(fid);
@@ -304,7 +304,7 @@ namespace rd_vrhdf5{
 	            ids = { static_cast<IdT>(id0) };
 	        }
 
-	        // 2) 결과 컨테이너 준비
+	        // Allocation
 	        GalArrays<IdT,NpartT,PidT> out;
 	        out.id.set_growth_step(growth_step);
 	        out.npart.set_growth_step(growth_step);
@@ -312,25 +312,25 @@ namespace rd_vrhdf5{
 
 	        out.id.resize(ids.size());
 	        out.npart.resize(ids.size());
-	        if (read_p_id) out.p_id.resize(ids.size());  // 읽을 때만 크기 설정
+	        if (read_p_id) out.p_id.resize(ids.size());
 
-	        // 3) 각 ID 경로에서 읽기
+	        // Read
 	        for (std::size_t i = 0; i < ids.size(); ++i) {
 	            const auto idv = static_cast<long long>(ids[i]);
 	            const std::string base = id_prefix + zfill_longlong(idv, id_zero_pad); // "ID_000001"
 	            const std::string gobj = base + "/" + g_group; // "ID_000001/G_prop"
 	            const std::string pobj = base + "/" + p_group; // "ID_000001/P_prop"
 
-	            // 필수: G_prop/G_npart
+	            // G_prop/G_npart
 	            NpartT np = read_scalar_dset_or_attr<NpartT>(fid, gobj, g_npart_name);
 
-	            // 선택: P_prop/P_ID
+	            // P_prop/P_ID
 	            if (read_p_id) {
 	                PidT pv = read_scalar_dset_or_attr<PidT>(fid, pobj, p_id_name);
 	                out.p_id[i] = pv;
 	            }
 
-	            out.id[i]    = static_cast<IdT>(idv); // G_ID와 동일하므로 별도 읽지 않음
+	            out.id[i]    = static_cast<IdT>(idv);
 	            out.npart[i] = np;
 	        }
 

@@ -31,7 +31,7 @@ namespace {
     inline bool extract_snap_from_line(const std::string& line, int& out) {
         auto p = line.find("snap_");
         if (p == std::string::npos) return false;
-        if (p + 5 + 4 > line.size()) return false;            // 최소 4자리
+        if (p + 5 + 4 > line.size()) return false;
         try {
             out = std::stoi(line.substr(p + 5, 4));
             return true;

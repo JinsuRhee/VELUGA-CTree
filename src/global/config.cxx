@@ -53,7 +53,7 @@ std::string normalize_iotype(std::string s, bool nocap) {
         }
     }
 
-    // 대문자로 변환
+    // To Captial letters
     if(!nocap)std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c){ return std::toupper(c); });
 
@@ -72,7 +72,6 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
   int lineno = 0;
   while (std::getline(in, line)) {
     ++lineno;
-    // 주석/빈줄 제거 (#, ;, // 지원)
     auto pos_hash = line.find('#');
     auto pos_semi = line.find(';');
     auto pos_sl   = line.find("//");
