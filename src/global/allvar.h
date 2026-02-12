@@ -42,7 +42,7 @@ namespace vctree_set{
 
 	// Create Settings structure
 	struct Settings {
-		std::string iotype 		= "VR";			  // IO type
+		std::string iotype 		= "VELUGA";			  // IO type
 		//std::string	simtype		= "Ramses";		  // Simulation type
 		
 
@@ -103,7 +103,7 @@ namespace vctree_set{
 
   		// Some utils
   		void finalize_paths() {
-  			if (iotype == "VR"){
+  			if (iotype == "VELUGA"){
   				vr_dir_catalog = vr_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
   				//if (vr_dir_tree.empty()) {
       			//	vr_dir_tree = vr_dir_catalog + "../tree/tfout";

@@ -779,7 +779,7 @@ namespace IO {
 
 	//----- Read Catalog
 	inline IO_dtype::GalArray r_gal(vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
-		if(vh.iotype == "VR"){
+		if(vh.iotype == "VELUGA"){
 			return IO_VR::r_gal(vh, snap_curr, id0, readpart);
 		}else if(vh.iotype == "HM"){
 			return IO_HM::r_gal(vh, snap_curr, id0, readpart);
