@@ -347,7 +347,7 @@ namespace Ctree{
 		// resize particle array for exsiting ones for multiple snapshots
 		std::vector<CT_I32> ucut(npid);
 		CT_I32 uncut = 0;
-		CT_I32 n_step_bw0 = vh.ctree_n_step_n;
+		CT_I32 n_step_bw0 = vh.ctree_core_n;
 		while(true){
 			uncut = 0;
 			for(CT_I32 i=0; i<uind_n; i++){
@@ -589,7 +589,7 @@ namespace Ctree{
 			}
 
 			
-			gals.resize(vh.ctree_n_step_n);
+			gals.resize(vh.ctree_core_n);
 
 			
 			while(true){
@@ -597,10 +597,10 @@ namespace Ctree{
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	+= vh.ctree_n_step_dn;
+				ind 	+= vh.ctree_core_dn;
 
 				if(ind > tree0.endind) break;
-				if(ncheck >= vh.ctree_n_step_n) break;
+				if(ncheck >= vh.ctree_core_n) break;
 			}
 		}else{
 			CT_I32 ind=0;
@@ -612,17 +612,17 @@ namespace Ctree{
 				}
 			}
 
-			gals.resize(vh.ctree_n_step_n);
+			gals.resize(vh.ctree_core_n);
 
 			while(true){
 				gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	-= vh.ctree_n_step_dn;
+				ind 	-= vh.ctree_core_dn;
 
 				if(ind < 0) break;
-				if(ncheck >= vh.ctree_n_step_n) break;
+				if(ncheck >= vh.ctree_core_n) break;
 			}
 		}
 
@@ -1127,10 +1127,10 @@ namespace Ctree{
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_core_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
 
 		CT_Merit factor = 1.;
-		CT_Merit factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_n_step_n), 2)
+		CT_Merit factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_core_n), 2)
 		// n_occ = (the occurrence of core particles) X (the snapshots used finding core particles) 
 		// first term gives higher occurrrence have stronger weights
 		// second term gives lower weight to short branches
