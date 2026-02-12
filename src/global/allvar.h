@@ -84,8 +84,8 @@ namespace vctree_set{
   		double ctree_minfrac 	= 0.25;
 		double ctree_meritfrac	= 0.5;
   		int32_t ctree_n_search   = 10;     // number of snapshots to be searched simultaneously
-  		int32_t ctree_n_step_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
-  		int32_t ctree_n_step_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
+  		int32_t ctree_core_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
+  		int32_t ctree_core_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
   		double  ctree_rfact      = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
   		int32_t ctree_weighttype = 1; 	   // Weighting type (1 :TF )
 
