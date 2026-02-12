@@ -93,7 +93,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // IO settings
     if (lkey=="iotype") vh.iotype = normalize_iotype(val, false);
-    else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
+    //else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
     else if (lkey=="out_dir") vh.out_dir = normalize_iotype(val, true);
 
     // VR related
@@ -104,7 +104,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="hm_dir_catalog") vh.hm_dir_catalog = normalize_iotype(val, true);
 
     // Ramses related
-    else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
+    //else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
 
 
     // Branch related
@@ -129,6 +129,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     // General (number)
     else if (lkey=="snapi")  { parse_num(val, vh.snapi); }
     else if (lkey=="snapf")    { parse_num(val, vh.snapf); }
+    else if (lkey=="snaplist")    { vh.snaplist = normalize_iotype(val, true); }
     else if (lkey=="minbranchlength") { parse_num(val, vh.minbranchlength); }
 
     // Make Branch

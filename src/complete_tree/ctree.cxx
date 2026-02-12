@@ -2571,7 +2571,7 @@ t0 = std::chrono::steady_clock::now();
 		//-----
 		// Get Basic Information in each snapshot
 		//-----
-		if(myrank==0)LOG() <<"    Ctree) Reading snapshot info with "<<vh.simtype<<" format";
+		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
 		IO::snapinfo sinfo = IO::get_snapinfo(vh);
 
 		//-----
@@ -2797,7 +2797,7 @@ t0 = std::chrono::steady_clock::now();
 		//-----
 		// Get Basic Information in each snapshot
 		//-----
-		if(myrank==0)LOG() <<"    Ctree) Reading snapshot info with "<<vh.simtype<<" format";
+		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
 		auto t0 = std::chrono::steady_clock::now();
 		IO::snapinfo sinfo = IO::get_snapinfo(vh);
 		if(myrank == 0){

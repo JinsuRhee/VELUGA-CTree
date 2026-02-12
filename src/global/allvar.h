@@ -43,7 +43,7 @@ namespace vctree_set{
 	// Create Settings structure
 	struct Settings {
 		std::string iotype 		= "VR";			  // IO type
-		std::string	simtype		= "Ramses";		  // Simulation type
+		//std::string	simtype		= "Ramses";		  // Simulation type
 		
 
 		std::string branchmaker = "N";
@@ -65,12 +65,13 @@ namespace vctree_set{
   		std::vector< std::vector<int32_t> > hm_gpointer;
 
   		// RAMSES related
-  		std::string ramses_dir = "";
+  		//std::string ramses_dir = "";     // unflagged
   		
 
   		// General settings
   		int32_t snapi   = 70;              // snapshot range
   		int32_t snapf   = 200;
+  		std::string snaplist = ""; 		   // snapshot list file
   		double  meritlimit = 0.001;        // melit lower limit to close the branch
   		std::string treedir     = "des";   // Tree direction
   		std::string out_dir     = "";   // Tree direction
