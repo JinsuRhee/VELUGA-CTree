@@ -116,9 +116,9 @@ namespace IO_VR{
 	//    else if constexpr (is_same_v<T, uint16_t>) return H5T_NATIVE_UINT16;
 	//    else if constexpr (is_same_v<T, int32_t>)  return H5T_NATIVE_INT32;
 	//    else if constexpr (is_same_v<T, uint32_t>) return H5T_NATIVE_UINT32;
-	//    else if constexpr (is_same_v<T, int64_t>)  return H5T_NATIVE_INT64;   // LLP64에선 long long
+	//    else if constexpr (is_same_v<T, int64_t>)  return H5T_NATIVE_INT64;   
 	//    else if constexpr (is_same_v<T, uint64_t>) return H5T_NATIVE_UINT64;
-	//    else if constexpr (is_same_v<T, long>)     return H5T_NATIVE_LONG;    // LP64에선 int64_t와 동일
+	//    else if constexpr (is_same_v<T, long>)     return H5T_NATIVE_LONG;    
 	//    else if constexpr (is_same_v<T, unsigned long>) return H5T_NATIVE_ULONG;
 	//    else if constexpr (is_same_v<T, float>)    return H5T_NATIVE_FLOAT;
 	//    else if constexpr (is_same_v<T, double>)   return H5T_NATIVE_DOUBLE;
@@ -195,10 +195,10 @@ namespace IO_VR{
 	// read Galaxy Catalog
 	//	
 	//-----
-	// id0 < 0  → All galaxies
-	// id0 >= 0 → A Galaxy corresponding to this ID
-	// horg 	→ 'h' or 'g'
-	// read_p_id = true → return particle ID
+	// id0 < 0  All galaxies
+	// id0 >= 0 A Galaxy corresponding to this ID
+	// horg 	'h' or 'g'
+	// read_p_id = true return particle ID
 
 	inline GalArray r_gal(const vctree_set::Settings& vh, const VRT_Snap snap_curr, const VRT_GID id0, const bool readpart=false){
 		const std::string& id_prefix = "ID_";
@@ -342,7 +342,7 @@ namespace IO_HM{
 	    if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
 	        throw std::runtime_error("Failed to read record header");
 
-	    // payload 건너뛰기
+	    // skip payload
 	    if (!ifs.seekg(len1, std::ios::cur))
 	        throw std::runtime_error("Failed to skip record payload");
 
@@ -380,10 +380,10 @@ namespace IO_HM{
 	// read Galaxy Catalog
 	//	
 	//-----
-	// id0 < 0  → All galaxies
-	// id0 >= 0 → A Galaxy corresponding to this ID
-	// horg 	→ 'h' or 'g'
-	// read_p_id = true → return particle ID
+	// id0 < 0  All galaxies
+	// id0 >= 0 A Galaxy corresponding to this ID
+	// horg 	'h' or 'g'
+	// read_p_id = true return particle ID
 
 	inline GalArray r_gal(vctree_set::Settings& vh, const HM_Snap snap_curr, const HM_GID id0, const bool readpart=false){
 
@@ -694,7 +694,7 @@ namespace IO_RAMSES{
 	using IO_float		= IO_dtype::IO_float;
 	using IO_double		= IO_dtype::IO_double;
 
-	IO_dtype::snapinfo get_snapinfo(const vctree_set::Settings& vh);
+	IO_dtype::snapinfo get_snapinfo(const vctree_set::Settings& vh); // unflagged
 	bool is_snap(const vctree_set::Settings& vh, const IO_I32 snap_curr);
 
 	IO_dtype::snapSt read_info(const vctree_set::Settings& vh, const IO_I32 snap_curr);
@@ -720,15 +720,61 @@ namespace IO {
 
 	
 
+	//----- Is file
+	inline bool is_file(vctree_set::Settings& vh){
+    	std::string snaplistfile = vh.snaplist;
+    		
+    	// Is File?
+    	if (fs::exists(snaplistfile)) {
+        	return true;
+    	} else{
+    		return false;
+    	}
+	}
+	
+
 
 	//----- Get SnapInfo
-	inline IO_dtype::snapinfo get_snapinfo(const vctree_set::Settings& vh){
-		if(vh.simtype == "RAMSES"){
-			return IO_RAMSES::get_snapinfo(vh);
-		} else{
-			LOG()<<"Wrong simulation type: simtype";
-			u_stop();
+	inline IO_dtype::snapinfo get_snapinfo(vctree_set::Settings& vh){
+
+		std::vector<IO::IO_I32> snaplist;
+		IO::IO_I32 maxsnap = -1;
+
+		if(is_file(vh)){
+			std::ifstream file(vh.snaplist);
+		    std::string line;
+    		IO_I32 value;
+
+    		while (std::getline(file, line)) {
+        		if (line.empty()) continue;
+       			value = std::stoi(line);
+       			snaplist.push_back(value);
+
+       			if(value > maxsnap) maxsnap = value;
+        	}
+
+        	std::sort(snaplist.begin(), snaplist.end());
+        	vh.snapi 	= snaplist[0];
+        	vh.snapf 	= maxsnap;
+
+        	file.close();
+		}else{
+			for(IO::IO_I32 i=vh.snapi; i<vh.snapf+1; i++){
+				snaplist.push_back(i);
+				if(i > maxsnap) maxsnap = i;
+			}
 		}
+
+		//----- Allocate Snap
+		IO_dtype::snapinfo sinfo;
+		sinfo.resize(maxsnap+1);
+
+		//----- Read Info
+		for (IO::IO_I32 s : snaplist) {
+			sinfo[s].snum 	= s;
+		}
+
+		return sinfo;
 	}
 
 	//----- Read Catalog
@@ -743,7 +789,7 @@ namespace IO {
 		}
 	}
 
-	
+
 }
 
 

@@ -147,7 +147,8 @@ namespace Makebr{
 
 		treesize 	= maxsnap + vh.treekey * log.max_id + 1;
 
-		tree.resize(treesize);
+		//tree.resize(treesize);
+		tree.resize(log.max_id);
 		key.resize(treesize, {-1});
 		//key[0].key 	= vh.treekey;		// key also stored in the first element
 		key[0]		= vh.treekey;
@@ -439,7 +440,7 @@ namespace Makebr{
 					keyind = Tree::get_key(key, Evoltmp[m].snapc, Evoltmp[m].idc);
 					//keyind = key[keyval].ind;
 
-					if((std::int32_t) tree[keyind].id.size() < vh.minbranchlength){
+					if((std::int32_t) tree[keyind].endind < vh.minbranchlength){
 						continue;
 					}
 
@@ -616,15 +617,15 @@ namespace Makebr{
       			const std::string newbase = "tree.snapshot_" + i4(slist[i]) + "VELOCIraptor";
       			const fs::path target = tfout / newbase;
 
-      			if (items[i].path.filename() == target.filename()) continue; // 이미 같으면 스킵
+      			if (items[i].path.filename() == target.filename()) continue;
 
-      			// 충돌 방지: 동일 이름 파일이 있다면 먼저 제거/백업 등 필요 시 처리
+      			// block the crash with the existing file
       			if (fs::exists(target)) {
         			LOG() << "[tfcname] target already exists, skipping: " << target << "\n";
         			continue;
       			}
       			fs::rename(items[i].path, target);  // mv org -> no-ext name
-      			items[i].path = target;             // 경로 갱신
+      			items[i].path = target;             // path renew
     		}
 
     		// add .tree

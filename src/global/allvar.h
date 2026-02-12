@@ -43,7 +43,7 @@ namespace vctree_set{
 	// Create Settings structure
 	struct Settings {
 		std::string iotype 		= "VR";			  // IO type
-		std::string	simtype		= "Ramses";		  // Simulation type
+		//std::string	simtype		= "Ramses";		  // Simulation type
 		
 
 		std::string branchmaker = "N";
@@ -65,12 +65,13 @@ namespace vctree_set{
   		std::vector< std::vector<int32_t> > hm_gpointer;
 
   		// RAMSES related
-  		std::string ramses_dir = "";
+  		//std::string ramses_dir = "";     // unflagged
   		
 
   		// General settings
   		int32_t snapi   = 70;              // snapshot range
   		int32_t snapf   = 200;
+  		std::string snaplist = ""; 		   // snapshot list file
   		double  meritlimit = 0.001;        // melit lower limit to close the branch
   		std::string treedir     = "des";   // Tree direction
   		std::string out_dir     = "";   // Tree direction
@@ -84,8 +85,8 @@ namespace vctree_set{
   		double ctree_minfrac 	= 0.25;
 		double ctree_meritfrac	= 0.5;
   		int32_t ctree_n_search   = 10;     // number of snapshots to be searched simultaneously
-  		int32_t ctree_n_step_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
-  		int32_t ctree_n_step_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
+  		int32_t ctree_core_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
+  		int32_t ctree_core_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
   		double  ctree_rfact      = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
   		int32_t ctree_weighttype = 1; 	   // Weighting type (1 :TF )
 
@@ -278,6 +279,15 @@ namespace Tree{
     	else return key[keyval];
     }
 
+    inline void tree_resize(TreeArray& tree, Tree_BID bid){
+            if( (Tree_BID) tree.size() > bid) return;
+
+            Tree_BID stepsize = 10000 + bid;
+
+            tree.resize(stepsize);
+            return;
+
+    }
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
 		Tree_Snap snap, Tree_GID id){
 
@@ -289,9 +299,10 @@ namespace Tree{
 		key[keyval]		= tree[0].lind;
 		//key[keyval].ind = tree[0].lind;
 
-		if(tree[0].lind >= (Tree_BID) tree.size()){
-			tree.resize(tree.size() + tree_stepsize);
-		}
+		tree_resize(tree, tree[0].lind);
+		//if(tree[0].lind >= (Tree_BID) tree.size()){
+		//	tree.resize(tree.size() + tree_stepsize);
+		//}
 
 		TreeSt& treedum 	= tree[ tree[0].lind ];
 

@@ -53,7 +53,7 @@ std::string normalize_iotype(std::string s, bool nocap) {
         }
     }
 
-    // 대문자로 변환
+    // To Captial letters
     if(!nocap)std::transform(s.begin(), s.end(), s.begin(),
                    [](unsigned char c){ return std::toupper(c); });
 
@@ -72,7 +72,6 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
   int lineno = 0;
   while (std::getline(in, line)) {
     ++lineno;
-    // 주석/빈줄 제거 (#, ;, // 지원)
     auto pos_hash = line.find('#');
     auto pos_semi = line.find(';');
     auto pos_sl   = line.find("//");
@@ -94,7 +93,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
 
     // IO settings
     if (lkey=="iotype") vh.iotype = normalize_iotype(val, false);
-    else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
+    //else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
     else if (lkey=="out_dir") vh.out_dir = normalize_iotype(val, true);
 
     // VR related
@@ -105,7 +104,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="hm_dir_catalog") vh.hm_dir_catalog = normalize_iotype(val, true);
 
     // Ramses related
-    else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
+    //else if (lkey=="ramses_dir") vh.ramses_dir = normalize_iotype(val, true);
 
 
     // Branch related
@@ -130,6 +129,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     // General (number)
     else if (lkey=="snapi")  { parse_num(val, vh.snapi); }
     else if (lkey=="snapf")    { parse_num(val, vh.snapf); }
+    else if (lkey=="snaplist")    { vh.snaplist = normalize_iotype(val, true); }
     else if (lkey=="minbranchlength") { parse_num(val, vh.minbranchlength); }
 
     // Make Branch
@@ -142,8 +142,8 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="ctree_minfrac")    { parse_num(val, vh.ctree_minfrac); }
     else if (lkey=="ctree_meritfrac")    { parse_num(val, vh.ctree_meritfrac); }
     else if (lkey=="ctree_n_search")   { parse_num(val, vh.ctree_n_search); }
-    else if (lkey=="ctree_n_step_n")   { parse_num(val, vh.ctree_n_step_n); }
-    else if (lkey=="ctree_n_step_dn")  { parse_num(val, vh.ctree_n_step_dn); }
+    else if (lkey=="ctree_core_n")   { parse_num(val, vh.ctree_core_n); }
+    else if (lkey=="ctree_core_dn")  { parse_num(val, vh.ctree_core_dn); }
     else if (lkey=="ctree_rfact")      { parse_num(val, vh.ctree_rfact); }
     else if (lkey=="ctree_weighttype") { parse_num(val, vh.ctree_weighttype); }
     else if (lkey=="ctree_makecheck") { parse_num(val, vh.ctree_makecheck); }

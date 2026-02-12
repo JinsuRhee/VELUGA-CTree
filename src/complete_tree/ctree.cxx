@@ -347,7 +347,7 @@ namespace Ctree{
 		// resize particle array for exsiting ones for multiple snapshots
 		std::vector<CT_I32> ucut(npid);
 		CT_I32 uncut = 0;
-		CT_I32 n_step_bw0 = vh.ctree_n_step_n;
+		CT_I32 n_step_bw0 = vh.ctree_core_n;
 		while(true){
 			uncut = 0;
 			for(CT_I32 i=0; i<uind_n; i++){
@@ -577,18 +577,19 @@ namespace Ctree{
 		CT_I32 ncheck = 0;
 		CT_I32 npart = 0;
 		IO_dtype::GalArray gals;
-
+		CT_I32 id0=0;
 		if(!opposite){
 			CT_I32 ind=0;
 			for(CT_I32 i=0; i<tree0.endind+1; i++){
 				if(tree0.snap[i]>=snap0){
 					ind = i;
+					id0 = tree0.id[i];
 					break;
 				}
 			}
 
 			
-			gals.resize(vh.ctree_n_step_n);
+			gals.resize(vh.ctree_core_n);
 
 			
 			while(true){
@@ -596,31 +597,32 @@ namespace Ctree{
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	+= vh.ctree_n_step_dn;
+				ind 	+= vh.ctree_core_dn;
 
 				if(ind > tree0.endind) break;
-				if(ncheck >= vh.ctree_n_step_n) break;
+				if(ncheck >= vh.ctree_core_n) break;
 			}
 		}else{
 			CT_I32 ind=0;
-			for(CT_I32 i=0; i<tree0.endind+1; i++){
+			for(CT_I32 i=tree0.endind; i>=0; i--){
 				if(tree0.snap[i]<=snap0){
 					ind = i;
+					id0 = tree0.id[i];
 					break;
 				}
 			}
 
-			gals.resize(vh.ctree_n_step_n);
+			gals.resize(vh.ctree_core_n);
 
 			while(true){
 				gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	-= vh.ctree_n_step_dn;
+				ind 	-= vh.ctree_core_dn;
 
 				if(ind < 0) break;
-				if(ncheck >= vh.ctree_n_step_n) break;
+				if(ncheck >= vh.ctree_core_n) break;
 			}
 		}
 
@@ -646,7 +648,12 @@ namespace Ctree{
 		pid2 	= get_coreptcl(vh, pid);
 
 		//if(ncheck == 1) pid2[0].n_con = 1.;
-		if(ncheck == 1 && ncheck != pid2[0].n_con) u_stop();
+		if(ncheck == 1 && ncheck != pid2[0].n_con){
+			LOG()<<"Miss-match of ncheck and n_con : "<<ncheck<<" / "<<pid2[0].n_con;
+			LOG()<<"	snap 0 = "<<snap0<<" / id0 = "<<id0;
+			LOG()<<"	need to check for particle ID";
+			u_stop();
+		}
 
 		pid2[0].n_con 	*= ncheck;
 
@@ -1120,7 +1127,14 @@ namespace Ctree{
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_n_step_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_core_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+
+		CT_Merit factor = 1.;
+		factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_core_n), 2);
+		// n_occ = (the occurrence of core particles) X (the snapshots used finding core particles) 
+		// first term gives higher occurrrence have stronger weights
+		// second term gives lower weight to short branches
+
 
 		return factor*meritdum;
 		
@@ -2557,7 +2571,7 @@ t0 = std::chrono::steady_clock::now();
 		//-----
 		// Get Basic Information in each snapshot
 		//-----
-		if(myrank==0)LOG() <<"    Ctree) Reading snapshot info with "<<vh.simtype<<" format";
+		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
 		IO::snapinfo sinfo = IO::get_snapinfo(vh);
 
 		//-----
@@ -2717,15 +2731,6 @@ t0 = std::chrono::steady_clock::now();
 				dt_commerit = std::chrono::duration<double>(t1 - t0).count();
 			}
 
-CT_I32 dd = get_dkey(dkey, 620, 1);
-if(myrank == 0 && dd >= 0){
-	LOG()<<"ID 1 = "<<data[dd].snap0<<" - "<<data[dd].snap<<" / "<<data[dd].stat;
-	for(CT_I32 j=0; j<data[dd].list_n; j++)LOG()<<"    "<<data[dd].list[j].snap<<" / "<<data[dd].list[j].id<<" / "<<data[dd].list[j].merit;
-}
-
-
-
-
 			//----- Link
 			t0 = std::chrono::steady_clock::now();
 			link(vh, data, dkey, tree, key, sinfo, sinfo[i].snum);
@@ -2792,7 +2797,7 @@ if(myrank == 0 && dd >= 0){
 		//-----
 		// Get Basic Information in each snapshot
 		//-----
-		if(myrank==0)LOG() <<"    Ctree) Reading snapshot info with "<<vh.simtype<<" format";
+		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
 		auto t0 = std::chrono::steady_clock::now();
 		IO::snapinfo sinfo = IO::get_snapinfo(vh);
 		if(myrank == 0){

@@ -93,7 +93,7 @@ namespace Ctree{
 
 		CT_I32 last_ind = -1; 	// only stored in the first array
 
-		// Settings을 받아 list를 '생성 시' 원하는 크기로 초기화
+		// Initialize List
     	explicit ControlSt(vctree_set::Settings& vh)
         	: list(vh.ctree_n_search) 
     		{}
@@ -386,7 +386,7 @@ namespace Ctree{
 		      
     	MPI_Datatype CT_I32_T = MPI_INT32_T;
 
-    	// CT_Merit 이 double 이면:
+    	// CT_Merit for double-precision
     	MPI_Datatype CT_MERIT_T;
     	if(sizeof(CT_Merit)==8){
     		CT_MERIT_T = MPI_DOUBLE;
