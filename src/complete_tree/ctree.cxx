@@ -684,7 +684,7 @@ namespace Ctree{
 			spt.hash_next.push_back(1);
 			return spt;
 		}
-		
+	
 		// collect all particles of galaxies at this snapshot
 		IO_dtype::GalArray gal = IO::r_gal(vh, snap_curr, -1, true);
 
@@ -709,13 +709,11 @@ namespace Ctree{
 		}
 		spt.maxgid 	= maxgid;
 
-
 		std::vector<CT_I32> n_ptcl2(maxgid+1, CT_I32{0});
 
 
 		for(CT_I32 i=0; i<(CT_I32) gal.size(); i++){
 		//for(IO_dtype::GalSt g:gal){
-
 			i1 	= i0 + gal[i].npart  - 1;
 			for(CT_I32 j=0; j<(CT_I32) gal[i].npart; j++){
 				spt.pid[j+i0].pid 	= gal[i].pid[j];
@@ -749,7 +747,7 @@ namespace Ctree{
 			hash_last[i] = -1;
 		}
 
-	
+
 		CT_I64 pidtmp, ind;
 		//noptcl 	= -92233720368547758;
 
@@ -2572,7 +2570,8 @@ t0 = std::chrono::steady_clock::now();
 		// Get Basic Information in each snapshot
 		//-----
 		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
-		IO::snapinfo sinfo = IO::get_snapinfo(vh);
+		//IO::snapinfo sinfo = IO::get_snapinfo(vh);
+		IO::snapinfo sinfo = vh.sinfo;
 
 		//-----
 		// Branch Controller
@@ -2722,7 +2721,6 @@ t0 = std::chrono::steady_clock::now();
 			}
 
 
-
 			//----- Compute Merit
 			t0 = std::chrono::steady_clock::now();
 			commerit(vh, data, tree, key, pid0, sinfo[i].snum);
@@ -2799,7 +2797,9 @@ t0 = std::chrono::steady_clock::now();
 		//-----
 		if(myrank==0)LOG() <<"    Ctree) Reading snapshot list";
 		auto t0 = std::chrono::steady_clock::now();
-		IO::snapinfo sinfo = IO::get_snapinfo(vh);
+		//IO::snapinfo sinfo = IO::get_snapinfo(vh);
+		IO::snapinfo sinfo = vh.sinfo;
+
 		if(myrank == 0){
 			auto t1 = std::chrono::steady_clock::now();
 			t11 = std::chrono::duration<double>(t1 - t0).count();

@@ -34,10 +34,10 @@ namespace Makebr{
 #endif
 		
 		//----- Gather snapshot list
-		std::vector<IO_VR::VRT_Snap> snaplist;
-		IO_VR::VRT_Snap maxsnap = -1;
+		std::vector<IO_dtype::IO_Snap> snaplist;
+		IO_dtype::IO_Snap maxsnap = -1;
 
-		for(IO_VR::VRT_Snap i=vh.snapi; i<vh.snapf+1; i++){
+		for(IO_dtype::IO_Snap i=vh.snapi; i<vh.snapf+1; i++){
 			if(is_snap(vh, i)){
 				snaplist.push_back(i);
 				if(i > maxsnap) maxsnap = i;
@@ -46,7 +46,7 @@ namespace Makebr{
 
 		
 		//// Read Galaxy First
-		std::vector<IO_VR::GalArray> g_all;
+		std::vector<IO_dtype::GalArray> g_all;
 		std::vector<TFSt> t_all;
 
 		
@@ -62,14 +62,14 @@ namespace Makebr{
 
 #ifdef CTREE_USE_MPI
 	    int rank = 0, size = 1;
-	    IO_VR::VRT_GID local_max = -1;
+	    IO_dtype::IO_GID local_max = -1;
 	    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	    for(IO_VR::VRT_Snap s : snaplist){
+	    for(IO_dtype::IO_Snap s : snaplist){
 	    	if(s % size == rank){
 	    		//LOG()<<rank<<" / "<<s;
-				g_all[s] 	= IO_VR::r_gal(vh, s, -1, false);
+				g_all[s] 	= IO::r_gal(vh, s, -1, false);
 				if(s<maxsnap){ t_all[s] 	= readtreefrog(vh, mbh, s); }
 				else{ t_all[s] = readtreefrog(vh, mbh, snaplist[0]);} // dummy read for the last snapshot
 
@@ -81,14 +81,14 @@ namespace Makebr{
     
     	MPI_Barrier(MPI_COMM_WORLD);
 
-    	IO_VR::VRT_GID global_max = -1;
+    	IO_dtype::IO_GID global_max = -1;
     	MPI_Allreduce(&local_max, &global_max, 1,
-              mpi_type::type<IO_VR::VRT_GID>(), MPI_MAX, MPI_COMM_WORLD);
+              mpi_type::type<IO_dtype::IO_GID>(), MPI_MAX, MPI_COMM_WORLD);
 
     	log.max_id = global_max; 
 
     	//Synchronize
-    	for (IO_VR::VRT_Snap s : snaplist) {
+    	for (IO_dtype::IO_Snap s : snaplist) {
         	int owner = s % size;
 
 	        // ---- TF ----
@@ -105,9 +105,9 @@ namespace Makebr{
     	}
     	MPI_Barrier(MPI_COMM_WORLD);
 #else
-		for(IO_VR::VRT_Snap s : snaplist){
+		for(IO_dtype::IO_Snap s : snaplist){
 			//LOG()<<s;
-			g_all[s] 	= IO_VR::r_gal(vh, s, -1, false);
+			g_all[s] 	= IO::r_gal(vh, s, -1, false);
 			if(s<maxsnap) t_all[s] 	= readtreefrog(vh, mbh, s);
 			log.max_id 	= std::max(log.max_id, getmaxid(g_all[s]));
 		}
@@ -166,7 +166,7 @@ namespace Makebr{
 			LOG() <<"    Makebr) Tree Initialize";
 		}
 
-		for(IO_VR::GalSt& g : g_all[vh.snapi]){
+		for(IO_dtype::GalSt& g : g_all[vh.snapi]){
 			Tree::treeinit(tree, key, (Tree::Tree_Snap) vh.snapi, (Tree::Tree_GID) g.id);
 		}
 
@@ -198,7 +198,7 @@ namespace Makebr{
 		}
 
 		for (std::size_t i = 0; i < snaplist.size()-1; ++i) {
-    		IO_VR::VRT_Snap s = snaplist[i];
+    		IO_dtype::IO_Snap s = snaplist[i];
 
 
     		// End loop if this is the last snapshot
@@ -210,7 +210,7 @@ namespace Makebr{
 
 			//// Make New Tree
 			TFSt& t_curr = t_all[s];
-			IO_VR::GalArray& g_next = g_all[snaplist[i+1]];
+			IO_dtype::GalArray& g_next = g_all[snaplist[i+1]];
 
 			for(TF_id l=0; l<(TF_id) t_curr.id.size();l++){
 				if(t_curr.num[l] == 0){
@@ -261,15 +261,15 @@ namespace Makebr{
 				auto dum_maxmerit 	= std::max_element(dum_merit.begin(), dum_merit.end());
     			std::size_t idx = static_cast<std::size_t>(std::distance(dum_merit.begin(), dum_maxmerit));
 
-    			IO_VR::VRT_GID best_id   = dum_id[idx];
-    			IO_VR::VRT_I32 best_part = dum_part[idx];
+    			IO_dtype::IO_GID best_id   = dum_id[idx];
+    			IO_dtype::IO_I32 best_part = dum_part[idx];
     			TF_merit best_merit= *dum_maxmerit;
 
     			//----- End connection due to a too low merit
     			if(best_merit < vh.meritlimit) continue;
 
 
-    			std::vector<IO_VR::VRT_I32> where_idx;
+    			std::vector<IO_dtype::IO_I32> where_idx;
 				
     			for (std::size_t m = 0; m < g_next.size(); ++m) {
 				    const auto& g = g_next[m];
@@ -339,15 +339,15 @@ namespace Makebr{
 				auto dum_maxmerit 	= std::max_element(dum_merit.begin(), dum_merit.end());
     			std::size_t idx = static_cast<std::size_t>(std::distance(dum_merit.begin(), dum_maxmerit));
 
-    			IO_VR::VRT_GID best_id   = dum_id[idx];
-    			IO_VR::VRT_I32 best_part = dum_part[idx];
+    			IO_dtype::IO_GID best_id   = dum_id[idx];
+    			IO_dtype::IO_I32 best_part = dum_part[idx];
     			TF_merit best_merit= *dum_maxmerit;
 
     			//----- End connection due to a too low merit
     			if(best_merit < vh.meritlimit) continue;
 
 
-    			std::vector<IO_VR::VRT_I32> where_idx;
+    			std::vector<IO_dtype::IO_I32> where_idx;
 				
     			for (std::size_t m = 0; m < g_next.size(); ++m) {
 				    const auto& g = g_next[m];
@@ -385,8 +385,8 @@ namespace Makebr{
               	return a.idc < b.idc;
           	});
 
-			std::vector<IO_VR::VRT_I32> uni_idx;
-          	for(IO_VR::VRT_GID l=1; l<(IO_VR::VRT_GID) Evoldum.size(); l++){
+			std::vector<IO_dtype::IO_I32> uni_idx;
+          	for(IO_dtype::IO_GID l=1; l<(IO_dtype::IO_GID) Evoldum.size(); l++){
           		if(Evoldum[l].idn == 0) continue;
           		if(Evoldum[l].idn > Evoldum[l-1].idn) uni_idx.push_back(l);
           	}
@@ -395,9 +395,9 @@ namespace Makebr{
           	//----- Determine Connection point with the maximum merit
 
           	// MPI implemented here?
-          	for(IO_VR::VRT_GID l=0; l<(IO_VR::VRT_GID) uni_idx.size()-1; l++){
-          		IO_VR::VRT_GID ind1 = uni_idx[l];
-          		IO_VR::VRT_GID ind2 = uni_idx[l+1]-1;
+          	for(IO_dtype::IO_GID l=0; l<(IO_dtype::IO_GID) uni_idx.size()-1; l++){
+          		IO_dtype::IO_GID ind1 = uni_idx[l];
+          		IO_dtype::IO_GID ind2 = uni_idx[l+1]-1;
           		log.n_link ++;
 
 
@@ -431,7 +431,7 @@ namespace Makebr{
 				//keyind0 = key[keyval].ind;
 				keyind0 	= Tree::get_key(key, Evoltmp[0].snapc, Evoltmp[0].idc);
 
-				for(IO_VR::VRT_GID m=1; m<(IO_VR::VRT_GID) Evoltmp.size(); m++){
+				for(IO_dtype::IO_GID m=1; m<(IO_dtype::IO_GID) Evoltmp.size(); m++){
 
 					if(!Tree::istree(key, Evoltmp[m].snapc, Evoltmp[m].idc)){
 						Tree::treeinit(tree, key, Evoltmp[m].snapc, Evoltmp[m].idc);
@@ -478,10 +478,10 @@ namespace Makebr{
 	}
 
 	// Some utilities
-	IO_VR::VRT_GID getmaxid(const IO_VR::GalArray& gal) {
+	IO_dtype::IO_GID getmaxid(const IO_dtype::GalArray& gal) {
     	if (gal.empty()) throw std::runtime_error("gal is empty");
     	auto it = std::max_element(gal.begin(), gal.end(),
-                               [](const IO_VR::GalSt& a, const IO_VR::GalSt& b){
+                               [](const IO_dtype::GalSt& a, const IO_dtype::GalSt& b){
                                    return a.id < b.id;
                                });
     	return it->id;
@@ -517,7 +517,7 @@ namespace Makebr{
 		}
 	}
 
-	bool is_snap(const vctree_set::Settings& vh, const IO_VR::VRT_Snap snap_curr){
+	bool is_snap(const vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr){
 		char buf[256];
     	std::snprintf(buf, sizeof(buf), "tree.snapshot_%04dVELOCIraptor.tree", snap_curr);
     	std::string dumfname = vh.tf_dir + "/" + buf;
@@ -658,24 +658,18 @@ namespace Makebr{
 	    if (file_id < 0) throw std::runtime_error("Failed to open file: " + tfname);
 	
 	    try {
-	        //std::vector<TF_num> 	v_num 	= IO_VR::VR_HDF5_rdbyname<TF_num>(file_id, mbh.tag_num);
-	        //std::vector<TF_off> 	v_off 	= IO_VR::VR_HDF5_rdbyname<TF_off>(file_id, mbh.tag_off);
-	        //std::vector<TF_res> 	v_res 	= IO_VR::VR_HDF5_rdbyname<TF_res>(file_id, mbh.tag_result);
-	        //std::vector<TF_merit> 	v_merit	= IO_VR::VR_HDF5_rdbyname<TF_merit>(file_id, mbh.tag_merit);
-	        //std::vector<TF_npart> 	v_npart	= IO_VR::VR_HDF5_rdbyname<TF_npart>(file_id, mbh.tag_npart);
-	        //std::vector<TF_nlink> 	v_nlink	= IO_VR::VR_HDF5_rdbyname<TF_nlink>(file_id, mbh.tag_nlink);
-	        //std::vector<TF_id> 		v_id 	= IO_VR::VR_HDF5_rdbyname<TF_id>(file_id, mbh.tag_id);
+
 	
 
 	        TFSt TFData;
 
-	       	TFData.num 			= IO_VR::VR_HDF5_rdbyname<TF_num>(file_id, mbh.tag_num);
-	       	TFData.off 			= IO_VR::VR_HDF5_rdbyname<TF_off>(file_id, mbh.tag_off);
-	       	TFData.res 			= IO_VR::VR_HDF5_rdbyname<TF_res>(file_id, mbh.tag_result);
-	       	TFData.merit 		= IO_VR::VR_HDF5_rdbyname<TF_merit>(file_id, mbh.tag_merit);
-	       	TFData.npart 		= IO_VR::VR_HDF5_rdbyname<TF_npart>(file_id, mbh.tag_npart);
-	       	TFData.nlink 		= IO_VR::VR_HDF5_rdbyattr<TF_nlink>(file_id, mbh.tag_nlink);
-	       	TFData.id 			= IO_VR::VR_HDF5_rdbyname<TF_id>(file_id, mbh.tag_id);
+	       	TFData.num 			= IO_VELUGA::VR_HDF5_rdbyname<TF_num>(file_id, mbh.tag_num);
+	       	TFData.off 			= IO_VELUGA::VR_HDF5_rdbyname<TF_off>(file_id, mbh.tag_off);
+	       	TFData.res 			= IO_VELUGA::VR_HDF5_rdbyname<TF_res>(file_id, mbh.tag_result);
+	       	TFData.merit 		= IO_VELUGA::VR_HDF5_rdbyname<TF_merit>(file_id, mbh.tag_merit);
+	       	TFData.npart 		= IO_VELUGA::VR_HDF5_rdbyname<TF_npart>(file_id, mbh.tag_npart);
+	       	TFData.nlink 		= IO_VELUGA::VR_HDF5_rdbyattr<TF_nlink>(file_id, mbh.tag_nlink);
+	       	TFData.id 			= IO_VELUGA::VR_HDF5_rdbyname<TF_id>(file_id, mbh.tag_id);
 
 
 
@@ -768,7 +762,7 @@ namespace Makebr{
 
 
 	// Serialize & Deserialize for GalArray
-	std::vector<std::uint8_t> serialize(const IO_VR::GalArray& A) {
+	std::vector<std::uint8_t> serialize(const IO_dtype::GalArray& A) {
 	    std::vector<std::uint8_t> buf;
 	    std::uint64_t n = static_cast<std::uint64_t>(A.size());
 	    append_pod(buf, n);
@@ -781,16 +775,16 @@ namespace Makebr{
 	    return buf;
 	}
 
-	void deserialize(const std::vector<std::uint8_t>& buf, IO_VR::GalArray& A) {
+	void deserialize(const std::vector<std::uint8_t>& buf, IO_dtype::GalArray& A) {
 	    const std::uint8_t* p   = buf.data();
 	    const std::uint8_t* end = p + buf.size();
 	    std::uint64_t n = read_pod<std::uint64_t>(p, end);
 	    A.resize(static_cast<size_t>(n));
 	    for (size_t i = 0; i < A.size(); ++i) {
-	        A[i].id    = read_pod<IO_VR::VRT_GID>(p, end);
-	        A[i].snap  = read_pod<IO_VR::VRT_Snap>(p, end);
-	        A[i].npart = read_pod<IO_VR::VRT_I32>(p, end);
-	        A[i].pid   = read_vec<IO_VR::VRT_PID>(p, end);
+	        A[i].id    = read_pod<IO_dtype::IO_GID>(p, end);
+	        A[i].snap  = read_pod<IO_dtype::IO_Snap>(p, end);
+	        A[i].npart = read_pod<IO_dtype::IO_I32>(p, end);
+	        A[i].pid   = read_vec<IO_dtype::IO_PID>(p, end);
 	    }
 	    if (p != end) throw std::runtime_error("GalArray deserialize: trailing bytes");
 	}

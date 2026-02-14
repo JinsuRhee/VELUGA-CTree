@@ -26,9 +26,11 @@ bool u_printlogo();
 bool u_initialcheck(int argc);
 
 // String
+bool is_file(std::string file);
 std::string i4(int x);
 std::string i5(int x);
 std::string i6(int x);
+std::string iN(int x, int N);
 
 // Get Memory usage
 template <class T> inline double how_big(const std::vector<T>& v) {
