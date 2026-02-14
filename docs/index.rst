@@ -16,7 +16,7 @@ documentation for details.
    :caption: Contents:
 
    install
-   Configuration Options
+   configuration
    Tree data format
    Implementation for new catalog
 
