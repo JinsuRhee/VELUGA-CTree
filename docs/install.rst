@@ -1,4 +1,4 @@
-Build Instructionsss
+Build Instructions
 ==================
 
 This document describes how to build the code using CMake.
@@ -6,13 +6,39 @@ This document describes how to build the code using CMake.
 Prerequisites
 --------------
 
-Make sure the following tools are installed:
+To build **VELUGA-CTree**, the following software and libraries are required.
 
-- CMake (version 3.15 or later)
-- A C/C++ compiler (e.g. GCC, Clang)
-- Git
+Compiler
+~~~~~~~~
 
-(Optional) Python may be required depending on enabled features.
+- A C++ compiler with **C++17 support**
+- GCC (>9)
+- Clang (with C++17 support)
+
+CMake
+~~~~~
+- **CMake 3.20 or later**
+
+MPI
+~~~
+
+- OpenMPI
+- MPICH
+- Intel MPI
+
+OpenMP
+~~~~~~
+
+HDF5
+~~~~
+
+- **HDF5 with C and C++ interfaces is required**
+
+Operating System
+~~~~~~~~~~~~~~~~
+
+- Linux (tested on HPC environments)
+
 
 Build from Source
 -----------------
@@ -35,7 +61,7 @@ Configure the project with CMake:
 
 .. code-block:: bash
 
-   cmake ..
+   cmake ../
 
 Build the code:
 
