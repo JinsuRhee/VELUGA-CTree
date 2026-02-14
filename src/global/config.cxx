@@ -169,10 +169,9 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
   }
 
   vh.finalize_paths();
+  vh.read_snaplist();
 
-  if(vh.iotype == "HM"){
-    vh.hm_gpointer.resize(vh.snapf+1);
-  }
+  
   return true;
 }
 

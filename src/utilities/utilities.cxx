@@ -54,6 +54,22 @@ std::string i6(int x) {
     return oss.str();
 }
 
+// padding
+std::string iN(int x, int N) {
+    std::ostringstream oss;
+    oss << std::setw(N) << std::setfill('0') << x;
+    return oss.str();
+}
+
+// Is file
+bool is_file(std::string file){
+    if (std::filesystem::exists(file)) {
+        return true;
+    } else{
+        return false;
+    }
+}
+
 // Get MPI rank
 int mpi_rank() {
 #ifdef CTREE_USE_MPI

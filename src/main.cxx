@@ -58,6 +58,7 @@ int main(int argc, char** argv) {
   }
 
 
+
   // Load Configuration
   vctree_set::Settings vh;
   if( !g_load_config(argv[1], vh) ){
@@ -65,6 +66,12 @@ int main(int argc, char** argv) {
   } else{
   	if(myrank == 0) LOG() <<"  Configuration Loaded";
   }
+
+  //-----
+  // Read snapshot list
+  //-----
+
+
 
   //-----
   // Make Branch Part

@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <chrono>
 #include <ctime>
+#include <filesystem>   // C++17
+#include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -10,7 +12,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-
 
 #ifdef CTREE_USE_MPI
 	#include <mpi.h>
@@ -41,6 +42,16 @@ namespace vctree_parameters{
 namespace vctree_set{
 
 	// Create Settings structure
+	struct vr_pointerSt{ int32_t fnum=-1; int32_t offset; int32_t offset_pb; int32_t offset_pu; int32_t nb; int32_t nu; int32_t nt;};
+	
+
+	struct snapSt{
+		std::int32_t snum = -1;			// snapshot number
+	};
+
+	using snapinfo = std::vector<snapSt>;
+
+	
 	struct Settings {
 		std::string iotype 		= "VELUGA";			  // IO type
 		//std::string	simtype		= "Ramses";		  // Simulation type
@@ -65,6 +76,9 @@ namespace vctree_set{
 		std::string vr_dir_catalog_prefix = "";
 		std::string vr_dir_catalog_suffix = "";
 		int32_t vr_dir_catalog_snapdigit = 4;
+		std::vector< std::vector<vr_pointerSt> > vr_gpointer;
+		
+
 
   		// For HM IO
   		std::string hm_dir_catalog 	= "./catalog/";
@@ -91,6 +105,7 @@ namespace vctree_set{
   		std::string out_dir     = "";   // Tree direction
   		int32_t minbranchlength = 10;		// Minimum length of brnach
 
+
   		// makebr related
   		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
 
@@ -115,12 +130,61 @@ namespace vctree_set{
   		std::string tag_nlink   = "";
   		std::string tf_dir = "";
 
+  		snapinfo sinfo;
+
   		// Some utils
   		void finalize_paths() {
   			if (iotype == "VELUGA"){
   				veluga_dir_catalog = veluga_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
   			}
   		}
+
+  		// Read snapshot list
+  		void read_snaplist() {
+			std::vector<int32_t> slist;
+			int32_t maxsnap = -1;
+			if(std::filesystem::exists(snaplist)){
+				std::ifstream file(snaplist);
+		    	std::string line;
+    			int32_t value;
+
+    			while (std::getline(file, line)) {
+        			if (line.empty()) continue;
+       				value = std::stoi(line);
+       				slist.push_back(value);
+
+       				if(value > maxsnap) maxsnap = value;
+        		}
+	        	std::sort(slist.begin(), slist.end());
+    	    	snapi 	= slist[0];
+        		snapf 	= maxsnap;
+
+        		file.close();
+			}else{
+				for(int32_t i=snapi; i<snapf+1; i++){
+					slist.push_back(i);
+					if(i > maxsnap) maxsnap = i;
+				}
+			}
+
+			//----- Allocate Snap
+			sinfo.resize(maxsnap+1);
+
+			//----- Read Info
+			for (int32_t s : slist) {
+				sinfo[s].snum 	= s;
+			}
+
+
+			//----- Allocate key variables
+			if(iotype == "HM"){
+	   			hm_gpointer.resize(snapf+1);
+  			}
+			if(iotype == "VR"){
+				vr_gpointer.resize(snapf+1);
+			}
+		}
+
 
   		// Bring control varibles
   		//int32_t sarr_size = vctree_parameters::sarr_size;
