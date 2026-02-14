@@ -15,7 +15,7 @@ documentation for details.
    :maxdepth: 2
    :caption: Contents:
 
-   Install & Build
+   install
    Configuration Options
    Tree data format
    Implementation for new catalog
