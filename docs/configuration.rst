@@ -3,36 +3,29 @@ Configuration Options
 
 This page documents the configuration options used by **CTree**.
 
-File format
------------
-
-The configuration file is a plain text file consisting of ``key = value`` pairs.
-
-.. code-block:: ini
-
-   # Example configuration
-   input_catalog = ./ctree_ref.cfg
-
 General notes:
-
-- Lines starting with ``#`` are treated as comments.
-- Whitespace around ``=`` is ignored.
+    - Lines starting with ``#`` are treated as comments.
+    - Whitespace around ``=`` is ignored.
 
 Option reference
 ----------------
 
 .. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
+   :header-rows: 0
+   :widths: 20 80
 
-   * - Option
-     - Format
-     - Default
-     - Description
-   * - ``OPTION_NAME``
-     - ``<type/format>``
-     - ``<default>``
-     - <Short description of the option. Mention units and constraints if applicable.>
+   * - **Option**
+     - ``OPTION_NAME``
+     - ``aa``
+   * - **Format**
+     - ``int64``
+     - ``bb``
+   * - **Default**
+     - ``0``
+     - ``cc``
+   * - **Description**
+     - ...
+     - ``dd``
 
 I/O
 ~~~~~~~~
