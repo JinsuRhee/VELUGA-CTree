@@ -20,7 +20,7 @@ I/O related
      - **Description**
 
    * - out_dir
-     - ``string (path)``
+     - ``string``
      - *(required)*
      - Path specifier for the output data.
 
@@ -31,163 +31,67 @@ I/O related
        
        A detailed data format and example routines reading the output are given :output:
 
-I/O
-~~~~~~~~
-.. _standardhalopropstable:
-
-+--------------------+-------------------------------------------------------------------------------------------------------+
-| Name               | Comments                                                                                              |
-+====================+=======================================================================================================+
-| **ID and Type information**                                                                                                |
-+--------------------+-------------------------------------------------------------------------------------------------------+
-| ID                 | Halo ID. ID = index of halo + 1 + TEMPORALHALOIDVAL * Snapshot_value,                                 |
-|                    | giving a temporally unique halo id that can be quickly parsed for an                                  |
-|                    | index and a snapshot number.                                                                          |
-+--------------------+-------------------------------------------------------------------------------------------------------+
-
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
-
-   * - out_dir
-     - ``string (path)``
-     - *(required)*
-     - Path specifier for the output data. The output data are "ctree_tree.dat" and "ctree_key.dat"
-       "ctree_tree.dat" has the Lagrangian branch data for the entire branches.
-       "ctree_key.dat" gives the mapping for (#Snap, #ID)->(branch index).
-       A detailed data format and example routines reading the output are given :output:
-
    * - iotype
      - ``string``
      - *(required)*
-     - Catalog type. Currently (as of Feb 2026), VELOCIraptor (ascii format), VELUGA (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA), and HaloMaker catalogs are available.
+     - Catalog type.
 
+       Currently (as of Feb 2026), the following options are available.
 
-I/O (VELOCIraptor)
-^^^^^^^^^^^^^^^^^^
+       - ``VR`` (VELOCIraptor in ascii format)
+       - ``VELUGA`` (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA)
+       - ``HM`` (HaloMaker catalogs)
 
-CTree assumes that a raw VELOCIraptor output (e.g., *.catalog.dat0) is saved in (vr_dir_catalog)/(vr_dir_catalog_prefix)(SSSS)(vr_dir_catalog_suffix).
-(SSSS) is the snapshot number with a digit of vr_dir_catalog_snapdigit
+   * -
+     -
+     -
+     -
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
    * - vr_dir_catalog
-     - ``string (path)``
+     - ``string``
      - *(required)*
-     - Directory where raw VELOCIraptor outputs are saved. CTree assumes that a raw output (e.g., *.catalog.dat0) is saved in a subdirectory specifying snapshot numbers
+     - Path specifier when iotype=``VR``
 
-  * - vr_dir_catalog_prefix
+       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) 
+
+       in directories divided by snapshot numbers
+
+       (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
+
+   * - vr_dir_catalog_prefix
      - ``string``
-     - *(optional)*
-     - Prefix for subdirectories
+     - optional
+     - 
 
-  * - vr_dir_catalog_suffix
+   * - vr_dir_catalog_suffix
      - ``string``
-     - *(optional)*
-     - Suffix for subdirectories
+     - optional
+     -
 
-  * - vr_dir_catalog_snapdigit
+   * - vr_dir_catalog_snapdigit
      - ``integer``
-     - *(optional)*
-     - Snapshot number digit
-
-
-I/O (VELUGA)
-^^^^^^^^^^^^
-
-I/O (HaloMaker)
-^^^^^^^^^^^^
-
-
-Snapshots / Time selection
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
-
-   * - Option
-     - Format
-     - Default
-     - Description
-
-   * - ``snapshot_start``
-     - ``int``
-     - ``0``
-     - First snapshot number to process (inclusive).
-
-   * - ``snapshot_end``
-     - ``int``
      - *(required)*
-     - Last snapshot number to process (inclusive).
+     - The digit number for snapshot number in the directory name
 
-   * - ``snapshot_step``
-     - ``int``
-     - ``1``
-     - Process every N-th snapshot.
+   * -
+     -
+     -
+     -
 
-   * - ``snapshot_list``
-     - ``string (path)``
-     - *(optional)*
-     - Alternatively, provide a file containing a list of snapshot numbers (one per line).
-       If set, this option overrides ``snapshot_start/end/step``.
-
-Merit / Tree building
-~~~~~~~~~~~~~~~~~~~~~
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
-
-   * - Option
-     - Format
-     - Default
-     - Description
-
-   * - ``core_npart``
-     - ``int``
-     - ``50``
-     - Number of core particles used when computing the merit function.
-
-   * - ``merit_mode``
+   * - veluga_dir_catalog
      - ``string``
-     - ``core_count``
-     - Merit function mode. For example, ``core_count`` selects the halo containing the
-       largest number of core particles.
+     - *(required)*
+     - path specifier when iotype=``VELUGA``
 
-   * - ``first_progenitor_rule``
-     - ``string``
-     - ``max_merit``
-     - Rule to select the first progenitor (e.g. highest merit score).
+       directory path which includes snap_* directories
 
-Output controls
-~~~~~~~~~~~~~~~
+       :ref:`option_horg` option should be given
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 20 20 60
-
-   * - Option
-     - Format
-     - Default
-     - Description
-
-   * - ``write_branches``
-     - ``bool``
-     - ``true``
-     - Write intermediate branch products.
-
-   * - ``write_complete_tree``
-     - ``bool``
-     - ``true``
-     - Write the final complete tree output.
-
-   * - ``log_level``
-     - ``string``
-     - ``info``
-     - Logging verbosity. Typical values: ``debug``, ``info``, ``warning``, ``error``.
+   * - .. _option_horg:
+     horg
+     -
+     -
+     -
 
 Examples
 --------
