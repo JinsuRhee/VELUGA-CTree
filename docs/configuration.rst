@@ -28,7 +28,8 @@ Option reference
    * - out_dir
      - ``string (path)``
      - *(required)*
-     - Path specifier for the output data. The output data are "ctree_tree.dat" and "ctree_key.dat"
+     - Path specifier for the output data.
+       The output data are "ctree_tree.dat" and "ctree_key.dat"
        "ctree_tree.dat" has the Lagrangian branch 
        data for the entire branches.
        "ctree_key.dat" gives the mapping for (#Snap, #ID)->(branch index).
