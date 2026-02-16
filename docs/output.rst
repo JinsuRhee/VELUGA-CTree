@@ -45,47 +45,36 @@ representation** without text encoding.
    These specifiers allow the reader to determine the exact binary layout
    without prior knowledge of the build configuration.
 
-Tree Key Format
----------------
-
-Purpose
-~~~~~~~
+Tree Key File Format
+--------------------
 
 ``ctree_key.dat`` provides a mapping between catalog entries and internal
 branch indices used in the tree structure.
 
-The key arrays gives a mapping between (ID, Snapshot number) paris and their indices in the merger tree branches:
+The key array gives a mapping between (ID, Snapshot number) pairs and their indices in the merger tree branches:
 
 .. code-block:: text
 
-   branch_index = key[snapnumber + id * treekey]
+   branch_index = key[snapnumber + id * keyvalue]
 
 
-In **CTree** the default tree key is defined as the maximum snapshot number + 1
-
-Binary layout
-~~~~~~~~~~~~~
+In **CTree** the default key value is defined as ``the maximum snapshot number + 1``
 
 The file is written in the following order:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 30 60
+   :widths: 30 70
 
-   * - Index
-     - Type
+   * - Type and Size
      - Description
-   * - 1
-     - ``int32``
+   * - ``int32 [1]``
      - Type specifier for branch index (``Tree_BID``)
-   * - 2
-     - ``int64``
+   * - ``int64 [1]``
      - Size of the key array
-   * - 3
-     - ``Tree_BID``
+   * - ``Tree_BID [1]``
      - Key value
-   * - 4
-     - ``Tree_BID[N]``
+   * - ``Tree_BID [N]``
      - N elements in the key array
 
 File: ctree_tree.dat
