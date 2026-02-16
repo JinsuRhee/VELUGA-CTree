@@ -230,7 +230,7 @@ Branch related parameters
        If the best progenitor has the lower merit than ``meritlimit``, the connection is not allowed
 
    * - minbranchlength
-   * - ``integer``
+     - ``integer``
      - 5
      - After all branches are constructed, branches whose length is lower than ``minbranchlength`` are removed
 
