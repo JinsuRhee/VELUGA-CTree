@@ -50,9 +50,9 @@ I/O related
    * - vr_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifier when ``iotype = VR``
+     - Path specifer for the catalog data ``iotype = VR``
 
-       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) in directories divided by snapshot numbers
+       **CTree** searches raw VELOCIraptor outputs (*.catalog.dat0) in directories divided by snapshot numbers
 
        (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
 
@@ -79,11 +79,48 @@ I/O related
    * - veluga_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifier when ``iotype = VELUGA``
+     - Path specifer for the catalog data when ``iotype = VELUGA``
 
        Path at which ``snap_*`` directories are located
 
        :ref:`horg <horg-option>` option should be given
+
+   * - 
+     -
+     -
+     -
+
+   * - hm_dir_catalog
+     - ``string``
+     - *(required)*
+     - Path specifer for the catalog data when ``iotype = HM``
+
+       Path at which ``*.bricks`` are located
+
+   * - 
+     -
+     -
+     -
+
+   * - loadtree
+     - ``Y or N``
+     - *(required)*
+     - Flag whether a pre-existing merger tree is used
+
+       If set, **CTree** begins with the given merger tree data and reparis the branches
+
+       If set, ``loadtree_ftree`` and ``loadtree_fkey`` should be given
+
+       The tree data format is described in :doc:`Output data format <output>`
+
+   * - loadtree_ftree
+     - ``string``
+     - *(required)*
+     - Path specifier for the merger tree branch data when ``loadtree=Y``
+
+
+
+
 
    * - .. _horg-option:
        horg

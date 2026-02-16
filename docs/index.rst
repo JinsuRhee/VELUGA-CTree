@@ -17,6 +17,6 @@ documentation for details.
 
    install
    configuration
-   Tree data format
+   output
    Implementation for new catalog
 
