@@ -31,67 +31,7 @@ I/O related
        
        A detailed data format and example routines reading the output are given :output:
 
-   * - iotype
-     - ``string``
-     - *(required)*
-     - Catalog type.
 
-       Currently (as of Feb 2026), the following options are available.
-
-       - ``VR`` (VELOCIraptor in ascii format)
-       - ``VELUGA`` (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA)
-       - ``HM`` (HaloMaker catalogs)
-
-   * - a
-     -
-     -
-     -
-
-   * - vr_dir_catalog
-     - ``string``
-     - *(required)*
-     - Path specifier when iotype=``VR``
-
-       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) 
-
-       in directories divided by snapshot numbers
-
-       (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
-
-   * - vr_dir_catalog_prefix
-     - ``string``
-     - optional
-     - 
-
-   * - vr_dir_catalog_suffix
-     - ``string``
-     - optional
-     -
-
-   * - vr_dir_catalog_snapdigit
-     - ``integer``
-     - *(required)*
-     - The digit number for snapshot number in the directory name
-
-   * - a
-     -
-     -
-     -
-
-   * - veluga_dir_catalog
-     - ``string``
-     - *(required)*
-     - path specifier when iotype=``VELUGA``
-
-       directory path which includes snap_* directories
-
-       :ref:`option_horg` option should be given
-
-   * - .. _option_horg:
-     horg
-     -
-     -
-     -
 
 Examples
 --------
