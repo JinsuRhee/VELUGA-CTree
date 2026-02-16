@@ -42,7 +42,7 @@ I/O related
        - ``VELUGA`` (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA)
        - ``HM`` (HaloMaker catalogs)
 
-   * - a
+   * - 
      -
      -
      -
