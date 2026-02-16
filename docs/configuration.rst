@@ -42,7 +42,7 @@ I/O related
        - ``VELUGA`` (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA)
        - ``HM`` (HaloMaker catalogs)
 
-   * -
+   * - a
      -
      -
      -
@@ -73,7 +73,7 @@ I/O related
      - *(required)*
      - The digit number for snapshot number in the directory name
 
-   * -
+   * - a
      -
      -
      -
