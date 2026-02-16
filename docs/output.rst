@@ -20,40 +20,48 @@ Two binary files are written:
 All integer and floating-point values are written in **native binary
 representation** without text encoding.
 
-Type Specifiers
+.. note :: Type Specifiers
+
+   Each binary file begins with one or more **type specifiers**, which encode
+   the data type used at compile time.
+
+   The type specifier is stored as a 32-bit integer with the following meaning:
+
+   .. list-table::
+       :header-rows: 1
+       :widths: 20 80
+
+       * - Value
+         - Data type
+       * - ``1``
+         - 32-bit integer (``int32``)
+       * - ``2``
+         - 64-bit integer (``int64``)
+       * - ``3``
+         - 32-bit floating point (``float``)
+       * - ``4``
+         - 64-bit floating point (``double``)
+
+   These specifiers allow the reader to determine the exact binary layout
+   without prior knowledge of the build configuration.
+
+Tree Key Format
 ---------------
-
-Each binary file begins with one or more **type specifiers**, which encode
-the data type used at compile time.
-
-The type specifier is stored as a 32-bit integer with the following meaning:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - Value
-     - Data type
-   * - ``1``
-     - 32-bit integer (``int32``)
-   * - ``2``
-     - 64-bit integer (``int64``)
-   * - ``3``
-     - 32-bit floating point (``float``)
-   * - ``4``
-     - 64-bit floating point (``double``)
-
-These specifiers allow the reader to determine the exact binary layout
-without prior knowledge of the build configuration.
-
-File: ctree_key.dat
--------------------
 
 Purpose
 ~~~~~~~
 
 ``ctree_key.dat`` provides a mapping between catalog entries and internal
 branch indices used in the tree structure.
+
+The key arrays gives a mapping between (ID, Snapshot number) paris and their indices in the merger tree branches:
+
+.. code-block:: text
+
+   branch_index = key[snapnumber + id * treekey]
+
+
+In **CTree** the default tree key is defined as the maximum snapshot number + 1
 
 Binary layout
 ~~~~~~~~~~~~~
@@ -69,16 +77,16 @@ The file is written in the following order:
      - Description
    * - 1
      - ``int32``
-     - Type specifier for branch ID (``Tree_BID``)
+     - Type specifier for branch index (``Tree_BID``)
    * - 2
      - ``int64``
-     - Number of key entries ``N``
+     - Size of the key array
    * - 3
      - ``Tree_BID``
-     - First key value
+     - Key value
    * - 4
      - ``Tree_BID[N]``
-     - Remaining key values stored as a contiguous array
+     - N elements in the key array
 
 File: ctree_tree.dat
 --------------------
