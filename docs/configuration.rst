@@ -52,9 +52,7 @@ I/O related
      - *(required)*
      - Path specifier when ``iotype = VR``
 
-       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) 
-
-       in directories divided by snapshot numbers
+       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) in directories divided by snapshot numbers
 
        (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
 
@@ -81,13 +79,14 @@ I/O related
    * - veluga_dir_catalog
      - ``string``
      - *(required)*
-     - path specifier when ``iotype = VELUGA``
+     - Path specifier when ``iotype = VELUGA``
 
-       directory path which includes snap_* directories
+       Path at which ``snap_*`` directories are located
 
-       :ref:`horg` option should be given
+       :ref:`horg <horg-option>` option should be given
 
-   * - .. _horg:
+   * - .. _horg-option:
+       horg
      -
      -
      -
