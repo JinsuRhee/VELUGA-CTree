@@ -164,8 +164,8 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
 
 
     // 5 Tree Size in I64
-    std::int64_t n2 = static_cast<std::int64_t>(tree.size());
-    out2.write(reinterpret_cast<const char*>(&n2), sizeof(n2));
+    //std::int64_t n2 = static_cast<std::int64_t>(tree.size());
+    //out2.write(reinterpret_cast<const char*>(&n2), sizeof(n2));
 
     // 6 End ind in I64
     std::int64_t n3 = static_cast<std::int64_t>(tree[0].lind);
@@ -208,19 +208,19 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         }
 
         // Branch_ID (progenitor)
-        for(std::int32_t i=0; i<n_branch; i++){
-            out2.write(reinterpret_cast<const char*>(&t.p_id[i]), sizeof(t.p_id[i]));
-        }
-
-        // Branch_Snap (progenitor)
-        for(std::int32_t i=0; i<n_branch; i++){
-            out2.write(reinterpret_cast<const char*>(&t.p_snap[i]), sizeof(t.p_snap[i]));
-        }
-
-        // Branch_Merit (progenitor)
-        for(std::int32_t i=0; i<n_branch; i++){
-            out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
-        }
+//        for(std::int32_t i=0; i<n_branch; i++){
+//            out2.write(reinterpret_cast<const char*>(&t.p_id[i]), sizeof(t.p_id[i]));
+//        }
+//
+//        // Branch_Snap (progenitor)
+//        for(std::int32_t i=0; i<n_branch; i++){
+//            out2.write(reinterpret_cast<const char*>(&t.p_snap[i]), sizeof(t.p_snap[i]));
+//        }
+//
+//        // Branch_Merit (progenitor)
+//        for(std::int32_t i=0; i<n_branch; i++){
+//            out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
+//        }
 
         if(n_numprg>0){
 
@@ -333,7 +333,7 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
     
         // Read Ntree
         std::int64_t ntree, lastind;
-        loadtree_read(in, ntree);
+        //loadtree_read(in, ntree);
         loadtree_read(in, lastind);
 
         //tree.resize(ntree);
@@ -366,9 +366,9 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
 
             loadtree_vecread<std::int32_t>(in, tree[i].id, nbranch);
             loadtree_vecread<std::int32_t>(in, tree[i].snap, nbranch);
-            loadtree_vecread<std::int32_t>(in, tree[i].p_id, nbranch);
-            loadtree_vecread<std::int32_t>(in, tree[i].p_snap, nbranch);
-            loadtree_vecread<double>(in, tree[i].p_merit, nbranch);
+            //loadtree_vecread<std::int32_t>(in, tree[i].p_id, nbranch);
+            //loadtree_vecread<std::int32_t>(in, tree[i].p_snap, nbranch);
+            //loadtree_vecread<double>(in, tree[i].p_merit, nbranch);
 
             if(nmerge >= 1){
                 tree[i].m_id.resize(nmerge);
