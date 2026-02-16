@@ -19,11 +19,12 @@ Option reference
      - **Default**
      - **Description**
 
-   * - **I/O related**
-     - 
-     - 
-     -
+.. note::
+  **I/O related**
 
+.. list-table::
+   :header-rows: 0
+   :widths: 30 20 20 60
    * - out_dir
      - ``string (path)``
      - *(required)*
