@@ -20,9 +20,8 @@ To build **CTree**, the following software and libraries are required.
 	- OpenMP
 	- HDF5
 		- **HDF5 with C and C++ interfaces is required**
-
-**Operating System**
-	- Linux (tested on HPC environments)
+	- Operating System**
+		- Linux (tested on HPC environments)
 
 
 Build from Source
