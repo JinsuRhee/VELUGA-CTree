@@ -71,7 +71,7 @@ The file is written in the following order:
    * - ``int32 [1]``
      - Type specifier for branch index (``Tree_BID``)
    * - ``int64 [1]``
-     - Size of the key array
+     - Size of the key array (``N``)
    * - ``Tree_BID [1]``
      - Key value
    * - ``Tree_BID [N]``
@@ -80,88 +80,74 @@ The file is written in the following order:
 File: ctree_tree.dat
 --------------------
 
-Purpose
-~~~~~~~
-
-``ctree_tree.dat`` stores the complete tree structure, including
-main branches, progenitors, and merged branches.
-
-Header layout
+``ctree_tree.dat`` stores the whole branch information.
 ~~~~~~~~~~~~~
 
-The file header consists of the following elements:
+The file header consists of the following 6 elements:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 30 60
+   :widths: 30 70
 
-   * - Index
-     - Type
+   * - Type and Size
      - Description
-   * - 1
-     - ``int32``
-     - Type specifier for halo ID (GID)
-   * - 2
-     - ``int32``
-     - Type specifier for snapshot number
-   * - 3
-     - ``int32``
-     - Type specifier for branch ID (BID)
-   * - 4
-     - ``int32``
-     - Type specifier for merit value
-   * - 5
-     - ``int64``
-     - Total number of trees ``Ntree``
-   * - 6
-     - ``int64``
-     - Maximum index (``lind``) of the last tree
+   * - ``int32 [1]``
+     - Type specifier for object ID (``Type_ID``)
+   * - ``int32 [1]``
+     - Type specifier for snapshot number (``Type_Snap``)
+   * - ``int32 [1]``
+     - Type specifier for branch index (``Type_BID``)
+   * - ``int32 [1]``
+     - Type specifier for merit value (``Type_Merit``)
+   * - ``int64 [1]``
+     - Total number of the branch array (``Nbranch``)
 
-Per-tree layout
-~~~~~~~~~~~~~~~
+After the header, the file stores **one record per tree**, written
+sequentially in a loop over all trees.
 
-For each tree, the following data are written sequentially:
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 30 50
+   :widths: 30 70
 
-   * - Field
-     - Type
+   * - Type & Size
      - Description
-   * - ``n_branch``
-     - ``int32``
-     - Number of nodes in the main branch
-   * - ``n_numprg``
-     - ``int32``
-     - Number of merged progenitor branches
-   * - ``father_bid``
-     - ``int32``
-     - Branch ID of the parent tree
-   * - ``stat``
-     - ``int32``
-     - Tree status flag
+   * - ``int32 [1]``
+     - Number of points in the main branch (``N_point``)
 
-Main branch arrays
-~~~~~~~~~~~~~~~~~
+       .. note ::
+         if ``N_point = 0``, the following arrays are not writtien and a new branch data starts
 
-If ``n_branch > 0``, the following arrays of length ``n_branch`` are written:
+   * - ``int32 [1]``
+     - Number of merged progenitor branches (``N_merge``)
 
-- ``id``: Halo IDs
-- ``snap``: Snapshot numbers
-- ``p_id``: Progenitor halo IDs
-- ``p_snap``: Progenitor snapshot numbers
-- ``p_merit``: Progenitor merit values
+   * - ``BID [1]``
+     - If this branch is merged into another, the branch index that this branch is merged into
 
-Merged progenitor arrays
-~~~~~~~~~~~~~~~~~~~~~~~~
+   * - ``int32 [1]``
+     - Tree status flag (now it has no information)
 
-If ``n_numprg > 0``, the following arrays of length ``n_numprg`` are written:
+   * - ``Type_ID [N_point]``
+     - The lisf of IDs of the main branch
 
-- ``m_id``: Merged branch halo IDs
-- ``m_snap``: Merged branch snapshot numbers
-- ``m_merit``: Merged branch merit values
-- ``m_bid``: Merged branch IDs
+   * - ``Type_Snap [N_point]``
+     - The list of snapshot numbers of the main branch
+
+   * - ``Type_ID [N_merge]``
+     - .. note ::
+         If ``N_merge = 0``, the following arrays are not writtien and a new branch data starts
+
+       The list of IDs that merged into this branch
+
+   * - ``Type_Snap [N_merge]``
+     - The list of Snapshots that merged into this branch
+
+   * - ``Type_Merit [N_merge]``
+     - The list of merit scores when merged
+
+   * - ``Type_BID [N_merge]``
+     - Branch indices that merged into this branch
+
 
 Reading example
 ---------------
