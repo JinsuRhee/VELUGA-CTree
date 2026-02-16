@@ -31,7 +31,21 @@ I/O related
        
        A detailed data format and example routines reading the output are given :output:
 
+   * - iotype
+     - ``string``
+     - *(required)*
+     - Catalog type.
 
+       Currently (as of Feb 2026), the following options are available.
+
+       - ``VR`` (VELOCIraptor in ascii format)
+       - ``VELUGA`` (VELOCIraptor post-processed data using https://github.com/JinsuRhee/VELUGA)
+       - ``HM`` (HaloMaker catalogs)
+
+   * - a
+     -
+     -
+     -
 
 Examples
 --------
