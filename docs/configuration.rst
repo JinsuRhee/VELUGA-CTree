@@ -12,20 +12,26 @@ Option reference
 
 .. list-table::
    :header-rows: 0
-   :widths: 20 80
+   :widths: 30 20 20 60
 
    * - **Option**
-     - ``OPTION_NAME``
-     - ``aa``
-   * - **Format**
-     - ``int64``
-     - ``bb``
-   * - **Default**
-     - ``0``
-     - ``cc``
-   * - **Description**
-     - ...
-     - ``dd``
+     - **Format**  
+     - **Default**
+     - **Description**
+
+   * - **I/O related**
+     - 
+     - 
+     -
+
+   * - out_dir
+     - ``string (path)``
+     - *(required)*
+     - Path specifier for the output data. The output data are "ctree_tree.dat" and "ctree_key.dat"
+       "ctree_tree.dat" has the Lagrangian branch 
+       data for the entire branches.
+       "ctree_key.dat" gives the mapping for (#Snap, #ID)->(branch index).
+       A detailed data format and example routines reading the output are given :output:
 
 I/O
 ~~~~~~~~
