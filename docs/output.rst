@@ -115,8 +115,7 @@ sequentially in a loop over all trees.
    * - ``int32 [1]``
      - Number of points in the main branch (``N_point``)
 
-       .. note ::
-         if ``N_point = 0``, the following arrays are not writtien and a new branch data starts
+       ** Note ** If ``N_point = 0``, the following arrays are not writtien and a new branch data starts
 
    * - ``int32 [1]``
      - Number of merged progenitor branches (``N_merge``)
@@ -134,8 +133,7 @@ sequentially in a loop over all trees.
      - The list of snapshot numbers of the main branch
 
    * - ``Type_ID [N_merge]``
-     - .. note ::
-         If ``N_merge = 0``, the following arrays are not writtien and a new branch data starts
+     - ** Note ** If ``N_merge = 0``, the following arrays are not writtien and a new branch data starts
 
        The list of IDs that merged into this branch
 
