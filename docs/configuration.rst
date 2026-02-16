@@ -47,6 +47,37 @@ I/O related
      -
      -
 
+   * - vr_dir_catalog
+     - ``string``
+     - *(required)*
+     - Path specifier when iotype=``VR``
+
+       CTree searches raw VELOCIraptor outputs (*.catalog.dat0) 
+
+       in directories divided by snapshot numbers
+
+       (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
+
+   * - vr_dir_catalog_prefix
+     - ``string``
+     - optional
+     - 
+
+   * - vr_dir_catalog_suffix
+     - ``string``
+     - optional
+     -
+
+   * - vr_dir_catalog_snapdigit
+     - ``integer``
+     - *(required)*
+     - The digit number for snapshot number in the directory name
+
+   * - 
+     -
+     -
+     -
+
 Examples
 --------
 
