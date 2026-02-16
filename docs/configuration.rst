@@ -154,6 +154,11 @@ Branch related parameters
    :header-rows: 0
    :widths: 30 20 20 60
 
+   * - **Option**
+     - **Format**  
+     - **Default**
+     - **Description**
+
    * - ctree_n_search
      - ``integer``
      - 10
@@ -245,6 +250,11 @@ These options are used when building initial branches based on the connectivity 
    :header-rows: 0
    :widths: 30 20 20 60
 
+   * - **Option**
+     - **Format**  
+     - **Default**
+     - **Description**
+     
    * - branchmaker
      - ``Y or N``
      - *(required)*
