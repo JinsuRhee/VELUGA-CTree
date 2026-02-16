@@ -77,8 +77,8 @@ The file is written in the following order:
    * - ``Tree_BID [N]``
      - N elements in the key array
 
-File: ctree_tree.dat
---------------------
+Branch File Format
+------------------
 
 ``ctree_tree.dat`` stores the whole branch information.
 ~~~~~~~~~~~~~
@@ -184,5 +184,5 @@ Python
 IDL
 ~~~
 
-.. code-block:: IDL
+.. code-block:: idl
    print, 'hello world'
