@@ -50,7 +50,7 @@ I/O related
    * - vr_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifier when iotype=``VR``
+     - Path specifier when ``iotype = VR``
 
        CTree searches raw VELOCIraptor outputs (*.catalog.dat0) 
 
@@ -78,6 +78,19 @@ I/O related
      -
      -
 
+   * - veluga_dir_catalog
+     - ``string``
+     - *(required)*
+     - path specifier when ``iotype = VELUGA``
+
+       directory path which includes snap_* directories
+
+       :ref:`horg` option should be given
+
+   * - .. _horg:
+     -
+     -
+     -
 Examples
 --------
 
