@@ -1,5 +1,8 @@
 
 #include "utilities/utilities.h"
+#include "global/io.h"
+
+#include <variant>
 
 
 
@@ -177,7 +180,7 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         
         Tree::Tree_I32 n_branch = t.endind + 1;
         Tree::Tree_I32 n_numprg = t.numprog;
-        Tree::Tree_I32 father_bid = t.father_bid;
+        Tree::Tree_BID father_bid = t.father_bid;
         Tree::Tree_I32 t_stat   = t.stat;
       
         
@@ -247,6 +250,51 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
     }  
 }
 
+//-----
+// Load Part
+//-----
+std::int32_t loadtree_getsize(std::int32_t tag){
+    switch(tag){
+        case 1:
+            return (std::int32_t) sizeof(std::int32_t);
+        case 2:
+            return (std::int32_t) sizeof(std::int64_t);
+        case 3:
+            return (std::int32_t) sizeof(float);
+        case 4:
+            return (std::int32_t) sizeof(double);
+    }
+
+    return -1;
+}
+
+std::string loadtree_gettypename(std::int32_t tag){
+    switch(tag){
+        case 1:
+            return "int32";
+        case 2:
+            return "int64";
+        case 3:
+            return "float";
+        case 4:
+            return "double";
+    }
+
+    return "no matched case";
+}
+
+template <typename T> std::string loadtree_gettypenamebysize(T var){
+    std::int32_t varsize = sizeof(var);
+
+    if(varsize == sizeof(std::int32_t) || varsize == sizeof(float)){
+        return "int32 or float";
+    }
+    if(varsize == sizeof(std::int64_t) || varsize == sizeof(double)){
+        return "int64 or double";
+    }
+
+    return "no matched case";
+}
 
 void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, bool usename){
 
@@ -259,7 +307,7 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         std::string path; 
         
         if(usename == true) path = vh.loadtree_fkey;
-	else path = vh.out_dir + "/ctree_key.dat";
+        else path = vh.out_dir + "/ctree_key.dat";
 
         if(myrank==0){
             LOG() << "    Reading TreeKey from " << path;
@@ -283,22 +331,72 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         std::int64_t keyval;
         loadtree_read(in, keyval);
 
-        // Allocate
-        //auto treekey_load = loadtree_mkvector(bidtag, nbid);
-        std::vector<std::int32_t> treekey_load;
-        treekey_load.resize(nbid);
-        loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
+        // Validate the type
+        if(sizeof(IO_dtype::IO_BID) != loadtree_getsize(bidtag)){
+            LOG()<<"Wrong type match for branch index";
+            LOG()<<"    given : "<<loadtree_gettypename(bidtag);
+            LOG()<<" compiled : "<<loadtree_gettypenamebysize((Tree::Tree_BID) 1);
+            u_stop();
+        }
 
-        // Copy
+        // Allocate & Read
         //Tree::TreeKeyArray treekey;
         treekey.resize(nbid);
 
-        for(std::int64_t i=0; i<nbid; i++){
- 
-            treekey[i]  = treekey_load[i];
-        }
+        loadtree_vecread<Tree::Tree_BID>(in, treekey, nbid);
 
-        treekey[0] = keyval;
+
+        treekey[0]  = keyval;
+//        if(bidtag == 1){
+//            std::vecotr<std::int32_t> tree_keyload;
+//            treekey_load.resize(nbid);
+//            loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
+//        }else if(bidtag == 2){
+//            std::vecotr<std::int64_t> tree_keyload;
+//            treekey_load.resize(nbid);
+//            loadtree_vecread<std::int64_t>(in, treekey_load, nbid);
+//        }
+//        else{
+//            LOG()<<"Wrong Tag for branch index given (current): "<<bidtag;
+//            LOG()<<"    (allowed): 1 or 2";
+//            u_stop();
+//        }
+//
+//        if(sizeof(IO_dtype::IO_BID) != sizeof(tree_keyload[0])){
+//            LOG()<"Incorrect matching for branch index type :";
+//            LOG()<<"        Given type = "<<sizeof(tree_keyload[0]);
+//            LOG()<<"        Compiled type = "<<Sizeof(IO_dtype::IO_BID);
+//
+//            u_stop();
+//        }
+        //auto treekey_load = loadtree_mkvector(bidtag, nbid);
+        //std::vector<std::int32_t> treekey_load;
+        
+//        LoadVector x;
+//
+//        if(bidtag == 1){
+//            auto& v = std::get<std::vector<int32_t>>(treekey_load);
+//            x = v[0];
+//        }else if(bidtag == 2){
+//            auto& v = std::get<std::vector<int64_t>>(treekey_load);
+//            x = v[0];
+//        }else{
+//            LOG()<<"Wrong Tag for branch index given (current): "<<bidtag;
+//            LOG()<<"    (allowed): 1 or 2";
+//            u_stop();
+//        }
+//            
+//        std::visit([](auto val) {}, x);
+
+//        // Copy
+//        Tree::TreeKeyArray treekey;
+//        treekey.resize(nbid);
+//
+//        for(std::int64_t i=0; i<nbid; i++){
+//            treekey[i]  = x[i];
+//        }
+//
+//        treekey[0] = keyval;
 
 
     } 
@@ -308,10 +406,10 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         
         std::string path;
         if(usename == true) path = vh.loadtree_ftree;
-	else path = vh.out_dir + "/ctree_tree.dat";
+        else path = vh.out_dir + "/ctree_tree.dat";
 
         if(myrank==0){
-            LOG() << "    Reading TreeKey from " << path;
+            LOG() << "    Reading Tree from " << path;
         }
 
         std::ifstream in(path, std::ios::binary);
@@ -330,10 +428,43 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
         loadtree_read(in, snaptag);
         loadtree_read(in, bidtag);
         loadtree_read(in, mertag);
+
+        //----- Validate
+        if(sizeof(IO_dtype::IO_GID) != loadtree_getsize(gidtag)){
+            LOG()<<"Wrong type match for ID";
+            LOG()<<"    given : "<<loadtree_gettypename(gidtag);
+            LOG()<<" compiled : "<<loadtree_gettypenamebysize((IO_dtype::IO_GID) 1);
+            u_stop();
+        }
+
+        if(sizeof(IO_dtype::IO_Snap) != loadtree_getsize(snaptag)){
+            LOG()<<"Wrong type match for snapshot number";
+            LOG()<<"    given : "<<loadtree_gettypename(snaptag);
+            LOG()<<" compiled : "<<loadtree_gettypenamebysize((IO_dtype::IO_Snap) 1);
+            u_stop();
+        }
+
+        if(sizeof(IO_dtype::IO_BID) != loadtree_getsize(bidtag)){
+            LOG()<<"Wrong type match for branch index";
+            LOG()<<"    given : "<<loadtree_gettypename(bidtag);
+            LOG()<<" compiled : "<<loadtree_gettypenamebysize((IO_dtype::IO_BID) 1);
+            u_stop();
+        }
+
+        if(sizeof(IO_dtype::IO_merit) != loadtree_getsize(mertag)){
+            LOG()<<"Wrong type match for merit";
+            LOG()<<"    given : "<<loadtree_gettypename(mertag);
+            LOG()<<" compiled : "<<loadtree_gettypenamebysize((IO_dtype::IO_merit) 1);
+            u_stop();
+        }
+
+        //-----
     
         // Read Ntree
-        std::int64_t ntree, lastind;
+        //std::int64_t ntree;
         //loadtree_read(in, ntree);
+
+        std::int64_t lastind;
         loadtree_read(in, lastind);
 
         //tree.resize(ntree);
@@ -360,12 +491,12 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
 
             tree[i].id.resize(nbranch);
             tree[i].snap.resize(nbranch);
-            tree[i].p_id.resize(nbranch);
-            tree[i].p_snap.resize(nbranch);
+//            tree[i].p_id.resize(nbranch);
+//            tree[i].p_snap.resize(nbranch);
             tree[i].p_merit.resize(nbranch);
 
-            loadtree_vecread<std::int32_t>(in, tree[i].id, nbranch);
-            loadtree_vecread<std::int32_t>(in, tree[i].snap, nbranch);
+            loadtree_vecread<IO_dtype::IO_GID>(in, tree[i].id, nbranch);
+            loadtree_vecread<IO_dtype::IO_Snap>(in, tree[i].snap, nbranch);
             //loadtree_vecread<std::int32_t>(in, tree[i].p_id, nbranch);
             //loadtree_vecread<std::int32_t>(in, tree[i].p_snap, nbranch);
             //loadtree_vecread<double>(in, tree[i].p_merit, nbranch);
@@ -376,10 +507,10 @@ void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
                 tree[i].m_merit.resize(nmerge);
                 tree[i].m_bid.resize(nmerge);
 
-                loadtree_vecread<std::int32_t>(in, tree[i].m_id, nmerge);
-                loadtree_vecread<std::int32_t>(in, tree[i].m_snap, nmerge);
-                loadtree_vecread<double>(in, tree[i].m_merit, nmerge);
-                loadtree_vecread<std::int32_t>(in, tree[i].m_bid, nmerge);
+                loadtree_vecread<IO_dtype::IO_GID>(in, tree[i].m_id, nmerge);
+                loadtree_vecread<IO_dtype::IO_Snap>(in, tree[i].m_snap, nmerge);
+                loadtree_vecread<IO_dtype::IO_merit>(in, tree[i].m_merit, nmerge);
+                loadtree_vecread<IO_dtype::IO_BID>(in, tree[i].m_bid, nmerge);
             }
 
 
