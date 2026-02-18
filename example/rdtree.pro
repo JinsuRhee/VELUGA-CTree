@@ -59,7 +59,7 @@ FUNCTION rdtree_rdtree, fname
 		nbranch 	= 0L
 		nmerge 		= 0L
 		;fid 		= 0L
-		fid 		= rdtree(1, bidtag)
+		fid 		= rdtree_mkarray(1, bidtag)
 		tstat		= 0L
 		READU, 1, nbranch
 
@@ -103,7 +103,8 @@ FUNCTION rdtree_rdtree, fname
 		ENDELSE
 
 		tmp 	= {br_len:nbranch, father_ID:fid, n_mergebr:nmerge, $
-			id:idtmp, snap:snaptmp, p_id:pidtmp, p_snap:psnaptmp, merit:mertmp, $
+			id:idtmp, snap:snaptmp, $;p_id:pidtmp, p_snap:psnaptmp, 
+			merit:mertmp, $
 			m_id:midtmp, m_snap:msnaptmp, m_merit:mmertmp, m_bid:mbidtmp, $
 			stat:1L}
 		tree(i)	= PTR_NEW(tmp)
@@ -111,7 +112,7 @@ FUNCTION rdtree_rdtree, fname
 
 	CLOSE, 1
 
-	tree 	= tree(0L:lind+1L)
+	tree 	= tree(0L:lind)
 	RETURN, tree
 END
 

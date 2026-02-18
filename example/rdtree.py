@@ -51,7 +51,7 @@ class rdctree:
 			bidtag 	= np.fromfile(f, dtype=np.int32, count=1)
 			mertag 	= np.fromfile(f, dtype=np.int32, count=1)
 
-			ntree 	= np.fromfile(f, dtype=np.int64, count=1)
+			#ntree 	= np.fromfile(f, dtype=np.int64, count=1)
 			lind 	= np.fromfile(f, dtype=np.int64, count=1)
 
 
@@ -71,8 +71,8 @@ class rdctree:
 
 				idtmp	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
 				snaptmp = np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
-				pidtmp 	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
-				psnaptmp= np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
+				#pidtmp 	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
+				#psnaptmp= np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
 				mertmp 	= np.fromfile(f, dtype=self.get_dtype(mertag), count=nbranch)
 
 				if(nmerge>=1):
@@ -93,8 +93,8 @@ class rdctree:
 					"n_mergebr": np.int32(nmerge),
 					"id": idtmp,
 					"snap": snaptmp,
-					"p_id": pidtmp,
-					"p_snap": psnaptmp,
+					#"p_id": pidtmp,
+					#"p_snap": psnaptmp,
 					"merit": mertmp,
 					"m_id": midtmp,
 					"m_snap": msnaptmp,
@@ -154,20 +154,6 @@ def main(argv=None):
 
 	ok 	= reader.run()
 
-	"""
-	with open("./ctree.pkl", 'rb') as f:
-		data = pickle.load(f)
-
-	key = data['key']
-	tree = data['tree']
-
-	tree0 = tree[ key[100 + key[0]*1] ]
-
-	print(tree0['id'])
-
-	print(tree0['snap'])
-	"""
-	
 	return 0 if ok else 1
 
 if __name__ == "__main__":
