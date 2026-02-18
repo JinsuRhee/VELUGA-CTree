@@ -58,7 +58,8 @@ FUNCTION rdtree_rdtree, fname
 	FOR i=0L, lind DO BEGIN
 		nbranch 	= 0L
 		nmerge 		= 0L
-		fid 		= 0L
+		;fid 		= 0L
+		fid 		= rdtree(1, bidtag)
 		tstat		= 0L
 		READU, 1, nbranch
 
