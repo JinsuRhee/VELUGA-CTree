@@ -151,39 +151,84 @@ Reading example
 ---------------
 
 Python
+
+``example/rdtree.py`` generates a pickle file containing the tree and key arrays.
+
+The following script shows how to load the tree arrays and extract a branch of an object.
 ~~~~~~
 
 .. code-block:: python
 
-   import struct
+   import pikcle as pickle
    import numpy as np
 
-   with open("ctree_tree.dat", "rb") as f:
-       tags = struct.unpack("4i", f.read(16))
-       n_tree = struct.unpack("q", f.read(8))[0]
-       lind   = struct.unpack("q", f.read(8))[0]
+   # "ctree.pkl" is what rdtree.py generates
 
-       for _ in range(n_tree):
-           n_branch, n_numprg, father_bid, stat = struct.unpack("4i", f.read(16))
+   with open("ctree.pkl", 'rb') as f:
+       data = pickle.load(f)
 
-           if n_branch <= 0:
-               continue
+   key = data['key']
+   tree = data['tree']
 
-           ids   = np.fromfile(f, dtype=np.int64, count=n_branch)
-           snaps = np.fromfile(f, dtype=np.int64, count=n_branch)
-           p_ids = np.fromfile(f, dtype=np.int64, count=n_branch)
-           p_snaps = np.fromfile(f, dtype=np.int64, count=n_branch)
-           p_merit = np.fromfile(f, dtype=np.float64, count=n_branch)
+   # Extract a branch of galaxy with (ID=1 & Snap=100)
 
-           if n_numprg > 0:
-               m_ids   = np.fromfile(f, dtype=np.int64, count=n_numprg)
-               m_snaps = np.fromfile(f, dtype=np.int64, count=n_numprg)
-               m_merit = np.fromfile(f, dtype=np.float64, count=n_numprg)
-               m_bid   = np.fromfile(f, dtype=np.int64, count=n_numprg)
+   id0  = 1
+   snap0 = 100
+
+   keyv   = key[snap0 + key[0]*id0]
+
+   if(keyv < 0 ):
+       print('no corresponding branch')
+   else:
+       branch = tree[keyv]
+
+       print(branch['br_len']) # Length of the branch
+       print(branch['id']) # List of IDs
+       print(branch['snap']) # List of snapshots
+       print(branch['merit']) # Merit score of the connections
+
+       print(branch['father_ID']) # If this branch is merged, the father branch index.
+                                  # The corresponding branch is tree[branch['father_ID']]
+       
+       print(branch['n_mergerbr']) # The number of branches that merged into this one
+       print(branch['m_id']) # ID list of the merged branches
+       print(branch['m_snap']) # Snapshot list of the merged branches
+       print(branch['m_merit']) # Merit of mergers
+       print(branch['m_bid']) # Indices of the merged branches
+                              # , corresponding tree[ branch['m_bid'][:] ]
+
 
 IDL
 ~~~
 
 .. code-block:: idl
 
-   print, 'hello world'
+   ; "ctree.sav" is what rdtree.pro generates
+   RESTORE, 'ctree.sav'
+
+   ; Extract a branch of galaxy with (ID=1 & Snap=100)
+
+   id0  = 1L
+   snap0 = 100L
+
+   keyv   = tree_key[snap0 + tree_key[0]*id0]
+
+   IF keyv LT 0L THEN BEGIN
+      PRINT, 'no corresponding branch'
+   ENDIF ELSE BEGIN
+      tree0   = tree_data[keyv]   ;; tree_data is a pointer array
+      tree0   = *tree0
+
+      PRINT, tree0.br_len     ; Length of the branch
+      PRINT, tree0.id         ; List of IDs
+      PRINT, tree0.snap       ; List of snapshots
+      PRINT, tree0.merit      ; Merit score of the connections
+      PRINT, tree0.father_ID  ; If this branch is merged, the father branch index.
+                              ; The corresponding branch is tree[branch['father_ID']]
+       
+      PRINT, tree0.n_mergerbr ; The number of branches that merged into this one
+      PRINT, tree0.m_id       ; ID list of the merged branches
+      PRINT, tree0.m_snap     ; Snapshot list of the merged branches
+      PRINT, tree0.m_merit    ; Merit of mergers
+      PRINT, tree0.m_bid      ; Indices of the merged branches
+                              ; , corresponding tree[ branch['m_bid'][:] ]
