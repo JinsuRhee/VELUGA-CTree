@@ -220,10 +220,10 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
 //            out2.write(reinterpret_cast<const char*>(&t.p_snap[i]), sizeof(t.p_snap[i]));
 //        }
 //
-//        // Branch_Merit (progenitor)
-//        for(std::int32_t i=0; i<n_branch; i++){
-//            out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
-//        }
+        // Branch_Merit (progenitor)
+        for(std::int32_t i=0; i<n_branch; i++){
+            out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
+        }
 
         if(n_numprg>0){
 
