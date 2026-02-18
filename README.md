@@ -5,9 +5,9 @@ Branch-wise Merger Tree Builder
 
 1) Builds branches using the information along their evolutionary history
 3) Pursues high compatibility with different catalogs
-4) Aims for strong performance to large cosmological simulations
+4) Aims for strong performance in large cosmological simulations
 
-Introduction paper:
+Introduction paper: ''
 User-manuel: https://veluga-ctree.readthedocs.io/en/latest/index.html
 
 Recent updates:
