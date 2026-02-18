@@ -232,3 +232,4 @@ IDL
       PRINT, tree0.m_merit    ; Merit of mergers
       PRINT, tree0.m_bid      ; Indices of the merged branches
                               ; , corresponding tree[ branch['m_bid'][:] ]
+   ENDELSE
