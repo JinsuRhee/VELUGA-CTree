@@ -45,6 +45,7 @@ representation** without text encoding.
    These specifiers allow the reader to determine the exact binary layout
    without prior knowledge of the build configuration.
 
+.. _data_format:
 Tree Key File Format
 --------------------
 
@@ -147,8 +148,11 @@ sequentially in a loop over all trees.
      - Branch indices that merged into this branch
 
 
+.. _reading_example:
+
 Reading example
 ---------------
+
 
 Python
 

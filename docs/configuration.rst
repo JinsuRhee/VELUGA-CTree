@@ -24,12 +24,17 @@ I/O related
      - *(required)*
      - Path specifier for the output data.
 
-       The output data are "ctree_tree.dat" and "ctree_key.dat"
+       The output data are ``ctree_tree.dat`` and ``ctree_key.dat``
 
-       - "ctree_tree.dat" has the Lagrangian branch data for the entire branches.
-       - "ctree_key.dat" gives the mapping for (#Snap, #ID)->(branch index).
-       
-       A detailed data format and example routines reading the output are given :output:
+       - ``ctree_tree.dat`` has the Lagrangian branch data for the entire branches.
+       - ``ctree_key.dat`` gives the mapping for (#Snap, #ID)->(branch index).
+
+       The data format is explaned in :ref:`data_format`.
+
+       The output data can be post-processed with example codes in ``./example/rdtree.py`` or ``./example/rdtree.pro``
+
+
+       Examples how to load a branch data is given in :ref:`reading_example`.
 
    * - iotype
      - ``string``
@@ -254,7 +259,7 @@ These options are used when building initial branches based on the connectivity 
      - **Format**  
      - **Default**
      - **Description**
-     
+
    * - branchmaker
      - ``Y or N``
      - *(required)*
