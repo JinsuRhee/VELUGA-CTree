@@ -1,27 +1,21 @@
-Build Instructions
-==================
+Install Instructions
+====================
 
-This document describes how to build the code using CMake.
+This document describes how to build **CTree** using CMake.
 
 Prerequisites
 --------------
 
 To build **CTree**, the following software and libraries are required.
 
-	- A C++ compiler with **C++17 support**
+	- A C++ compiler (**C++17 or later**)
 	- GCC (>9)
 	- Clang (with C++17 support)
-	- CMake
-		- **CMake 3.20 or later**
-	- MPI
-		- OpenMPI
-		- MPICH
-		- Intel MPI
+	- CMake (**CMake 3.20 or later**)
+	- MPI (OpenMPI, MPICH, Intel MPI)
 	- OpenMP
-	- HDF5
-		- **HDF5 with C and C++ interfaces is required**
-	- Operating System**
-		- Linux (tested on HPC environments)
+	- HDF5 (**HDF5 with C and C++ interfaces is required**)
+	- Operating System (Linux; tested on HPC environments)
 
 
 Build from Source
@@ -31,8 +25,8 @@ First, clone the repository:
 
 .. code-block:: bash
 
-   git clone https://github.com/JinsuRhee/VELUGA-CTree.git
-   cd VELUGA-CTree
+   git clone https://github.com/JinsuRhee/CTree.git
+   cd CTree
 
 Create a build directory:
 
@@ -54,11 +48,11 @@ Build the code:
    cmake --build .
 
 
-**Note**
+.. Note ::
 
 	By default, **CTree** is built with the following data types:
 
-	- **Catalog ID**: 32-bit integer (``int32``)
+	- **Catalog ID**: 32-bit (positive) integer (``int32``)
 	- **Snapshot number**: 32-bit integer (``int32``)
 	- **Particle ID**: 64-bit integer (``int64``)
 	- **Merit value**: 64-bit floating point (``double``)
