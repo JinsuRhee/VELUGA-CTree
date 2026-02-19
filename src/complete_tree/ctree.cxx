@@ -2566,7 +2566,12 @@ t0 = std::chrono::steady_clock::now();
 		double dt_classify, dt_readsnap, dt_commerit, dt_link, dt_addgal, dt_delgal;//, dt_collectpid, 
 
 		//-----
-		//tree.resize(tree[0].endind*2);
+		// Some warning message
+		//-----
+
+		if(myrank==0 && vh.iotype = "HM"){
+			LOG()<<" CTree assumes that HMaker has PID with int32";
+		}
 
 		//-----
 		// Get Basic Information in each snapshot
