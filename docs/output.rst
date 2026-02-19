@@ -2,7 +2,8 @@ Output data format
 ==================
 
 **CTree** writes its main outputs in **binary format** using C++
-file streams (``std::ofstream`` with ``std::ios::binary``).  
+file streams (``std::ofstream`` with ``std::ios::binary``) mostly in **little-endian** byte order.
+
 The binary format is designed for efficient I/O and compact storage of
 large tree datasets.
 
@@ -17,8 +18,6 @@ Two binary files are written:
 - ``ctree_key.dat``: Mapping between ``(Snapshot, Halo ID)`` and branch indices
 - ``ctree_tree.dat``: Full tree and branch data
 
-All integer and floating-point values are written in **native binary
-representation** without text encoding.
 
 .. note :: Type Specifiers
 
@@ -67,7 +66,7 @@ The file is written in the following order:
    :header-rows: 1
    :widths: 30 70
 
-   * - Type and Size
+   * - Type [Size]
      - Description
    * - ``int32 [1]``
      - Type specifier for branch index (``Tree_BID``)
@@ -82,7 +81,6 @@ Branch File Format
 ------------------
 
 ``ctree_tree.dat`` stores the whole branch information.
-~~~~~~~~~~~~~
 
 The file header consists of the following 6 elements:
 
@@ -90,7 +88,7 @@ The file header consists of the following 6 elements:
    :header-rows: 1
    :widths: 30 70
 
-   * - Type and Size
+   * - Type [Size]
      - Description
    * - ``int32 [1]``
      - Type specifier for object ID (``Type_ID``)
@@ -111,17 +109,17 @@ sequentially in a loop over all trees.
    :header-rows: 1
    :widths: 30 70
 
-   * - Type & Size
+   * - Type [Size]
      - Description
    * - ``int32 [1]``
      - Number of points in the main branch (``N_point``)
 
-       **Note:** If ``N_point=0``, the following arrays are not writtien and a new branch data starts
+       **Note:** If ``N_point = 0``, the following arrays are not writtien and a new branch data starts
 
    * - ``int32 [1]``
      - Number of merged progenitor branches (``N_merge``)
 
-   * - ``BID [1]``
+   * - ``Type_BID [1]``
      - If this branch is merged into another, the branch index that this branch is merged into
 
    * - ``int32 [1]``
@@ -155,11 +153,12 @@ Reading example
 
 
 Python
+~~~~~~
 
 ``example/rdtree.py`` generates a pickle file containing the tree and key arrays.
 
 The following script shows how to load the tree arrays and extract a branch of an object.
-~~~~~~
+
 
 .. code-block:: python
 

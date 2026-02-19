@@ -55,26 +55,26 @@ I/O related
    * - vr_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data ``iotype = VR``
+     - Path specifer for the catalog data when ``iotype = VR``
 
-       **CTree** searches raw VELOCIraptor outputs (*.catalog.dat0) in directories divided by snapshot numbers
+       **CTree** searches raw VELOCIraptor outputs (e.g., *.catalog.dat0) in directories divided by snapshot numbers
 
        (e.g.,) ``vr_dir_catalog``/``vr_dir_catalog_prefix`` ``SSSS`` ``vr_dir_catalog_suffix``/
 
    * - vr_dir_catalog_prefix
      - ``string``
-     - optional
+     - 
      - 
 
    * - vr_dir_catalog_suffix
      - ``string``
-     - optional
+     - 
      -
 
    * - vr_dir_catalog_snapdigit
      - ``integer``
-     - *(required)*
-     - The digit number for snapshot number in the directory name
+     - 4
+     - The digit number for snapshot number in the directory name (the default value is 4)
 
    * - 
      -
@@ -121,12 +121,12 @@ I/O related
    * - loadtree_ftree
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree branch data when ``loadtree=Y``
+     - Path specifier for the merger tree branch data when ``loadtree = Y``
 
    * - loadtree_fkey
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree key data when ``loadtree=Y``
+     - Path specifier for the merger tree key data when ``loadtree = Y``
 
    * - snapi, snapf
      - ``integer``
@@ -138,7 +138,7 @@ I/O related
    * - .. _snaplist-option:
        snaplist
      - ``string``
-     - *optional*
+     - 
      - File specifier including the list of snapshots (line-by-line).
 
        The list is automatically sorted
@@ -146,10 +146,10 @@ I/O related
    * - .. _horg-option:
        horg
      - ``h or g``
-     - *optional*
+     - h
      - A flag for the catalog type (Halo or Galaxy).
 
-       It is only used when reading the catalog data (``iotype==VELUGA``).
+       It is only used when reading the catalog data (``iotype = VELUGA``).
 
 
 Branch related parameters
@@ -178,7 +178,7 @@ Branch related parameters
 
        **CTree** first defines the progenitor with the highest merit in the list talbe as the next branch point
 
-       If a later progenitor with a merit > ``ctree_merit_frac`` X (Maximum merit), **CTree** allows this progenitor to be the next one, mainly to avoid frequent and big jumps among the branch points.
+       If a later progenitor with ``a merit > ctree_merit_frac X (Maximum merit)``, **CTree** allows this progenitor to be the next one, mainly to avoid big jumps among the branch points.
 
    * -
      -
@@ -220,7 +220,7 @@ Branch related parameters
 
        **CTree** can restart the execution from checkpoint snapshots
 
-       If a negative value is given, then **CTree* does not generate checkpoint snapshots
+       If a negative value is given, then **CTree** does not generate checkpoint snapshots
 
    * - ctree_loadcheck
      - ``integer``
