@@ -2694,6 +2694,7 @@ t0 = std::chrono::steady_clock::now();
 				LOG()<<"			"<<how_big<Tree::TreeKey>(key)<<" GB for key";
 				LOG()<<"			"<<how_big<ControlSt>(data)<<" GB for data";
 				LOG()<<"			"<<how_big<CT_I32>(dkey)<<" GB for dkey";
+				LOG()<<"	At least : "<<ow_big<Tree::TreeSt>(tree)+how_big<Tree::TreeKey>(key)+how_big<ControlSt>(data)+how_big<CT_I32>(dkey)<<" GB for MPI";
 				LOG()<<" ";
 				//LOG()<<"		"<<tree[0].lind<<" / "<<tree.size();
 
