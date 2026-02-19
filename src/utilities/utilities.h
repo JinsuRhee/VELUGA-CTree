@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "global/allvar.h"
+
 #ifdef CTREE_USE_MPI
     #include <mpi.h>
 #endif
@@ -60,7 +61,12 @@ void savetree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKe
 
 
 //----- Load related (should be modulated in the future)
+std::int32_t loadtree_getsize(std::int32_t tag);
+std::string loadtree_gettypename(std::int32_t tag);
+template <typename T> std::string loadtree_gettypenamebysize(T var);
+
 void loadtree_base(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, bool usename);
+
 
 template <typename T>
 static inline void loadtree_read(std::istream& in, T& v) {

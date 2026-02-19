@@ -15,7 +15,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
+#include <type_traits>
 
 
 namespace fs = std::filesystem;
@@ -28,14 +28,44 @@ namespace IO_dtype{
 	using IO_float		= float;
 	using IO_double		= double;
 
-
-	using IO_GID 		= std::int32_t; // Catalog galaxy ID type
-	using IO_Snap 		= std::int32_t; // Catalog snapshot number type
-	using IO_PID 		= std::int32_t; // Catalog particle ID type
 	using IO_BID 		= std::int32_t; // Branch ID type
-	using IO_merit 		= double;
 
-	// For Snapshot info data type
+//-----
+// Compile-time configurable types (set via CMake options)
+//
+// Defaults (when no CMake option is given):
+//   IO_GID     : int32_t
+//   IO_Snap    : int32_t
+//   IO_PID    	: int64_t
+//   IO_merit   : double
+//-----
+
+#if defined(CTREE_ID_INT64)
+	using IO_GID 		= std::int64_t; // Catalog galaxy ID type
+#else
+	using IO_GID 		= std::int32_t; // Catalog galaxy ID type
+#endif
+
+#if defined(CTREE_SNAP_INT64)
+	using IO_Snap 		= std::int64_t; // Catalog snapshot number type
+#else
+	using IO_Snap 		= std::int32_t; // Catalog snapshot number type
+#endif
+
+#if defined(CTREE_PARTID_INT32)
+	using IO_PID 		= std::int32_t; // Catalog particle ID type
+#else
+	using IO_PID 		= std::int64_t; // Catalog particle ID type
+#endif
+
+#if defined(CTREE_MERIT_FLOAT32)
+	using IO_merit 		= float;
+#else
+	using IO_merit 		= double;
+#endif
+
+
+// For Snapshot info data type
 //	struct snapSt{
 //		IO_I32 snum = -1;			// snapshot number
 //		IO_double aexp;			// scale factor
@@ -796,7 +826,7 @@ namespace IO_HM{
 	using HM_GID 		= IO_dtype::IO_GID;//std::int32_t;		// for galaxy ID
 	using HM_Snap 		= IO_dtype::IO_Snap;//std::int32_t;
 	using HM_PID 	 	= IO_dtype::IO_PID;//std::int64_t;		// for particle ID
-	using HM_merit		= IO_dtype::IO_double;//double;
+	using HM_merit		= IO_dtype::IO_merit;//double;
 	using HM_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
 	using HM_I32		= IO_dtype::IO_I32;//std::int32_t;
 	using HM_I64 		= IO_dtype::IO_I64;

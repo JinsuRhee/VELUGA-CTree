@@ -266,10 +266,32 @@ namespace vctree_log{
 //-----
 namespace Tree{
 
+#if defined(CTREE_ID_INT64)
+	using Tree_GID 		= std::int64_t;		// for galaxy ID
+#else
 	using Tree_GID 		= std::int32_t;		// for galaxy ID
+#endif
+
+#if defined(CTREE_SNAP_INT64)
+	using Tree_Snap 	= std::int64_t;
+#else
 	using Tree_Snap 	= std::int32_t;
+#endif
+
+#if defined(CTREE_PARTID_INT32)
+	using Tree_PID 	 	= std::int32_t;		// for particle ID
+#else
 	using Tree_PID 	 	= std::int64_t;		// for particle ID
+#endif
+
+#if defined(CTREE_MERIT_FLOAT32)
+	using Tree_merit	= float;
+#else
 	using Tree_merit	= double;
+#endif
+
+
+
 	using Tree_BID 		= std::int32_t;		// Branch Index
 	using Tree_I32 		= std::int32_t;
 	using Tree_I64 		= std::int64_t;
@@ -403,13 +425,20 @@ namespace Tree{
 		Tree_BID keyval = get_key(key, snap, id);
 		//keyval 	= snap + key[0].key * id;
 		TreeSt tree0;
-int rank = 0, size = 1;
-MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+		int rank = 0, size = 1;
+#ifdef CTREE_USE_MPI
+		
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
+#endif
+
 		if(!istree(key, snap, id)){
 			LOG()<<"no tree matched: "<<snap<<" / "<<id<<" / "<<rank;
+#ifdef CTREE_USE_MPI
 			int errcode = 1;
     		MPI_Abort(MPI_COMM_WORLD, errcode);
+#endif
     		std::exit(errcode);
 		}else{
 			tree0 = tree[keyval];

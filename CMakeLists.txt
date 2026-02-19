@@ -27,27 +27,21 @@
 #				└─ utilities.cxx
 #-----------------
 
+#-----------------
+# User-selectable type options
+# Defaults:
+#   Catalog ID    = int32
+#   Catalog Snap  = int32
+#   ParticleID    = int64
+#   Merit         = double
+#-----------------
 
-# Directory structures
-#
-#	src/
-#	|--		allvar.h 			# Farther Header
-#	|--		types.h 			# Data Types
-#	|-- 	autovec.h 			# Vector Customizing
-#	|
-#	|
-#	|--		main.cxx 			# Main executation file
-#	|--		config.cxx 			# Read Configuration
-#	|--		utilities.cxx 		# Some utilities ftns
-#	|-- 	makebr.cxx 			# make branch main loop
-		
 
 cmake_minimum_required(VERSION 3.20)
 project(veluga_ctree LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 
 #-----
 # Make executable
@@ -64,6 +58,58 @@ add_executable(veluga_ctree
 #  src/makebr.cxx
 )
 
+
+#-----
+# Data Type
+#-----
+set(CTREE_ID_TYPE      "int32"   CACHE STRING "Halo/Node ID type: int32|int64")
+set(CTREE_SNAP_TYPE    "int32"   CACHE STRING "Snapshot number type: int32|int64")    
+set(CTREE_PARTID_TYPE  "int64"   CACHE STRING "Particle ID type: int32|int64")
+set(CTREE_MERIT_TYPE   "float64" CACHE STRING "Merit type: float32|float64")
+
+
+
+
+set_property(CACHE CTREE_ID_TYPE     PROPERTY STRINGS int32 int64)
+set_property(CACHE CTREE_SNAP_TYPE   PROPERTY STRINGS int32 int64)
+set_property(CACHE CTREE_PARTID_TYPE PROPERTY STRINGS int32 int64)
+set_property(CACHE CTREE_MERIT_TYPE  PROPERTY STRINGS float32 float64)
+
+# ---- ID type
+if(CTREE_ID_TYPE STREQUAL "int32")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_ID_INT32=1)
+elseif(CTREE_ID_TYPE STREQUAL "int64")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_ID_INT64=1)
+else()
+  message(FATAL_ERROR "Invalid CTREE_ID_TYPE='${CTREE_ID_TYPE}' (use int32|int64)")
+endif()
+
+# ---- SNAP type
+if(CTREE_SNAP_TYPE STREQUAL "int32")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_SNAP_INT32=1)
+elseif(CTREE_SNAP_TYPE STREQUAL "int64")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_SNAP_INT64=1)
+else()
+  message(FATAL_ERROR "Invalid CTREE_SNAP_TYPE='${CTREE_SNAP_TYPE}' (use int32|int64)")
+endif()
+
+# ---- Particle ID type
+if(CTREE_PARTID_TYPE STREQUAL "int32")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_PARTID_INT32=1)
+elseif(CTREE_PARTID_TYPE STREQUAL "int64")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_PARTID_INT64=1)
+else()
+  message(FATAL_ERROR "Invalid CTREE_PARTID_TYPE='${CTREE_PARTID_TYPE}' (use int32|int64)")
+endif()
+
+# ---- Merit type
+if(CTREE_MERIT_TYPE STREQUAL "float32")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_MERIT_FLOAT32=1)
+elseif(CTREE_MERIT_TYPE STREQUAL "float64")
+  target_compile_definitions(veluga_ctree PRIVATE CTREE_MERIT_FLOAT64=1)
+else()
+  message(FATAL_ERROR "Invalid CTREE_MERIT_TYPE='${CTREE_MERIT_TYPE}' (use float32|float64)")
+endif()
 
 #-----
 # MPI
@@ -129,7 +175,7 @@ target_include_directories(veluga_ctree PUBLIC
 
 target_compile_definitions(veluga_ctree PRIVATE PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
-# 옵션: 약간의 최적화와 경고
+# Optimization & Warning
 if (MSVC)
   target_compile_options(veluga_ctree PRIVATE /O2 /W4)
 else()
