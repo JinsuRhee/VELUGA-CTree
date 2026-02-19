@@ -204,6 +204,8 @@ The following script shows how to load the tree arrays and extract a branch of a
 IDL
 ~~~
 
+``example/rdtree.pro`` generates a sav file containing the tree and key arrays.
+
 .. code-block:: idl
 
    ; "ctree.sav" is what rdtree.pro generates

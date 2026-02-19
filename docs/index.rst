@@ -14,5 +14,5 @@ CTree documentation
    install
    configuration
    output
-   Implementation for new catalog
+   implementation
 
