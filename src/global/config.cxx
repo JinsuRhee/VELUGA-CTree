@@ -96,6 +96,9 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     //else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
     else if (lkey=="out_dir") vh.out_dir = normalize_iotype(val, true);
 
+    else if (lkey=="makecheck") { parse_num(val, vh.makecheck); }
+    else if (lkey=="loadcheck") { parse_num(val, vh.loadcheck); }
+
     // VR related
     else if (lkey=="vr_dir_catalog") vh.vr_dir_catalog = normalize_iotype(val, true);
     else if (lkey=="vr_dir_catalog_prefix") vh.vr_dir_catalog_prefix = normalize_iotype(val, true);
@@ -159,8 +162,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     else if (lkey=="ctree_core_dn")  { parse_num(val, vh.ctree_core_dn); }
     else if (lkey=="ctree_rfact")      { parse_num(val, vh.ctree_rfact); }
     else if (lkey=="ctree_weighttype") { parse_num(val, vh.ctree_weighttype); }
-    else if (lkey=="ctree_makecheck") { parse_num(val, vh.ctree_makecheck); }
-    else if (lkey=="ctree_loadcheck") { parse_num(val, vh.ctree_loadcheck); }
+    
     //else if (lkey=="ctree_rerunmod")   { parse_num(val, vh.ctree_rerunmod); }
     //else if (lkey=="ctree_rerun")      { parse_num(val, vh.ctree_rerun); }
     else {

@@ -150,6 +150,28 @@ I/O related
      - Flag for the catalog type (Halo or Galaxy).
 
        It is only used when reading the catalog data (``iotype = VELUGA``).
+   * -
+     -
+     -
+     -
+
+   * - makecheck
+     - ``integer``
+     - 10
+     - Control saving of intermediate data.
+
+       For a positive value, data are saved at snapshots where the snapshot number modulo this value equals zero.
+
+       **CTree** can be restarted from these snapshots.
+
+       If a negative value is provided, no intermediate data are saved.
+
+   * - loadcheck
+     - ``integer``
+     - -1
+     - A snapshot number for the restart, if exists.
+
+   
 
 
 Branch related parameters
@@ -205,27 +227,6 @@ Branch related parameters
        A subset of particles with N occurrances are defined as core particles if their fraction is higher than ``ctree_meritfrac``
 
        Otherwise, **CTree** repeats the core particle searches with a lower occurrance number
-
-   * -
-     -
-     -
-     -
-
-   * - ctree_makecheck
-     - ``integer``
-     - 10
-     - A modulo value for saving checkpoint snapshots.
-
-       If a snapshot number is a modulo of ``ctree_makecheck``, then the data at the corresponding snapshot are saved.
-
-       **CTree** can restart the execution from checkpoint snapshots
-
-       If a negative value is given, then **CTree** does not generate checkpoint snapshots
-
-   * - ctree_loadcheck
-     - ``integer``
-     - -1
-     - A snapshot number for the restart, if exists.
 
    * -
      -

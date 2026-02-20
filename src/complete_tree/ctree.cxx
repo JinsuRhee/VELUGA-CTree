@@ -17,21 +17,21 @@ namespace Ctree{
 
 	}
 
-    void in_dkey(ControlKey& dkey, CT_snap snap, CT_ID id, CT_I32 ind){
-    	CT_I32 keyval = snap + dkey[0]*id;
-    	if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
-    	dkey[keyval]	= ind;
-    }
+	void in_dkey(ControlKey& dkey, CT_snap snap, CT_ID id, CT_I32 ind){
+		CT_I32 keyval = snap + dkey[0]*id;
+		if(keyval >= (CT_I32) dkey.size()) re_dkey(dkey, keyval);
+		dkey[keyval]	= ind;
+	}
 
-    CT_I32 get_dkey(ControlKey& dkey, CT_snap snap, CT_ID id){
-    	CT_I32 keyval = snap + dkey[0]*id;
-    	if(keyval >= (CT_I32) dkey.size()){
-    		return -1;
-    	}
-    	else{
-    		return dkey[keyval];
-    	}
-    }
+	CT_I32 get_dkey(ControlKey& dkey, CT_snap snap, CT_ID id){
+		CT_I32 keyval = snap + dkey[0]*id;
+		if(keyval >= (CT_I32) dkey.size()){
+			return -1;
+		}
+		else{
+			return dkey[keyval];
+		}
+	}
 
 
 	void expandbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link){
@@ -43,14 +43,14 @@ namespace Ctree{
 		if(!istree){
 			int rank = 0, size = 1;
 			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+			MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	    	for(int i=0; i<size; i++){
-	    		if(rank == i){
-	    			LOG()<<" why this: should not be happened : "<<rank<<" / "<<ind<<" / "<<data[ind].snap<<" / "<<data[ind].id;
-	    		}
-	    		MPI_Barrier(MPI_COMM_WORLD);
-	    	}
+			for(int i=0; i<size; i++){
+				if(rank == i){
+					LOG()<<" why this: should not be happened : "<<rank<<" / "<<ind<<" / "<<data[ind].snap<<" / "<<data[ind].id;
+				}
+				MPI_Barrier(MPI_COMM_WORLD);
+			}
 			
 			u_stop();
 
@@ -125,7 +125,7 @@ namespace Ctree{
 
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(shared) private(ind, i0) \
-    		reduction(+:share)
+			reduction(+:share)
 #endif
 		for(CT_I32 i=0; i<n_match; i++){
 			ind 	= std::abs(pid[i]) % n_raw;
@@ -274,8 +274,8 @@ namespace Ctree{
 
 #ifdef CTREE_USE_OMP
 			#pragma omp parallel for default(none) \
-    			shared(factor, weight, npart) \
-    			private(dind)
+				shared(factor, weight, npart) \
+				private(dind)
 #endif
 			for(CT_I32 i=0; i<(CT_I32) npart; i++){
 				dind 	= npart - i;
@@ -318,9 +318,9 @@ namespace Ctree{
 		CT_I32 npid = pid.size();
 
 		std::sort(pid.begin(), pid.end(), [](const PIDSt& a, const PIDSt& b) {
-            if (a.pid != b.pid) return a.pid < b.pid;
-            return a.weight > b.weight; 
-        });
+			if (a.pid != b.pid) return a.pid < b.pid;
+			return a.weight > b.weight; 
+		});
 
 		std::vector<CT_I32> uind(npid);
 
@@ -924,7 +924,7 @@ namespace Ctree{
 #ifdef CTREE_USE_MPI
 			int rank = 0, size = 1;
 			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+			MPI_Comm_size(MPI_COMM_WORLD, &size);
 			for(CT_I32 ind : cut){
 				int owner = ind % size;
 				if(owner != rank) continue;
@@ -942,7 +942,7 @@ namespace Ctree{
 
 #ifdef CTREE_USE_OMP
 					#pragma omp parallel for default(none) \
-    					shared(cpid2, gal0)
+						shared(cpid2, gal0)
 #endif
 					for(CT_I32 k=0; k<(CT_I32) cpid2.size(); k++){
 						cpid2[k].pid 	= gal0[0].pid[k];
@@ -975,16 +975,16 @@ namespace Ctree{
 			//Synchronize
 			
 
-    		for (CT_I32 ind : cut){
-        		int owner = ind % size;
+			for (CT_I32 ind : cut){
+				int owner = ind % size;
 
-        		std::vector<std::uint8_t> blob_t;
-        		if (rank == owner) blob_t = serialize_d1(data[ind]);
-        		bcast_blob_from_owner(owner, blob_t);
-        		if (rank != owner) deserialize_d1(blob_t, data[ind]);
+				std::vector<std::uint8_t> blob_t;
+				if (rank == owner) blob_t = serialize_d1(data[ind]);
+				bcast_blob_from_owner(owner, blob_t);
+				if (rank != owner) deserialize_d1(blob_t, data[ind]);
 
-	       	}
-    		MPI_Barrier(MPI_COMM_WORLD);
+			}
+			MPI_Barrier(MPI_COMM_WORLD);
 #else 
 			for(CT_I32 ind : cut){
 				
@@ -999,7 +999,7 @@ namespace Ctree{
 					cpid2.resize(gal0[0].pid.size());
 #ifdef CTREE_USE_OMP
 					#pragma omp parallel for default(none) \
-    					shared(cpid2, gal0)
+						shared(cpid2, gal0)
 #endif
 					for(CT_I32 k=0; k<(CT_I32) cpid2.size(); k++){
 						cpid2[k].pid 	= gal0[0].pid[k];
@@ -1047,8 +1047,8 @@ namespace Ctree{
 #ifdef CTREE_USE_MPI
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &size);
-	    for(CT_I32 ind : cut2){
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
+		for(CT_I32 ind : cut2){
 			int owner = ind % size;
 			if(owner != rank) continue;
 
@@ -1066,16 +1066,16 @@ namespace Ctree{
 		MPI_Barrier(MPI_COMM_WORLD);
 
 		//Synchronize
-    	for (CT_I32 ind : cut2){
-        	int owner = ind % size;
+		for (CT_I32 ind : cut2){
+			int owner = ind % size;
 
-        	std::vector<std::uint8_t> blob_t;
-        	if (rank == owner) blob_t = serialize_d2(data[ind]);
-        	bcast_blob_from_owner(owner, blob_t);
-        	if (rank != owner) deserialize_d2(blob_t, data[ind]);
+			std::vector<std::uint8_t> blob_t;
+			if (rank == owner) blob_t = serialize_d2(data[ind]);
+			bcast_blob_from_owner(owner, blob_t);
+			if (rank != owner) deserialize_d2(blob_t, data[ind]);
 
-	    }
-    	MPI_Barrier(MPI_COMM_WORLD);
+		}
+		MPI_Barrier(MPI_COMM_WORLD);
 #else
 		for(CT_I32 ind : cut2){
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
@@ -1113,7 +1113,7 @@ namespace Ctree{
 
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(none) \
-    			shared(pid1, cpid)
+				shared(pid1, cpid)
 #endif
 		for(CT_I32 i=0; i< (CT_I32) pid1.size(); i++){
 			pid1[i] 	= cpid[i].pid;
@@ -1399,7 +1399,7 @@ t0 = std::chrono::steady_clock::now();
 		MPI_Barrier(MPI_COMM_WORLD);
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
 		for(CT_I32 i=0; i<ncut; i++){
 			ind 	= cut[i];
@@ -1492,7 +1492,7 @@ if(myrank == 0){
 			std::vector<std::uint8_t> blob_t;
 			if (rank == owner) blob_t = serialize(islink[i]);
 			bcast_blob_from_owner(owner, blob_t);
-	        if (rank != owner) deserialize(blob_t, islink[i]);
+			if (rank != owner) deserialize(blob_t, islink[i]);
 
 		}
 #endif
@@ -1820,11 +1820,11 @@ t0 = std::chrono::steady_clock::now();
 				jobdone = 1;
 			}
 	
-        	int done_count = 0;
-        	MPI_Allreduce(&jobdone, &done_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+			int done_count = 0;
+			MPI_Allreduce(&jobdone, &done_count, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
 
-        	if (done_count == size) break;
+			if (done_count == size) break;
 		}
 
 #else
@@ -1910,11 +1910,11 @@ t0 = std::chrono::steady_clock::now();
 		thisjob.tind2 	= -1;
 	}
 	void filter_sort(std::vector<std::pair<CT_I32, CT_I32>>& pairs){
-    	// remove < 0
-    	pairs.erase(std::remove_if(pairs.begin(), pairs.end(), [](auto& p){ return p.first < 0; }), pairs.end());
+		// remove < 0
+		pairs.erase(std::remove_if(pairs.begin(), pairs.end(), [](auto& p){ return p.first < 0; }), pairs.end());
 
-    	// sort
-    	std::stable_sort(pairs.begin(), pairs.end(), [](auto& a, auto& b){return a.first < b.first;});
+		// sort
+		std::stable_sort(pairs.begin(), pairs.end(), [](auto& a, auto& b){return a.first < b.first;});
 
 	}
 
@@ -1922,37 +1922,37 @@ t0 = std::chrono::steady_clock::now();
 
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 
-	    std::vector<CT_I32> all_ind(size), all_dind(size), all_num(size);
+		std::vector<CT_I32> all_ind(size), all_dind(size), all_num(size);
 
-	    MPI_Allgather(&thisjob.ind,  1, MPI_INT, all_ind.data(),  1, MPI_INT, MPI_COMM_WORLD);
-    	MPI_Allgather(&thisjob.dind, 1, MPI_INT, all_dind.data(), 1, MPI_INT, MPI_COMM_WORLD);
-    	MPI_Allgather(&thisjob.jobnum,  1, MPI_INT, all_num.data(),  1, MPI_INT, MPI_COMM_WORLD);
+		MPI_Allgather(&thisjob.ind,  1, MPI_INT, all_ind.data(),  1, MPI_INT, MPI_COMM_WORLD);
+		MPI_Allgather(&thisjob.dind, 1, MPI_INT, all_dind.data(), 1, MPI_INT, MPI_COMM_WORLD);
+		MPI_Allgather(&thisjob.jobnum,  1, MPI_INT, all_num.data(),  1, MPI_INT, MPI_COMM_WORLD);
 
-    	std::vector<std::pair<CT_I32, CT_I32>> pairs_ind;  pairs_ind.reserve(size);
-    	std::vector<std::pair<CT_I32, CT_I32>> pairs_dind; pairs_dind.reserve(size);
-    	for (int r=0; r<size; ++r) {
-        	pairs_ind.emplace_back(all_ind[r],  all_num[r]);
-        	pairs_dind.emplace_back(all_dind[r], all_num[r]);
-    	}
+		std::vector<std::pair<CT_I32, CT_I32>> pairs_ind;  pairs_ind.reserve(size);
+		std::vector<std::pair<CT_I32, CT_I32>> pairs_dind; pairs_dind.reserve(size);
+		for (int r=0; r<size; ++r) {
+			pairs_ind.emplace_back(all_ind[r],  all_num[r]);
+			pairs_dind.emplace_back(all_dind[r], all_num[r]);
+		}
 
-    	filter_sort(pairs_ind);
-    	filter_sort(pairs_dind);
+		filter_sort(pairs_ind);
+		filter_sort(pairs_dind);
 
-    	// merge for ind
-    	for(CT_I32 i=0; i<(CT_I32)pairs_ind.size(); i++){
-    		if(pairs_ind[i].second >0){
+		// merge for ind
+		for(CT_I32 i=0; i<(CT_I32)pairs_ind.size(); i++){
+			if(pairs_ind[i].second >0){
 
-    			int owner = pairs_ind[i].first % size;
+				int owner = pairs_ind[i].first % size;
 
-    			std::vector<std::uint8_t> blob_t;
-    			if(rank == owner) blob_t = serialize(data[pairs_ind[i].first]);
-    			bcast_blob_from_owner(owner, blob_t);
-    			if(rank != owner) deserialize(blob_t, data[pairs_ind[i].first]);
+				std::vector<std::uint8_t> blob_t;
+				if(rank == owner) blob_t = serialize(data[pairs_ind[i].first]);
+				bcast_blob_from_owner(owner, blob_t);
+				if(rank != owner) deserialize(blob_t, data[pairs_ind[i].first]);
 
-    			data[pairs_ind[i].first].Free_plist();
+				data[pairs_ind[i].first].Free_plist();
 				data[pairs_ind[i].first].n_ptcl 		= -1;
 
 				if(data[pairs_ind[i].first].stat >= 0){
@@ -1960,131 +1960,131 @@ t0 = std::chrono::steady_clock::now();
 				}else{
 					in_dkey(dkey, data[pairs_ind[i].first].snap0, data[pairs_ind[i].first].id0, -1);
 				}
-    		}
-    	}
+			}
+		}
 
-    	// merge for dind
-    	for(CT_I32 i=0; i<(CT_I32)pairs_dind.size(); i++){
-    		if(pairs_dind[i].second>0){
+		// merge for dind
+		for(CT_I32 i=0; i<(CT_I32)pairs_dind.size(); i++){
+			if(pairs_dind[i].second>0){
 
-    			int owner = pairs_dind[i].first % size;
+				int owner = pairs_dind[i].first % size;
 
-    			std::vector<std::uint8_t> blob_t;
-    			if(rank == owner) blob_t = serialize(data[pairs_dind[i].first]);
-    			bcast_blob_from_owner(owner, blob_t);
-    			if(rank != owner) deserialize(blob_t, data[pairs_dind[i].first]);
+				std::vector<std::uint8_t> blob_t;
+				if(rank == owner) blob_t = serialize(data[pairs_dind[i].first]);
+				bcast_blob_from_owner(owner, blob_t);
+				if(rank != owner) deserialize(blob_t, data[pairs_dind[i].first]);
 
-    			if(pairs_dind[i].second == 2 || pairs_dind[i].second ==4){
-    				data[pairs_dind[i].first].Free_plist();
+				if(pairs_dind[i].second == 2 || pairs_dind[i].second ==4){
+					data[pairs_dind[i].first].Free_plist();
 					data[pairs_dind[i].first].n_ptcl 		= -1;
-    			}
+				}
 
-    			if(data[pairs_dind[i].first].stat >= 0){
-    				in_dkey(dkey, data[pairs_dind[i].first].snap0, data[pairs_dind[i].first].id0, pairs_dind[i].first);
+				if(data[pairs_dind[i].first].stat >= 0){
+					in_dkey(dkey, data[pairs_dind[i].first].snap0, data[pairs_dind[i].first].id0, pairs_dind[i].first);
 				}else{
 					in_dkey(dkey, data[pairs_dind[i].first].snap0, data[pairs_dind[i].first].id0, -1);
 				}
-    		}
-    	}
-    }
+			}
+		}
+	}
 
-    void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index){
-    	int rank, size;
-    	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index){
+		int rank, size;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    	
+		
 
-    	// collect jobind
-    	std::vector<CT_I32> all_ind(size);
-    	MPI_Allgather(&jobind, 1, MPI_INT, all_ind.data(), 1, MPI_INT, MPI_COMM_WORLD);
+		// collect jobind
+		std::vector<CT_I32> all_ind(size);
+		MPI_Allgather(&jobind, 1, MPI_INT, all_ind.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
-    	// sort
-    	std::vector<std::pair<CT_I32,int>> pairs;
-    	pairs.reserve(size);
-    	for (int r = 0; r < size; ++r) {
-    		//if(all_ind[r]<0) continue;
-        	pairs.emplace_back(all_ind[r], r);
-    	}
+		// sort
+		std::vector<std::pair<CT_I32,int>> pairs;
+		pairs.reserve(size);
+		for (int r = 0; r < size; ++r) {
+			//if(all_ind[r]<0) continue;
+			pairs.emplace_back(all_ind[r], r);
+		}
 
-    	pairs.erase(std::remove_if(pairs.begin(), pairs.end(),
-                           [](const auto& p){ return p.first < 0; }),
-            pairs.end());
+		pairs.erase(std::remove_if(pairs.begin(), pairs.end(),
+						   [](const auto& p){ return p.first < 0; }),
+			pairs.end());
 
 
-    	std::sort(pairs.begin(), pairs.end(),
-              [](const auto& a, const auto& b){
-                  if (a.first != b.first) return a.first < b.first;
-                  return a.second < b.second;
-              });
+		std::sort(pairs.begin(), pairs.end(),
+			  [](const auto& a, const auto& b){
+				  if (a.first != b.first) return a.first < b.first;
+				  return a.second < b.second;
+			  });
 
-    	// winner or loser
-    	std::vector<char> is_loser(size, 0);
-    	//bool any_dup = false;
+		// winner or loser
+		std::vector<char> is_loser(size, 0);
+		//bool any_dup = false;
 
-    	for (int i = 0; i < (int) pairs.size(); ) {
-        	int j = i + 1;
-        	while (j < (int) pairs.size() && pairs[j].first == pairs[i].first) ++j;
+		for (int i = 0; i < (int) pairs.size(); ) {
+			int j = i + 1;
+			while (j < (int) pairs.size() && pairs[j].first == pairs[i].first) ++j;
 
-        	// [i, j) : same ind group
-        	if (j - i > 1) {
-            	//any_dup = true;
-            	// i is winner, i+1..j-1 loser
-            	for (int k = i + 1; k < j; ++k) {
-                	int loser_rank = pairs[k].second;
-                	is_loser[loser_rank] = 1;
-            	}
-        	}
-        	i = j;
-    	}
+			// [i, j) : same ind group
+			if (j - i > 1) {
+				//any_dup = true;
+				// i is winner, i+1..j-1 loser
+				for (int k = i + 1; k < j; ++k) {
+					int loser_rank = pairs[k].second;
+					is_loser[loser_rank] = 1;
+				}
+			}
+			i = j;
+		}
 
-    	// send ind of loser
-    	int sendcnt = is_loser[rank] ? 1 : 0;
-    	std::vector<int> recvcnts(size);
-    	MPI_Allgather(&sendcnt, 1, MPI_INT, recvcnts.data(), 1, MPI_INT, MPI_COMM_WORLD);
+		// send ind of loser
+		int sendcnt = is_loser[rank] ? 1 : 0;
+		std::vector<int> recvcnts(size);
+		MPI_Allgather(&sendcnt, 1, MPI_INT, recvcnts.data(), 1, MPI_INT, MPI_COMM_WORLD);
 
-    	std::vector<int> displs(size, 0);
-    	int total = 0;
-    	for (int i = 0; i < size; ++i) {
-        	displs[i] = total;
-        	total    += recvcnts[i];
-    	}
+		std::vector<int> displs(size, 0);
+		int total = 0;
+		for (int i = 0; i < size; ++i) {
+			displs[i] = total;
+			total    += recvcnts[i];
+		}
 
-    	std::vector<CT_I32> gathered_loser_inds(total);
-    	MPI_Allgatherv(is_loser[rank] ? &ind : nullptr, sendcnt, MPI_INT,
-                   gathered_loser_inds.data(), recvcnts.data(), displs.data(), MPI_INT,
-                   MPI_COMM_WORLD);
+		std::vector<CT_I32> gathered_loser_inds(total);
+		MPI_Allgatherv(is_loser[rank] ? &ind : nullptr, sendcnt, MPI_INT,
+				   gathered_loser_inds.data(), recvcnts.data(), displs.data(), MPI_INT,
+				   MPI_COMM_WORLD);
 
-    	// push back to cut
-    	cut.insert(cut.end(), gathered_loser_inds.begin(), gathered_loser_inds.end());
+		// push back to cut
+		cut.insert(cut.end(), gathered_loser_inds.begin(), gathered_loser_inds.end());
 
-    	// append next_array
-    	NextArray recv_next(total);
-    	NextSt local_next_elem	= next_point[rank_index];
-    	if (total > 0) {
-            MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
-                recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
-        	next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
-    	}
+		// append next_array
+		NextArray recv_next(total);
+		NextSt local_next_elem	= next_point[rank_index];
+		if (total > 0) {
+			MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
+				recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
+			next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
+		}
 
-    	// append islink
-    	std::vector<CT_I32> recv_islink(total);
-    	CT_I32 local_islink = islink[rank_index];
-    	if (total > 0) {
-    		MPI_Allgatherv(is_loser[rank] ? &local_islink : nullptr, sendcnt, MPI_INT, 
-    			recv_islink.data(), recvcnts.data(), displs.data(), MPI_INT, MPI_COMM_WORLD);
+		// append islink
+		std::vector<CT_I32> recv_islink(total);
+		CT_I32 local_islink = islink[rank_index];
+		if (total > 0) {
+			MPI_Allgatherv(is_loser[rank] ? &local_islink : nullptr, sendcnt, MPI_INT, 
+				recv_islink.data(), recvcnts.data(), displs.data(), MPI_INT, MPI_COMM_WORLD);
 
-    		islink.insert(islink.end(), recv_islink.begin(), recv_islink.end());
-    	}
+			islink.insert(islink.end(), recv_islink.begin(), recv_islink.end());
+		}
 
-    	// change job for loser
-    	if(is_loser[rank] == 1){
-    		init_job(thisjob);
-    	}
+		// change job for loser
+		if(is_loser[rank] == 1){
+			init_job(thisjob);
+		}
 
-    }
+	}
 
-    
+	
 
 //		CT_I32 local_ind[2] = {thisjob.ind, thisjob.dind};
 //		
@@ -2128,44 +2128,44 @@ t0 = std::chrono::steady_clock::now();
 
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 		Tree::Tree_BID local_ind[2] = {thisjob.tind, thisjob.tind2};
 			
 		std::vector<Tree::Tree_BID> all_inds(size*2);
 
 		MPI_Datatype CT_BID_T;
-    	if(sizeof(Tree::Tree_BID)==8){
-    		CT_BID_T = MPI_INT64_T;
-    	}else if(sizeof(Tree::Tree_BID)==4){
-    		CT_BID_T = MPI_INT32_T;
-    	}
+		if(sizeof(Tree::Tree_BID)==8){
+			CT_BID_T = MPI_INT64_T;
+		}else if(sizeof(Tree::Tree_BID)==4){
+			CT_BID_T = MPI_INT32_T;
+		}
 		
 		MPI_Allgather(&local_ind, 2, CT_BID_T, all_inds.data(), 2, CT_BID_T, MPI_COMM_WORLD);
 
 		std::vector<CT_I32> uniq_sorted;
-   		uniq_sorted.reserve(all_inds.size());
+		uniq_sorted.reserve(all_inds.size());
 
-    		
-   		for (CT_I32 x : all_inds) {
-       		if (x >= 0) uniq_sorted.push_back(x);
-   		}
+			
+		for (CT_I32 x : all_inds) {
+			if (x >= 0) uniq_sorted.push_back(x);
+		}
 
-    		
-   		std::sort(uniq_sorted.begin(), uniq_sorted.end());
-   		uniq_sorted.erase(std::unique(uniq_sorted.begin(), uniq_sorted.end()), uniq_sorted.end());
+			
+		std::sort(uniq_sorted.begin(), uniq_sorted.end());
+		uniq_sorted.erase(std::unique(uniq_sorted.begin(), uniq_sorted.end()), uniq_sorted.end());
 
 
-   		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
+		for(CT_I32 i=0; i<(CT_I32) uniq_sorted.size(); i++){
 
 			int owner = uniq_sorted[i] % size;
 
 			std::vector<std::uint8_t> blob_t;
 			if (rank == owner) blob_t = serialize(tree[uniq_sorted[i]]);
 			bcast_blob_from_owner(owner, blob_t);
-        	if (rank != owner) deserialize(blob_t, tree[uniq_sorted[i]]);
+			if (rank != owner) deserialize(blob_t, tree[uniq_sorted[i]]);
 
-        	if(tree[uniq_sorted[i]].isfree == 1){
+			if(tree[uniq_sorted[i]].isfree == 1){
 				tree[uniq_sorted[i]].id.resize(0);
 				tree[uniq_sorted[i]].snap.resize(0);
 				tree[uniq_sorted[i]].p_merit.resize(0);
@@ -2178,7 +2178,7 @@ t0 = std::chrono::steady_clock::now();
 				tree[uniq_sorted[i]].endind = -1;
 				tree[uniq_sorted[i]].isfree 	= -1;
 			}
-        	
+			
 		}
 
 		// reset key
@@ -2396,10 +2396,10 @@ t0 = std::chrono::steady_clock::now();
 
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	    MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	    const int TAG_DATA = 100;
-    	const int TAG_DONE = 101;
+		const int TAG_DATA = 100;
+		const int TAG_DONE = 101;
 		
 		JobArray job;
 		job.resize(0);
@@ -2424,16 +2424,16 @@ t0 = std::chrono::steady_clock::now();
 			int done = 0;
 			while(done < expected_done){
 				MPI_Status st;
-        		MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
+				MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &st);
 
-            	if (st.MPI_TAG == TAG_DATA) {
-		           	LinkJob getjob;
-                	MPI_Recv(&getjob, 1, LINKJOB_T, st.MPI_SOURCE, TAG_DATA, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                	job.push_back(getjob);
-            	} else if (st.MPI_TAG == TAG_DONE) {
-                	MPI_Recv(nullptr, 0, MPI_BYTE, st.MPI_SOURCE, TAG_DONE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                	++done;
-            	}
+				if (st.MPI_TAG == TAG_DATA) {
+					LinkJob getjob;
+					MPI_Recv(&getjob, 1, LINKJOB_T, st.MPI_SOURCE, TAG_DATA, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					job.push_back(getjob);
+				} else if (st.MPI_TAG == TAG_DONE) {
+					MPI_Recv(nullptr, 0, MPI_BYTE, st.MPI_SOURCE, TAG_DONE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					++done;
+				}
 
 			}
 
@@ -2670,7 +2670,7 @@ t0 = std::chrono::steady_clock::now();
 				}
 			}
 
-			if(myrank==0 && vh.ctree_makecheck>0 && sinfo[i].snum % vh.ctree_makecheck == 0){
+			if(myrank==0 && vh.makecheck>0 && sinfo[i].snum % vh.makecheck == 0){
 				savedata(vh, data, sinfo[i].snum);
 				savetree_ctree(vh, tree, key, sinfo[i].snum);
 			}
@@ -2853,7 +2853,7 @@ t0 = std::chrono::steady_clock::now();
 #ifdef CTREE_USE_MPI
 		int rank = 0, size = 1;
 		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	   	MPI_Comm_size(MPI_COMM_WORLD, &size);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
 
@@ -2895,19 +2895,19 @@ t0 = std::chrono::steady_clock::now();
 
 		//Synchronize
 		for(CT_I32 i=0; i<(CT_I32) sinfo.size(); i++){
-    		int owner = i % size;
-    		if( sinfo[i].snum<0) continue;
+			int owner = i % size;
+			if( sinfo[i].snum<0) continue;
 			if( Endpts[sinfo[i].snum].nn == 0) continue;
 			if( sinfo[i].snum >= vh.snapf) continue;
 			CT_snap snap_curr = findnextsnap(sinfo, sinfo[i].snum);
 			if(snap_curr < 0) continue;
 
 
-    		std::vector<std::uint8_t> blob_t;
-    		if (rank == owner) blob_t = serialize_ends(Endpts[sinfo[i].snum]);
-    		bcast_blob_from_owner(owner, blob_t);
-    		if (rank != owner) deserialize_ends(blob_t, Endpts[sinfo[i].snum]);
-       	}
+			std::vector<std::uint8_t> blob_t;
+			if (rank == owner) blob_t = serialize_ends(Endpts[sinfo[i].snum]);
+			bcast_blob_from_owner(owner, blob_t);
+			if (rank != owner) deserialize_ends(blob_t, Endpts[sinfo[i].snum]);
+		}
 		MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -2971,155 +2971,155 @@ t0 = std::chrono::steady_clock::now();
 	}
 
 	//----
-    // MPI Helper
-    //-----
+	// MPI Helper
+	//-----
 #ifdef CTREE_USE_MPI
-    //---- raw POD append / read ----
+	//---- raw POD append / read ----
 	template<typename T>
 	void append_pod(std::vector<std::uint8_t>& buf, const T& v) {
-	    static_assert(std::is_trivially_copyable<T>::value, "POD only");
-	    const auto* p = reinterpret_cast<const std::uint8_t*>(&v);
-	    buf.insert(buf.end(), p, p + sizeof(T));
+		static_assert(std::is_trivially_copyable<T>::value, "POD only");
+		const auto* p = reinterpret_cast<const std::uint8_t*>(&v);
+		buf.insert(buf.end(), p, p + sizeof(T));
 	}
 
 	template<typename T>
 	T read_pod(const std::uint8_t*& p, const std::uint8_t* end) {
-	    static_assert(std::is_trivially_copyable<T>::value, "POD only");
-	    if (size_t(end - p) < sizeof(T)) throw std::runtime_error("deserialize: buffer underflow");
-	    T v;
-	    std::memcpy(&v, p, sizeof(T));
-	    p += sizeof(T);
-	    return v;
+		static_assert(std::is_trivially_copyable<T>::value, "POD only");
+		if (size_t(end - p) < sizeof(T)) throw std::runtime_error("deserialize: buffer underflow");
+		T v;
+		std::memcpy(&v, p, sizeof(T));
+		p += sizeof(T);
+		return v;
 	}
 
 	template<typename T>
 	void append_vec(std::vector<std::uint8_t>& buf, const std::vector<T>& v) {
-	    std::uint64_t n = static_cast<std::uint64_t>(v.size());
-	    append_pod(buf, n);
-	    if (n) {
-	        static_assert(std::is_trivially_copyable<T>::value, "vector element must be POD");
-	        const auto* p = reinterpret_cast<const std::uint8_t*>(v.data());
-	        buf.insert(buf.end(), p, p + n * sizeof(T));
-	    }
+		std::uint64_t n = static_cast<std::uint64_t>(v.size());
+		append_pod(buf, n);
+		if (n) {
+			static_assert(std::is_trivially_copyable<T>::value, "vector element must be POD");
+			const auto* p = reinterpret_cast<const std::uint8_t*>(v.data());
+			buf.insert(buf.end(), p, p + n * sizeof(T));
+		}
 	}
 
 	template<typename T>
 	std::vector<T> read_vec(const std::uint8_t*& p, const std::uint8_t* end) {
-	    std::uint64_t n = read_pod<std::uint64_t>(p, end);
-	    std::vector<T> v;
-	    if (n) {
-	        if (size_t(end - p) < n * sizeof(T)) throw std::runtime_error("deserialize vec: buffer underflow");
-	        v.resize(static_cast<size_t>(n));
-	        std::memcpy(v.data(), p, n * sizeof(T));
-	        p += n * sizeof(T);
-	    }
-	    return v;
+		std::uint64_t n = read_pod<std::uint64_t>(p, end);
+		std::vector<T> v;
+		if (n) {
+			if (size_t(end - p) < n * sizeof(T)) throw std::runtime_error("deserialize vec: buffer underflow");
+			v.resize(static_cast<size_t>(n));
+			std::memcpy(v.data(), p, n * sizeof(T));
+			p += n * sizeof(T);
+		}
+		return v;
 	}	
 
-    // Serialize & Deserialize for Control Array
+	// Serialize & Deserialize for Control Array
 	std::vector<std::uint8_t> serialize_d1(const ControlSt& x) {
-	    std::vector<std::uint8_t> buf;
+		std::vector<std::uint8_t> buf;
 
-	    //append_pod<CT_ID>(buf, x.id0);
-	    //append_pod<CT_snap>(buf, x.snap0);
-	    //append_pod<CT_ID>(buf, x.id);
-	    //append_pod<CT_snap>(buf, x.snap);
-	    
-	    //append_vec<CT_double>(buf, x.pos);
-	    //append_vec<CT_double>(buf, x.vel);
-	    
-	    //append_pod<CT_I32>(buf, x.stat);
-	    //append_pod<CT_I32>(buf, x.detstat);
+		//append_pod<CT_ID>(buf, x.id0);
+		//append_pod<CT_snap>(buf, x.snap0);
+		//append_pod<CT_ID>(buf, x.id);
+		//append_pod<CT_snap>(buf, x.snap);
+		
+		//append_vec<CT_double>(buf, x.pos);
+		//append_vec<CT_double>(buf, x.vel);
+		
+		//append_pod<CT_I32>(buf, x.stat);
+		//append_pod<CT_I32>(buf, x.detstat);
 
-	    append_vec<PIDSt>(buf, x.p_list);
+		append_vec<PIDSt>(buf, x.p_list);
 		append_pod<CT_I32>(buf, x.n_ptcl);
 
 		//append_vec<ListSt>(buf, x.list);
 		//append_pod<CT_I32>(buf, x.list_n);
 
 		//append_pod<CT_I32>(buf, x.last_ind);
-	    return buf;
+		return buf;
 
 
 	}
 
 	void deserialize_d1(const std::vector<std::uint8_t>& buf, ControlSt& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    //out.id0 		= read_pod<CT_ID>(p, end);
-	    //out.snap0 		= read_pod<CT_snap>(p, end);
-	    //out.id 			= read_pod<CT_ID>(p, end);
-	    //out.snap 		= read_pod<CT_snap>(p, end);
+		//out.id0 		= read_pod<CT_ID>(p, end);
+		//out.snap0 		= read_pod<CT_snap>(p, end);
+		//out.id 			= read_pod<CT_ID>(p, end);
+		//out.snap 		= read_pod<CT_snap>(p, end);
 
-	    //out.pos 		= read_vec<CT_double>(p, end);
-	    //out.vel 		= read_vec<CT_double>(p, end);
+		//out.pos 		= read_vec<CT_double>(p, end);
+		//out.vel 		= read_vec<CT_double>(p, end);
 
-	    //out.stat 		= read_pod<CT_I32>(p, end);
-	    //out.detstat		= read_pod<CT_I32>(p, end);
+		//out.stat 		= read_pod<CT_I32>(p, end);
+		//out.detstat		= read_pod<CT_I32>(p, end);
 
-	    out.p_list 		= read_vec<PIDSt>(p, end);
-	    out.n_ptcl 		= read_pod<CT_I32>(p, end);
+		out.p_list 		= read_vec<PIDSt>(p, end);
+		out.n_ptcl 		= read_pod<CT_I32>(p, end);
 
-	    //out.list 		= read_vec<ListSt>(p, end);
-	    //out.list_n 		= read_pod<CT_I32>(p, end);
+		//out.list 		= read_vec<ListSt>(p, end);
+		//out.list_n 		= read_pod<CT_I32>(p, end);
 
-	    //out.last_ind 	= read_pod<CT_I32>(p, end);
+		//out.last_ind 	= read_pod<CT_I32>(p, end);
 
-	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
 	// Serialize & Deserialize for Control Array2
 	std::vector<std::uint8_t> serialize_d2(const ControlSt& x) {
-	    std::vector<std::uint8_t> buf;
+		std::vector<std::uint8_t> buf;
 
-	    //append_pod<CT_ID>(buf, x.id0);
-	    //append_pod<CT_snap>(buf, x.snap0);
-	    //append_pod<CT_ID>(buf, x.id);
-	    //append_pod<CT_snap>(buf, x.snap);
-	    
-	    //append_vec<CT_double>(buf, x.pos);
-	    //append_vec<CT_double>(buf, x.vel);
-	    
-	    //append_pod<CT_I32>(buf, x.stat);
-	    //append_pod<CT_I32>(buf, x.detstat);
+		//append_pod<CT_ID>(buf, x.id0);
+		//append_pod<CT_snap>(buf, x.snap0);
+		//append_pod<CT_ID>(buf, x.id);
+		//append_pod<CT_snap>(buf, x.snap);
+		
+		//append_vec<CT_double>(buf, x.pos);
+		//append_vec<CT_double>(buf, x.vel);
+		
+		//append_pod<CT_I32>(buf, x.stat);
+		//append_pod<CT_I32>(buf, x.detstat);
 
-	    //append_vec<PIDSt>(buf, x.p_list);
+		//append_vec<PIDSt>(buf, x.p_list);
 		//append_pod<CT_I32>(buf, x.n_ptcl);
 
 		append_vec<ListSt>(buf, x.list);
 		append_pod<CT_I32>(buf, x.list_n);
 
 		//append_pod<CT_I32>(buf, x.last_ind);
-	    return buf;
+		return buf;
 
 
 	}
 
 	void deserialize_d2(const std::vector<std::uint8_t>& buf, ControlSt& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    //out.id0 		= read_pod<CT_ID>(p, end);
-	    //out.snap0 		= read_pod<CT_snap>(p, end);
-	    //out.id 			= read_pod<CT_ID>(p, end);
-	    //out.snap 		= read_pod<CT_snap>(p, end);
+		//out.id0 		= read_pod<CT_ID>(p, end);
+		//out.snap0 		= read_pod<CT_snap>(p, end);
+		//out.id 			= read_pod<CT_ID>(p, end);
+		//out.snap 		= read_pod<CT_snap>(p, end);
 
-	    //out.pos 		= read_vec<CT_double>(p, end);
-	    //out.vel 		= read_vec<CT_double>(p, end);
+		//out.pos 		= read_vec<CT_double>(p, end);
+		//out.vel 		= read_vec<CT_double>(p, end);
 
-	    //out.stat 		= read_pod<CT_I32>(p, end);
-	    //out.detstat		= read_pod<CT_I32>(p, end);
+		//out.stat 		= read_pod<CT_I32>(p, end);
+		//out.detstat		= read_pod<CT_I32>(p, end);
 
-	    //out.p_list 		= read_vec<PIDSt>(p, end);
-	    //out.n_ptcl 		= read_pod<CT_I32>(p, end);
+		//out.p_list 		= read_vec<PIDSt>(p, end);
+		//out.n_ptcl 		= read_pod<CT_I32>(p, end);
 
-	    out.list 		= read_vec<ListSt>(p, end);
-	    out.list_n 		= read_pod<CT_I32>(p, end);
+		out.list 		= read_vec<ListSt>(p, end);
+		out.list_n 		= read_pod<CT_I32>(p, end);
 
-	    //out.last_ind 	= read_pod<CT_I32>(p, end);
+		//out.last_ind 	= read_pod<CT_I32>(p, end);
 
-	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
 	// Serialize & Deserialize for Endpts Array
@@ -3130,42 +3130,42 @@ t0 = std::chrono::steady_clock::now();
 			append_vec<Tree::Tree_BID>(buf, x.fbid);
 			append_vec<CT_Merit>(buf, x.merit);
 		}
-	    return buf;
+		return buf;
 	}
 
 	void deserialize_ends(const std::vector<std::uint8_t>& buf, EndSt& out) {
 		const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* end = p + buf.size();
 
-	    CT_I32 nn 			= read_pod<CT_I32>(p, end);
+		CT_I32 nn 			= read_pod<CT_I32>(p, end);
 
-	    if(nn >= 1){
-		    out.fbid			= read_vec<Tree::Tree_BID>(p, end);
-		    out.merit 			= read_vec<CT_Merit>(p, end);
+		if(nn >= 1){
+			out.fbid			= read_vec<Tree::Tree_BID>(p, end);
+			out.merit 			= read_vec<CT_Merit>(p, end);
 		}
 
-	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
 	// Serialize & Deserialize for Next Array
 	std::vector<std::uint8_t> serialize(const NextSt& x) {
-	    std::vector<std::uint8_t> buf;
+		std::vector<std::uint8_t> buf;
 
-	    append_pod<CT_ID>(buf, x.id);
-	    append_pod<CT_snap>(buf, x.snap);
-	    append_pod<CT_Merit>(buf, x.merit);
-	    return buf;
+		append_pod<CT_ID>(buf, x.id);
+		append_pod<CT_snap>(buf, x.snap);
+		append_pod<CT_Merit>(buf, x.merit);
+		return buf;
 	}
 
 	void deserialize(const std::vector<std::uint8_t>& buf, NextSt& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    out.id 			= read_pod<CT_ID>(p, end);
-	    out.snap 		= read_pod<CT_snap>(p, end);
-	    out.merit		= read_pod<CT_Merit>(p, end);
+		out.id 			= read_pod<CT_ID>(p, end);
+		out.snap 		= read_pod<CT_snap>(p, end);
+		out.merit		= read_pod<CT_Merit>(p, end);
 
-	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
 	// Serialize & Deserialize for Islink Array
@@ -3175,12 +3175,12 @@ t0 = std::chrono::steady_clock::now();
 		return buf;
 	}
 	void deserialize(const std::vector<std::uint8_t>& buf, CT_I32& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    out 	= read_pod<CT_I32>(p, end);
+		out 	= read_pod<CT_I32>(p, end);
 
-	    if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
+		if (p != end) throw std::runtime_error("TFSt deserialize: trailing bytes");
 	}
 
 	// Serialize & Deserialize for LinkJob
@@ -3241,20 +3241,20 @@ t0 = std::chrono::steady_clock::now();
 		return buf;	
 	}
 	void deserialize(const std::vector<std::uint8_t>& buf, ControlSt& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    out.detstat 	= read_pod<CT_I32>(p, end);
-	    out.stat 		= read_pod<CT_I32>(p, end);
-	    out.n_ptcl 		= read_pod<CT_I32>(p, end);
+		out.detstat 	= read_pod<CT_I32>(p, end);
+		out.stat 		= read_pod<CT_I32>(p, end);
+		out.n_ptcl 		= read_pod<CT_I32>(p, end);
 
-	    out.id 			= read_pod<CT_I32>(p, end);
-	    out.id0 		= read_pod<CT_I32>(p, end);
-	    out.snap 		= read_pod<CT_I32>(p, end);
-	    out.snap0 		= read_pod<CT_I32>(p, end);
+		out.id 			= read_pod<CT_I32>(p, end);
+		out.id0 		= read_pod<CT_I32>(p, end);
+		out.snap 		= read_pod<CT_I32>(p, end);
+		out.snap0 		= read_pod<CT_I32>(p, end);
 
-	    out.list 		= read_vec<ListSt>(p, end);
-	    out.list_n 		= read_pod<CT_I32>(p, end);
+		out.list 		= read_vec<ListSt>(p, end);
+		out.list_n 		= read_pod<CT_I32>(p, end);
 		
 		//out.Free_plist();
 		//out.n_ptcl 		= -1;
@@ -3280,20 +3280,20 @@ t0 = std::chrono::steady_clock::now();
 		return buf;	
 	}
 	void deserialize(const std::vector<std::uint8_t>& buf, Tree::TreeSt& out) {
-	    const std::uint8_t* p   = buf.data();
-	    const std::uint8_t* end = p + buf.size();
+		const std::uint8_t* p   = buf.data();
+		const std::uint8_t* end = p + buf.size();
 
-	    out.id 		= read_vec<Tree::Tree_GID>(p, end);
-	    out.snap 	= read_vec<Tree::Tree_Snap>(p, end);
-	    out.p_merit = read_vec<Tree::Tree_merit>(p, end);
+		out.id 		= read_vec<Tree::Tree_GID>(p, end);
+		out.snap 	= read_vec<Tree::Tree_Snap>(p, end);
+		out.p_merit = read_vec<Tree::Tree_merit>(p, end);
 
-	    out.father_bid 	= read_pod<Tree::Tree_I32>(p, end);
-	    out.frag_bid 	= read_pod<Tree::Tree_I32>(p, end);
-	    out.numprog 	= read_pod<Tree::Tree_I32>(p, end);
-	    out.endind 		= read_pod<Tree::Tree_I32>(p, end);
+		out.father_bid 	= read_pod<Tree::Tree_I32>(p, end);
+		out.frag_bid 	= read_pod<Tree::Tree_I32>(p, end);
+		out.numprog 	= read_pod<Tree::Tree_I32>(p, end);
+		out.endind 		= read_pod<Tree::Tree_I32>(p, end);
 
-	    out.stat 		= read_pod<Tree::Tree_I32>(p, end);
-	    out.isfree 		= read_pod<Tree::Tree_I32>(p, end);
+		out.stat 		= read_pod<Tree::Tree_I32>(p, end);
+		out.isfree 		= read_pod<Tree::Tree_I32>(p, end);
 		
 //		if(out.isfree == 1){
 //			out.id.resize(0);
@@ -3317,453 +3317,453 @@ t0 = std::chrono::steady_clock::now();
 
 	// Broad Cast Helper
 	void bcast_blob_from_owner(int owner, std::vector<std::uint8_t>& blob) {
-	    int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		int rank; MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	    int len = (rank == owner) ? static_cast<int>(blob.size()) : 0;
-	    MPI_Bcast(&len, 1, MPI_INT, owner, MPI_COMM_WORLD);
+		int len = (rank == owner) ? static_cast<int>(blob.size()) : 0;
+		MPI_Bcast(&len, 1, MPI_INT, owner, MPI_COMM_WORLD);
 
-	    if (rank != owner) blob.resize(len);
-	    if (len > 0) {
-	        MPI_Bcast(blob.data(), len, MPI_BYTE, owner, MPI_COMM_WORLD);
-	    }
+		if (rank != owner) blob.resize(len);
+		if (len > 0) {
+			MPI_Bcast(blob.data(), len, MPI_BYTE, owner, MPI_COMM_WORLD);
+		}
 	}
 
 #endif
 
 // For Debugging
 	void savetree_ctree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_snap snap_curr){
-	    namespace fs = std::filesystem;
+		namespace fs = std::filesystem;
 
-	    constexpr std::int32_t TAG_GID = savetree_gettype<Tree::Tree_GID>();
-	    constexpr std::int32_t TAG_BID = savetree_gettype<Tree::Tree_BID>();
-	    constexpr std::int32_t TAG_SNAP = savetree_gettype<Tree::Tree_Snap>();
-	    constexpr std::int32_t TAG_MERIT = savetree_gettype<Tree::Tree_merit>();
-
-
-
-	    //-----
-	    // Save TreeKey
-	    //-----
-	    const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
-	    LOG()<<"    Writing TreeKey in "<<path;
-
-	    std::ofstream out(path, std::ios::binary);
-	    if (!out) throw std::runtime_error("save_treekey_bin: cannot open " + path);
-
-	    // First element as type specifer
-	    //      I32 type
-	    //      1 I32
-	    //      2 I64
-	    //      3 float
-	    //      4 double
-	    out.write(reinterpret_cast<const char*>(&TAG_BID), sizeof(TAG_BID));
-
-	    // Second elements Key size in I64
-	    std::int64_t n = static_cast<std::int64_t>(treekey.size());
-	    out.write(reinterpret_cast<const char*>(&n), sizeof(n));
-
-	    // Third elements as Tree Key
-	    //std::int64_t tk = treekey[0].key;
-	    std::int64_t tk = treekey[0];
-	    out.write(reinterpret_cast<const char*>(&tk), sizeof(tk));
-
-	    // Left for elements
-	    std::vector<Tree::Tree_BID> inds;
-	    inds.reserve(treekey.size());
-	    //for (const auto& k : treekey) inds.push_back(k.ind);
-	    for (const auto& k : treekey) inds.push_back(k);
-
-	    if (!inds.empty()) {
-	        out.write(reinterpret_cast<const char*>(inds.data()),
-	                  inds.size() * sizeof(Tree::Tree_BID));
-	    }
+		constexpr std::int32_t TAG_GID = savetree_gettype<Tree::Tree_GID>();
+		constexpr std::int32_t TAG_BID = savetree_gettype<Tree::Tree_BID>();
+		constexpr std::int32_t TAG_SNAP = savetree_gettype<Tree::Tree_Snap>();
+		constexpr std::int32_t TAG_MERIT = savetree_gettype<Tree::Tree_merit>();
 
 
-	    //-----
-	    // Save Tree
-	    //-----
-	    const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
-	    LOG()<<"    Writing Tree in "<<path2;
 
-	    std::ofstream out2(path2, std::ios::binary);
-	    if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path);
+		//-----
+		// Save TreeKey
+		//-----
+		const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
+		LOG()<<"    Writing TreeKey in "<<path;
 
-	    // 1 GID specifer
-	    out2.write(reinterpret_cast<const char*>(&TAG_GID), sizeof(TAG_GID));
-	    // 2 Snap specifer
-	    out2.write(reinterpret_cast<const char*>(&TAG_SNAP), sizeof(TAG_SNAP));
-	    // 3 BID specifer
-	    out2.write(reinterpret_cast<const char*>(&TAG_BID), sizeof(TAG_BID));
-	    // 4 merit specifer
-	    out2.write(reinterpret_cast<const char*>(&TAG_MERIT), sizeof(TAG_MERIT));
+		std::ofstream out(path, std::ios::binary);
+		if (!out) throw std::runtime_error("save_treekey_bin: cannot open " + path);
+
+		// First element as type specifer
+		//      I32 type
+		//      1 I32
+		//      2 I64
+		//      3 float
+		//      4 double
+		out.write(reinterpret_cast<const char*>(&TAG_BID), sizeof(TAG_BID));
+
+		// Second elements Key size in I64
+		std::int64_t n = static_cast<std::int64_t>(treekey.size());
+		out.write(reinterpret_cast<const char*>(&n), sizeof(n));
+
+		// Third elements as Tree Key
+		//std::int64_t tk = treekey[0].key;
+		std::int64_t tk = treekey[0];
+		out.write(reinterpret_cast<const char*>(&tk), sizeof(tk));
+
+		// Left for elements
+		std::vector<Tree::Tree_BID> inds;
+		inds.reserve(treekey.size());
+		//for (const auto& k : treekey) inds.push_back(k.ind);
+		for (const auto& k : treekey) inds.push_back(k);
+
+		if (!inds.empty()) {
+			out.write(reinterpret_cast<const char*>(inds.data()),
+					  inds.size() * sizeof(Tree::Tree_BID));
+		}
 
 
-	    // 5 Tree Size in I64
-	    std::int64_t n2 = static_cast<std::int64_t>(tree.size());
-	    out2.write(reinterpret_cast<const char*>(&n2), sizeof(n2));
+		//-----
+		// Save Tree
+		//-----
+		const std::string path2 = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
+		LOG()<<"    Writing Tree in "<<path2;
 
-	    // 6 End ind in I64
-	    std::int64_t n3 = static_cast<std::int64_t>(tree[0].lind);
-	    out2.write(reinterpret_cast<const char*>(&n3), sizeof(n3));
+		std::ofstream out2(path2, std::ios::binary);
+		if (!out2) throw std::runtime_error("save_tree_bin: cannot open " + path);
 
-	    // loop for tree
-	    
-	    for(auto t : tree){
-	        
-	        Tree::Tree_I32 n_branch = t.endind + 1;
-	        Tree::Tree_I32 n_numprg = t.numprog;
-	        Tree::Tree_I32 father_bid = t.father_bid;
-	        Tree::Tree_I32 tstat 	= t.stat;
+		// 1 GID specifer
+		out2.write(reinterpret_cast<const char*>(&TAG_GID), sizeof(TAG_GID));
+		// 2 Snap specifer
+		out2.write(reinterpret_cast<const char*>(&TAG_SNAP), sizeof(TAG_SNAP));
+		// 3 BID specifer
+		out2.write(reinterpret_cast<const char*>(&TAG_BID), sizeof(TAG_BID));
+		// 4 merit specifer
+		out2.write(reinterpret_cast<const char*>(&TAG_MERIT), sizeof(TAG_MERIT));
 
-	      
-	        
-	        // Size for the main branch
-	        out2.write(reinterpret_cast<const char*>(&n_branch), sizeof(n_branch));
 
-	        // skip empty tree
-	        if(n_branch <= 0) continue;
+		// 5 Tree Size in I64
+		std::int64_t n2 = static_cast<std::int64_t>(tree.size());
+		out2.write(reinterpret_cast<const char*>(&n2), sizeof(n2));
 
-	        
-	        // Size for the merged branch
-	        out2.write(reinterpret_cast<const char*>(&n_numprg), sizeof(n_numprg));
+		// 6 End ind in I64
+		std::int64_t n3 = static_cast<std::int64_t>(tree[0].lind);
+		out2.write(reinterpret_cast<const char*>(&n3), sizeof(n3));
 
-	        // Branch ID of father
-	        out2.write(reinterpret_cast<const char*>(&father_bid), sizeof(father_bid));
+		// loop for tree
+		
+		for(auto t : tree){
+			
+			Tree::Tree_I32 n_branch = t.endind + 1;
+			Tree::Tree_I32 n_numprg = t.numprog;
+			Tree::Tree_I32 father_bid = t.father_bid;
+			Tree::Tree_I32 tstat 	= t.stat;
 
-	        // Branch Stat
-	        out2.write(reinterpret_cast<const char*>(&tstat), sizeof(tstat));
+		  
+			
+			// Size for the main branch
+			out2.write(reinterpret_cast<const char*>(&n_branch), sizeof(n_branch));
 
-	        // Branch_ID
-	        for(std::int32_t i=0; i<n_branch; i++){
-	            out2.write(reinterpret_cast<const char*>(&t.id[i]), sizeof(t.id[i]));
-	        }
+			// skip empty tree
+			if(n_branch <= 0) continue;
 
-	        // Branch_snap
-	        for(std::int32_t i=0; i<n_branch; i++){
-	            out2.write(reinterpret_cast<const char*>(&t.snap[i]), sizeof(t.snap[i]));
-	        }
+			
+			// Size for the merged branch
+			out2.write(reinterpret_cast<const char*>(&n_numprg), sizeof(n_numprg));
 
-	        // Branch_ID (progenitor)
-	        for(std::int32_t i=0; i<n_branch; i++){
-	            out2.write(reinterpret_cast<const char*>(&t.p_id[i]), sizeof(t.p_id[i]));
-	        }
+			// Branch ID of father
+			out2.write(reinterpret_cast<const char*>(&father_bid), sizeof(father_bid));
 
-	        // Branch_Snap (progenitor)
-	        for(std::int32_t i=0; i<n_branch; i++){
-	            out2.write(reinterpret_cast<const char*>(&t.p_snap[i]), sizeof(t.p_snap[i]));
-	        }
+			// Branch Stat
+			out2.write(reinterpret_cast<const char*>(&tstat), sizeof(tstat));
 
-	        // Branch_Merit (progenitor)
-	        for(std::int32_t i=0; i<n_branch; i++){
-	            out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
-	        }
+			// Branch_ID
+			for(std::int32_t i=0; i<n_branch; i++){
+				out2.write(reinterpret_cast<const char*>(&t.id[i]), sizeof(t.id[i]));
+			}
 
-	        if(n_numprg>0){
+			// Branch_snap
+			for(std::int32_t i=0; i<n_branch; i++){
+				out2.write(reinterpret_cast<const char*>(&t.snap[i]), sizeof(t.snap[i]));
+			}
 
-	            // Merged Branch ID
-	            for(std::int32_t i=0; i<n_numprg; i++){
-	                out2.write(reinterpret_cast<const char*>(&t.m_id[i]), sizeof(t.m_id[i]));
-	            }
+			// Branch_ID (progenitor)
+			for(std::int32_t i=0; i<n_branch; i++){
+				out2.write(reinterpret_cast<const char*>(&t.p_id[i]), sizeof(t.p_id[i]));
+			}
 
-	            // Merged Branch Snap
-	            for(std::int32_t i=0; i<n_numprg; i++){
-	                out2.write(reinterpret_cast<const char*>(&t.m_snap[i]), sizeof(t.m_snap[i]));
-	            }
+			// Branch_Snap (progenitor)
+			for(std::int32_t i=0; i<n_branch; i++){
+				out2.write(reinterpret_cast<const char*>(&t.p_snap[i]), sizeof(t.p_snap[i]));
+			}
 
-	            // Merged Branch Merit
-	            for(std::int32_t i=0; i<n_numprg; i++){
-	                out2.write(reinterpret_cast<const char*>(&t.m_merit[i]), sizeof(t.m_merit[i]));
-	            }
+			// Branch_Merit (progenitor)
+			for(std::int32_t i=0; i<n_branch; i++){
+				out2.write(reinterpret_cast<const char*>(&t.p_merit[i]), sizeof(t.p_merit[i]));
+			}
 
-	            // Merged Branch BID
-	            for(std::int32_t i=0; i<n_numprg; i++){
-	                out2.write(reinterpret_cast<const char*>(&t.m_bid[i]), sizeof(t.m_bid[i]));
-	            }
-	        }
-	    }  
+			if(n_numprg>0){
+
+				// Merged Branch ID
+				for(std::int32_t i=0; i<n_numprg; i++){
+					out2.write(reinterpret_cast<const char*>(&t.m_id[i]), sizeof(t.m_id[i]));
+				}
+
+				// Merged Branch Snap
+				for(std::int32_t i=0; i<n_numprg; i++){
+					out2.write(reinterpret_cast<const char*>(&t.m_snap[i]), sizeof(t.m_snap[i]));
+				}
+
+				// Merged Branch Merit
+				for(std::int32_t i=0; i<n_numprg; i++){
+					out2.write(reinterpret_cast<const char*>(&t.m_merit[i]), sizeof(t.m_merit[i]));
+				}
+
+				// Merged Branch BID
+				for(std::int32_t i=0; i<n_numprg; i++){
+					out2.write(reinterpret_cast<const char*>(&t.m_bid[i]), sizeof(t.m_bid[i]));
+				}
+			}
+		}  
 	}
 
 
 	void loadtree_ctree(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& treekey, CT_snap snap_curr){
 
-	    int myrank  = mpi_rank();
-	    // Simple version used
-	    {
-	        // file check
-	        
+		int myrank  = mpi_rank();
+		// Simple version used
+		{
+			// file check
+			
 
-	        const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
-	        if(myrank==0){
-	            LOG() << "    Reading TreeKey from " << path;
-	        }
+			const std::string path = vh.out_dir + "/ctree_key_" + i4(snap_curr) + ".dat";
+			if(myrank==0){
+				LOG() << "    Reading TreeKey from " << path;
+			}
 
-	        std::ifstream in(path, std::ios::binary);
-	        if (!in) {
-	            LOG()<<"load_treekey_bin: cannot open " + path;
-	            u_stop();
-	        }
+			std::ifstream in(path, std::ios::binary);
+			if (!in) {
+				LOG()<<"load_treekey_bin: cannot open " + path;
+				u_stop();
+			}
 
-	        // Read Data Type
-	        std::int32_t bidtag;
-	        loadtree_read(in, bidtag);
-	    
-	        // Read Nkey
-	        std::int64_t nbid;
-	        loadtree_read(in, nbid);
+			// Read Data Type
+			std::int32_t bidtag;
+			loadtree_read(in, bidtag);
+		
+			// Read Nkey
+			std::int64_t nbid;
+			loadtree_read(in, nbid);
 
-	        // TreeKey
-	        std::int64_t keyval;
-	        loadtree_read(in, keyval);
+			// TreeKey
+			std::int64_t keyval;
+			loadtree_read(in, keyval);
 
-	        // Allocate
-	        //auto treekey_load = loadtree_mkvector(bidtag, nbid);
-	        std::vector<std::int32_t> treekey_load;
-	        treekey_load.resize(nbid);
-	        loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
+			// Allocate
+			//auto treekey_load = loadtree_mkvector(bidtag, nbid);
+			std::vector<std::int32_t> treekey_load;
+			treekey_load.resize(nbid);
+			loadtree_vecread<std::int32_t>(in, treekey_load, nbid);
 
-	        // Copy
-	        //Tree::TreeKeyArray treekey;
-	        treekey.resize(nbid);
+			// Copy
+			//Tree::TreeKeyArray treekey;
+			treekey.resize(nbid);
 
-	        for(std::int32_t i=0; i<nbid; i++){
+			for(std::int32_t i=0; i<nbid; i++){
 	 
-	            //treekey[i].ind  = treekey_load[i];
-	            treekey[i]  = treekey_load[i];
-	        }
+				//treekey[i].ind  = treekey_load[i];
+				treekey[i]  = treekey_load[i];
+			}
 
-	        //treekey[0].key = keyval;
-	        treekey[0] = keyval;
-
-
-	    } 
+			//treekey[0].key = keyval;
+			treekey[0] = keyval;
 
 
-	    {
-	        
-	        const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
-	        if(myrank==0){
-	            LOG() << "    Reading TreeKey from " << path;
-	        }
-
-	        std::ifstream in(path, std::ios::binary);
-	        if (!in) {
-	            LOG()<<"load_treekey_bin: cannot open " + path;
-	            u_stop();
-	        }
-
-	        // Read Data Type
-	        std::int32_t gidtag, snaptag, bidtag, mertag;
-	        std::int32_t nbranch, nmerge, fid, stat;
+		} 
 
 
+		{
+			
+			const std::string path = vh.out_dir + "/ctree_tree_" + i4(snap_curr) + ".dat";
+			if(myrank==0){
+				LOG() << "    Reading TreeKey from " << path;
+			}
 
-	        loadtree_read(in, gidtag);
-	        loadtree_read(in, snaptag);
-	        loadtree_read(in, bidtag);
-	        loadtree_read(in, mertag);
-	    
-	        // Read Ntree
-	        std::int64_t ntree, lastind;
-	        loadtree_read(in, ntree);
-	        loadtree_read(in, lastind);
+			std::ifstream in(path, std::ios::binary);
+			if (!in) {
+				LOG()<<"load_treekey_bin: cannot open " + path;
+				u_stop();
+			}
 
-	        //tree.resize(ntree);
-	        
-	        tree.resize(lastind+vh.ctree_nstep);
-	        tree[0].lind = lastind;
-
-	        //for(std::int64_t i=0; i<ntree; i++){
-	        for(std::int64_t i=0; i<tree[0].lind+1; i++){
-
-	            loadtree_read(in, nbranch);
-
-	            tree[i].endind = nbranch-1;
-
-	            if(nbranch <= 0) continue;
-
-	            loadtree_read(in, nmerge);
-	            loadtree_read(in, fid);
-	            loadtree_read(in, stat);
-
-	            tree[i].father_bid = fid;
-	            tree[i].numprog = nmerge;
-	            tree[i].stat 	= stat;
-
-	            tree[i].id.resize(nbranch);
-	            tree[i].snap.resize(nbranch);
-	            tree[i].p_id.resize(nbranch);
-	            tree[i].p_snap.resize(nbranch);
-	            tree[i].p_merit.resize(nbranch);
-
-	            loadtree_vecread<std::int32_t>(in, tree[i].id, nbranch);
-	            loadtree_vecread<std::int32_t>(in, tree[i].snap, nbranch);
-	            loadtree_vecread<std::int32_t>(in, tree[i].p_id, nbranch);
-	            loadtree_vecread<std::int32_t>(in, tree[i].p_snap, nbranch);
-	            loadtree_vecread<double>(in, tree[i].p_merit, nbranch);
-
-	            if(nmerge >= 1){
-	                tree[i].m_id.resize(nmerge);
-	                tree[i].m_snap.resize(nmerge);
-	                tree[i].m_merit.resize(nmerge);
-	                tree[i].m_bid.resize(nmerge);
-
-	                loadtree_vecread<std::int32_t>(in, tree[i].m_id, nmerge);
-	                loadtree_vecread<std::int32_t>(in, tree[i].m_snap, nmerge);
-	                loadtree_vecread<double>(in, tree[i].m_merit, nmerge);
-	                loadtree_vecread<std::int32_t>(in, tree[i].m_bid, nmerge);
-	            }
-
-
-	        }
+			// Read Data Type
+			std::int32_t gidtag, snaptag, bidtag, mertag;
+			std::int32_t nbranch, nmerge, fid, stat;
 
 
 
+			loadtree_read(in, gidtag);
+			loadtree_read(in, snaptag);
+			loadtree_read(in, bidtag);
+			loadtree_read(in, mertag);
+		
+			// Read Ntree
+			std::int64_t ntree, lastind;
+			loadtree_read(in, ntree);
+			loadtree_read(in, lastind);
 
-	    }
+			//tree.resize(ntree);
+			
+			tree.resize(lastind+vh.ctree_nstep);
+			tree[0].lind = lastind;
+
+			//for(std::int64_t i=0; i<ntree; i++){
+			for(std::int64_t i=0; i<tree[0].lind+1; i++){
+
+				loadtree_read(in, nbranch);
+
+				tree[i].endind = nbranch-1;
+
+				if(nbranch <= 0) continue;
+
+				loadtree_read(in, nmerge);
+				loadtree_read(in, fid);
+				loadtree_read(in, stat);
+
+				tree[i].father_bid = fid;
+				tree[i].numprog = nmerge;
+				tree[i].stat 	= stat;
+
+				tree[i].id.resize(nbranch);
+				tree[i].snap.resize(nbranch);
+				tree[i].p_id.resize(nbranch);
+				tree[i].p_snap.resize(nbranch);
+				tree[i].p_merit.resize(nbranch);
+
+				loadtree_vecread<std::int32_t>(in, tree[i].id, nbranch);
+				loadtree_vecread<std::int32_t>(in, tree[i].snap, nbranch);
+				loadtree_vecread<std::int32_t>(in, tree[i].p_id, nbranch);
+				loadtree_vecread<std::int32_t>(in, tree[i].p_snap, nbranch);
+				loadtree_vecread<double>(in, tree[i].p_merit, nbranch);
+
+				if(nmerge >= 1){
+					tree[i].m_id.resize(nmerge);
+					tree[i].m_snap.resize(nmerge);
+					tree[i].m_merit.resize(nmerge);
+					tree[i].m_bid.resize(nmerge);
+
+					loadtree_vecread<std::int32_t>(in, tree[i].m_id, nmerge);
+					loadtree_vecread<std::int32_t>(in, tree[i].m_snap, nmerge);
+					loadtree_vecread<double>(in, tree[i].m_merit, nmerge);
+					loadtree_vecread<std::int32_t>(in, tree[i].m_bid, nmerge);
+				}
+
+
+			}
+
+
+
+
+		}
 	}
 	void savedata(vctree_set::Settings& vh, ControlArray& data, CT_snap snap_curr){
 
 
-	    namespace fs = std::filesystem;
+		namespace fs = std::filesystem;
 
-	    //-----
-	    // Save TreeKey
-	    //-----
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
-	    LOG()<<"    Writing Data in "<<path;
+		//-----
+		// Save TreeKey
+		//-----
+		const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
+		LOG()<<"    Writing Data in "<<path;
 
-	    std::ofstream out(path, std::ios::binary);
-	    if (!out) throw std::runtime_error("save_treekey_bin: cannot open " + path);
+		std::ofstream out(path, std::ios::binary);
+		if (!out) throw std::runtime_error("save_treekey_bin: cannot open " + path);
 
-	    // Data Size
-	    std::int64_t n = static_cast<std::int64_t>(data.size());
-	    out.write(reinterpret_cast<const char*>(&n), sizeof(n));
+		// Data Size
+		std::int64_t n = static_cast<std::int64_t>(data.size());
+		out.write(reinterpret_cast<const char*>(&n), sizeof(n));
 
-	    for(auto d : data){
-	        out.write(reinterpret_cast<const char*>(&d.id), sizeof(d.id));
-	        out.write(reinterpret_cast<const char*>(&d.id0), sizeof(d.id0));
+		for(auto d : data){
+			out.write(reinterpret_cast<const char*>(&d.id), sizeof(d.id));
+			out.write(reinterpret_cast<const char*>(&d.id0), sizeof(d.id0));
 
-	        out.write(reinterpret_cast<const char*>(&d.snap), sizeof(d.snap));
-	        out.write(reinterpret_cast<const char*>(&d.snap0), sizeof(d.snap0));
+			out.write(reinterpret_cast<const char*>(&d.snap), sizeof(d.snap));
+			out.write(reinterpret_cast<const char*>(&d.snap0), sizeof(d.snap0));
 
-	        out.write(reinterpret_cast<const char*>(&d.stat), sizeof(d.stat));
+			out.write(reinterpret_cast<const char*>(&d.stat), sizeof(d.stat));
 
-	        out.write(reinterpret_cast<const char*>(&d.n_ptcl), sizeof(d.n_ptcl));
-	        out.write(reinterpret_cast<const char*>(&d.list_n), sizeof(d.list_n));
+			out.write(reinterpret_cast<const char*>(&d.n_ptcl), sizeof(d.n_ptcl));
+			out.write(reinterpret_cast<const char*>(&d.list_n), sizeof(d.list_n));
 
-	        if(d.list_n>0){
-	        	for(CT_I32 l=0; l<d.list_n; l++){
-	        		out.write(reinterpret_cast<const char*>(&d.list[l].id), sizeof(d.list[l].id));
-	        		out.write(reinterpret_cast<const char*>(&d.list[l].snap), sizeof(d.list[l].snap));
-	        		out.write(reinterpret_cast<const char*>(&d.list[l].merit), sizeof(d.list[l].merit));
-	        	}
-	        }
+			if(d.list_n>0){
+				for(CT_I32 l=0; l<d.list_n; l++){
+					out.write(reinterpret_cast<const char*>(&d.list[l].id), sizeof(d.list[l].id));
+					out.write(reinterpret_cast<const char*>(&d.list[l].snap), sizeof(d.list[l].snap));
+					out.write(reinterpret_cast<const char*>(&d.list[l].merit), sizeof(d.list[l].merit));
+				}
+			}
 
-	        if(d.n_ptcl>0){
-	        	for(auto p:d.p_list){
-	        		out.write(reinterpret_cast<const char*>(&p.pid), sizeof(p.pid));
-	        		out.write(reinterpret_cast<const char*>(&p.gid), sizeof(p.gid));
-	        		out.write(reinterpret_cast<const char*>(&p.weight), sizeof(p.weight));
-	        		out.write(reinterpret_cast<const char*>(&p.n_con), sizeof(p.n_con));
-	        		out.write(reinterpret_cast<const char*>(&p.maxgid), sizeof(p.maxgid));
-	        	}
-	        }
+			if(d.n_ptcl>0){
+				for(auto p:d.p_list){
+					out.write(reinterpret_cast<const char*>(&p.pid), sizeof(p.pid));
+					out.write(reinterpret_cast<const char*>(&p.gid), sizeof(p.gid));
+					out.write(reinterpret_cast<const char*>(&p.weight), sizeof(p.weight));
+					out.write(reinterpret_cast<const char*>(&p.n_con), sizeof(p.n_con));
+					out.write(reinterpret_cast<const char*>(&p.maxgid), sizeof(p.maxgid));
+				}
+			}
 
-	        out.write(reinterpret_cast<const char*>(&d.last_ind), sizeof(d.last_ind));
-	    }
-	      
+			out.write(reinterpret_cast<const char*>(&d.last_ind), sizeof(d.last_ind));
+		}
+		  
 	}
 
 	ControlArray loaddata(vctree_set::Settings& vh, CT_snap snap_curr){
 
 
-	    const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
-	    std::ifstream in(path, std::ios::binary);
-	    if (!in) {
-	        LOG()<<"load_treekey_bin: cannot open " + path;
-	        u_stop();
-	    }
+		const std::string path = vh.out_dir + "/data_" + i4(snap_curr) + ".dat";
+		std::ifstream in(path, std::ios::binary);
+		if (!in) {
+			LOG()<<"load_treekey_bin: cannot open " + path;
+			u_stop();
+		}
 
-	    std::int64_t ndata;
+		std::int64_t ndata;
 
-	    loadtree_read(in, ndata);
+		loadtree_read(in, ndata);
 
-	    
-	    ControlArray data = allocate(vh, ndata);
+		
+		ControlArray data = allocate(vh, ndata);
 
-	    CT_I32 dumint;
-	    CT_ID dumid;
-	    CT_PID dumpid;
-	    CT_snap dumsnap;
-	    CT_Merit dummerit;
+		CT_I32 dumint;
+		CT_ID dumid;
+		CT_PID dumpid;
+		CT_snap dumsnap;
+		CT_Merit dummerit;
 
-	    for(auto &d: data){
+		for(auto &d: data){
 
-	        loadtree_read(in, dumid);
-	        d.id    = dumid;
+			loadtree_read(in, dumid);
+			d.id    = dumid;
 
-	        loadtree_read(in, dumid);
-	        d.id0    = dumid;
+			loadtree_read(in, dumid);
+			d.id0    = dumid;
 
-	        loadtree_read(in, dumsnap);
-	        d.snap    = dumsnap;
+			loadtree_read(in, dumsnap);
+			d.snap    = dumsnap;
 
-	        loadtree_read(in, dumsnap);
-	        d.snap0    = dumsnap;
+			loadtree_read(in, dumsnap);
+			d.snap0    = dumsnap;
 
-	        loadtree_read(in, dumint);
-	        d.stat    = dumint;
+			loadtree_read(in, dumint);
+			d.stat    = dumint;
 
-	        loadtree_read(in, dumint);
-	        d.n_ptcl    = dumint;
+			loadtree_read(in, dumint);
+			d.n_ptcl    = dumint;
 
-	        loadtree_read(in, dumint);
-	        d.list_n    = dumint;
+			loadtree_read(in, dumint);
+			d.list_n    = dumint;
 
-	        if(d.list_n>0){
-	        	for(CT_I32 l=0; l<d.list_n; l++){
-	        		loadtree_read(in, dumid);
-	        		d.list[l].id = dumid;
+			if(d.list_n>0){
+				for(CT_I32 l=0; l<d.list_n; l++){
+					loadtree_read(in, dumid);
+					d.list[l].id = dumid;
 
-	        		loadtree_read(in, dumsnap);
-	        		d.list[l].snap = dumsnap;
+					loadtree_read(in, dumsnap);
+					d.list[l].snap = dumsnap;
 
-	        		loadtree_read(in, dummerit);
+					loadtree_read(in, dummerit);
 					d.list[l].merit = dummerit;
-	        	}
-	        }
+				}
+			}
 
 
-	        if(d.n_ptcl>0){
+			if(d.n_ptcl>0){
 
-	        	PIDArray pdum(d.n_ptcl);
+				PIDArray pdum(d.n_ptcl);
 
-	        	for(CT_I32 l=0; l<d.n_ptcl; l++){
-	        		loadtree_read(in, dumpid);
-	        		pdum[l].pid 	= dumpid;
+				for(CT_I32 l=0; l<d.n_ptcl; l++){
+					loadtree_read(in, dumpid);
+					pdum[l].pid 	= dumpid;
 
-	        		loadtree_read(in, dumid);
-	        		pdum[l].gid 	= dumid;
+					loadtree_read(in, dumid);
+					pdum[l].gid 	= dumid;
 
-	        		loadtree_read(in, dummerit);
-	        		pdum[l].weight 	= dummerit;
+					loadtree_read(in, dummerit);
+					pdum[l].weight 	= dummerit;
 
-	        		loadtree_read(in, dumint);
-	        		pdum[l].n_con 	= dumint;
+					loadtree_read(in, dumint);
+					pdum[l].n_con 	= dumint;
 
-	        		loadtree_read(in, dumid);
-	        		pdum[l].maxgid	= dumid;
-	        	}
+					loadtree_read(in, dumid);
+					pdum[l].maxgid	= dumid;
+				}
 
-	        	d.p_list 	= std::move(pdum);
+				d.p_list 	= std::move(pdum);
 	
-	        }
+			}
 
-	        loadtree_read(in, dumint);
-	        d.last_ind    = dumint;
-	    }
+			loadtree_read(in, dumint);
+			d.last_ind    = dumint;
+		}
 
-	    return data;
+		return data;
 	}
 
 // For debugging tool (MPI vs. Serial)
