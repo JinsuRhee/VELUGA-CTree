@@ -22,7 +22,7 @@ I/O related
    * - out_dir
      - ``string``
      - *(required)*
-     - Path specifier for the output data.
+     - Path for the output data.
 
        The output data are ``ctree_tree.dat`` and ``ctree_key.dat``
 
@@ -55,7 +55,7 @@ I/O related
    * - vr_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = VR``
+     - Path for the catalog data when ``iotype = VR``
 
        **CTree** searches raw VELOCIraptor outputs (e.g., *.catalog.dat0) in directories divided by snapshot numbers
 
@@ -84,7 +84,7 @@ I/O related
    * - veluga_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = VELUGA``
+     - Path for the catalog data when ``iotype = VELUGA``
 
        Path at which ``snap_*`` directories are located
 
@@ -98,7 +98,7 @@ I/O related
    * - hm_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = HM``
+     - Path for the catalog data when ``iotype = HM``
 
        Path at which ``*.bricks`` are located
 
@@ -121,17 +121,17 @@ I/O related
    * - loadtree_ftree
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree branch data when ``loadtree = Y``
+     - Path for the merger tree branch data when ``loadtree = Y``
 
    * - loadtree_fkey
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree key data when ``loadtree = Y``
+     - Path for the merger tree key data when ``loadtree = Y``
 
    * - snapi, snapf
      - ``integer``
      - *(required)*
-     - Snapshot range specifiers. **CTree** loops from ``snapf`` to ``snapi``
+     - Snapshot range identifers. **CTree** loops from ``snapf`` to ``snapi``
 
        A user can also give the snapshot list by a Ascii file with :ref:`snaplist <snaplist-option>`
 
@@ -139,7 +139,7 @@ I/O related
        snaplist
      - ``string``
      - 
-     - File specifier including the list of snapshots (line-by-line).
+     - File identifer including the list of snapshots (line-by-line).
 
        The list is automatically sorted
    
@@ -147,7 +147,7 @@ I/O related
        horg
      - ``h or g``
      - h
-     - A flag for the catalog type (Halo or Galaxy).
+     - Flag for the catalog type (Halo or Galaxy).
 
        It is only used when reading the catalog data (``iotype = VELUGA``).
 
@@ -275,7 +275,7 @@ These options are used when building initial branches based on the connectivity 
    * - tfdir
      - ``string``
      - *(required)*
-     - Path specifier where TreeFrog raw outputs (*.tree) are located
+     - Path where TreeFrog raw outputs (*.tree) are located
 
    * - treedir
      - ``des or prg``
