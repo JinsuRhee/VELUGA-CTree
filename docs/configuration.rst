@@ -186,14 +186,14 @@ Branch related parameters
      - **Default**
      - **Description**
 
-   * - ctree_n_search
+   * - n_search
      - ``integer``
      - 10
      - The number of snapshots to be used in progenitor searches
 
        It determines the size of list tables of branches where candidate progenitor information is written
 
-   * - ctree_meritfrac
+   * - meritfrac
      - ``float``
      - 0.5
      - Fraction to allow a suboptimal later progenitor to be a branch point
@@ -207,19 +207,19 @@ Branch related parameters
      -
      -
 
-   * - ctree_core_n
+   * - core_n
      - ``integer``
      - 10
      - The number of snapshots used when extracting core particles.
 
        ``ctree_core_n`` snapshots with the ``ctree_core_dn`` interval are used
 
-   * - ctree_core_dn
+   * - core_dn
      - ``integer``
      - 5
      - Snapshot interval for the core particle extraction
 
-   * - ctree_minfrac
+   * - core_minfrac
      - ``float``
      - 0.25
      - Fraction to define core particles.

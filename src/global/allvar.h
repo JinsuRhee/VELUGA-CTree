@@ -23,10 +23,10 @@
 namespace vctree_parameters{
 	// array size for the elements of tree arrays
 	//inline int32_t sarr_size = 1000;
-  	//inline int32_t barr_size = 100;
-  	//inline int32_t tarr_size = 10000;
-  	inline int32_t ctree_nstep 	= 10000;
-  	inline int32_t ctree_npid 	= 100000;
+	//inline int32_t barr_size = 100;
+	//inline int32_t tarr_size = 10000;
+	inline int32_t ctree_nstep 	= 10000;
+	inline int32_t ctree_npid 	= 100000;
 }
 
 
@@ -69,9 +69,9 @@ namespace vctree_set{
 		// For VELUGA IO
 		std::string veluga_dir_catalog 	= "./catalog/";   // VELUGA output directory
 		//std::string vr_dir_tree    = "";              // TreeFrog data is stored
-  		
-  		
-  		// For VR IO
+		
+		
+		// For VR IO
 		std::string vr_dir_catalog 	= "./catalog/";   // VELUGA output directory
 		std::string vr_dir_catalog_prefix = "";
 		std::string vr_dir_catalog_suffix = "";
@@ -80,86 +80,86 @@ namespace vctree_set{
 		
 
 
-  		// For HM IO
-  		std::string hm_dir_catalog 	= "./catalog/";
-  		std::vector< std::vector<int32_t> > hm_gpointer;
+		// For HM IO
+		std::string hm_dir_catalog 	= "./catalog/";
+		std::vector< std::vector<int32_t> > hm_gpointer;
 
 
-  		// For Arbitrary IO
+		// For Arbitrary IO
 		std::string any_dir_catalog 	= "./catalog/";   // VELUGA output directory
 		std::string any_dir_catalog_prefix = "";
 		std::string any_dir_catalog_suffix = "";
 		int32_t any_dir_catalog_snapdigit = 4;
 
 
-  		// RAMSES related
-  		//std::string ramses_dir = "";     // unflagged
-  		
+		// RAMSES related
+		//std::string ramses_dir = "";     // unflagged
+		
 
-  		// General settings
-  		int32_t snapi   = 70;              // snapshot range
-  		int32_t snapf   = 200;
-  		std::string snaplist = ""; 		   // snapshot list file
-  		double  meritlimit = 0.001;        // melit lower limit to close the branch
-  		std::string treedir     = "des";   // Tree direction
-  		std::string out_dir     = "";   // Tree direction
-  		int32_t minbranchlength = 10;		// Minimum length of brnach
-
-
-  		// makebr related
-  		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
+		// General settings
+		int32_t snapi   = 70;              // snapshot range
+		int32_t snapf   = 200;
+		std::string snaplist = ""; 		   // snapshot list file
+		double  meritlimit = 0.001;        // melit lower limit to close the branch
+		std::string treedir     = "des";   // Tree direction
+		std::string out_dir     = "";   // Tree direction
+		int32_t minbranchlength = 10;		// Minimum length of brnach
 
 
-  		// complete_tree related
-  		double ctree_minfrac 	= 0.25;
-		double ctree_meritfrac	= 0.5;
-  		int32_t ctree_n_search   = 10;     // number of snapshots to be searched simultaneously
-  		int32_t ctree_core_n   = 10;     // number of branch points (>10) when collecting particles on a existing branch
-  		int32_t ctree_core_dn  = 5;      // dN between the points (corresponding to 200 MYr seems good)
-  		double  ctree_rfact      = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
-  		int32_t ctree_weighttype = 1; 	   // Weighting type (1 :TF )
+		// makebr related
+		int64_t treekey     = 1000;  // 10^n; should be larger than the last snapshot number
 
-  		int32_t makecheck = -1;
-  		int32_t loadcheck = -1;
-  		// TreeFrog I/O related
-  		std::string tag_num     = "";
-  		std::string tag_off     = "";
-  		std::string tag_result  = "";
-  		std::string tag_npart   = "";
-  		std::string tag_merit   = "";
-  		std::string tag_nlink   = "";
-  		std::string tf_dir = "";
 
-  		snapinfo sinfo;
+		// complete_tree related
+		double meritfrac		= 0.5;
+		int32_t n_search   		= 10;     // number of snapshots to be searched simultaneously
+		int32_t core_n   		= 10;     // number of branch points (>10) when collecting particles on a existing branch
+		int32_t core_dn  		= 5;      // dN between the points (corresponding to 200 MYr seems good)
+		double core_minfrac 	= 0.25;
+		//double  ctree_rfact     = 10.;    // Find Candidate galaxies within a sphere of a radius of speed * rfact * dT (10 seems good)
+		int32_t weighttype= 1; 	   // Weighting type (1 :TF )
 
-  		// Some utils
-  		void finalize_paths() {
-  			if (iotype == "VELUGA"){
-  				veluga_dir_catalog = veluga_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
-  			}
-  		}
+		int32_t makecheck = -1;
+		int32_t loadcheck = -1;
+		// TreeFrog I/O related
+		std::string tag_num     = "";
+		std::string tag_off     = "";
+		std::string tag_result  = "";
+		std::string tag_npart   = "";
+		std::string tag_merit   = "";
+		std::string tag_nlink   = "";
+		std::string tf_dir = "";
 
-  		// Read snapshot list
-  		void read_snaplist() {
+		snapinfo sinfo;
+
+		// Some utils
+		void finalize_paths() {
+			if (iotype == "VELUGA"){
+				veluga_dir_catalog = veluga_dir_catalog + (horg=='g' ? "/Galaxy/VR_Galaxy" : "/Halo/VR_Halo");
+			}
+		}
+
+		// Read snapshot list
+		void read_snaplist() {
 			std::vector<int32_t> slist;
 			int32_t maxsnap = -1;
 			if(std::filesystem::exists(snaplist)){
 				std::ifstream file(snaplist);
-		    	std::string line;
-    			int32_t value;
+				std::string line;
+				int32_t value;
 
-    			while (std::getline(file, line)) {
-        			if (line.empty()) continue;
-       				value = std::stoi(line);
-       				slist.push_back(value);
+				while (std::getline(file, line)) {
+					if (line.empty()) continue;
+					value = std::stoi(line);
+					slist.push_back(value);
 
-       				if(value > maxsnap) maxsnap = value;
-        		}
-	        	std::sort(slist.begin(), slist.end());
-    	    	snapi 	= slist[0];
-        		snapf 	= maxsnap;
+					if(value > maxsnap) maxsnap = value;
+				}
+				std::sort(slist.begin(), slist.end());
+				snapi 	= slist[0];
+				snapf 	= maxsnap;
 
-        		file.close();
+				file.close();
 			}else{
 				for(int32_t i=snapi; i<snapf+1; i++){
 					slist.push_back(i);
@@ -178,20 +178,20 @@ namespace vctree_set{
 
 			//----- Allocate key variables
 			if(iotype == "HM"){
-	   			hm_gpointer.resize(snapf+1);
-  			}
+				hm_gpointer.resize(snapf+1);
+			}
 			if(iotype == "VR"){
 				vr_gpointer.resize(snapf+1);
 			}
 		}
 
 
-  		// Bring control varibles
-  		//int32_t sarr_size = vctree_parameters::sarr_size;
-  		//int32_t barr_size = vctree_parameters::barr_size;
-  		//int32_t tarr_size = vctree_parameters::tarr_size;
-  		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
-  		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
+		// Bring control varibles
+		//int32_t sarr_size = vctree_parameters::sarr_size;
+		//int32_t barr_size = vctree_parameters::barr_size;
+		//int32_t tarr_size = vctree_parameters::tarr_size;
+		int32_t ctree_nstep 	= vctree_parameters::ctree_nstep;
+		int32_t ctree_npid 		= vctree_parameters::ctree_npid;
 
 	};
 }
@@ -203,33 +203,33 @@ namespace vctree_set{
 namespace vctree_log{
 	// Extract Filename
 	inline const char* basename_cstr(const char* path) {
-  		const char* base = path;
-  		for (const char* p = path; *p; ++p) {
-    		if (*p == '/' || *p == '\\') base = p + 1;
-  		}
-  		return base;
+		const char* base = path;
+		for (const char* p = path; *p; ++p) {
+			if (*p == '/' || *p == '\\') base = p + 1;
+		}
+		return base;
 	}
 
 	// Time Stamp
 	inline std::string timestamp_yy_mm_dd_ss() {
-  		using namespace std::chrono;
-  		const auto now = system_clock::now();
-  		const auto tt  = system_clock::to_time_t(now);
-  		std::tm tm{};
+		using namespace std::chrono;
+		const auto now = system_clock::now();
+		const auto tt  = system_clock::to_time_t(now);
+		std::tm tm{};
 #if defined(_WIN32)
-  		localtime_s(&tm, &tt);
+		localtime_s(&tm, &tt);
 #else
-  		localtime_r(&tt, &tm);
+		localtime_r(&tt, &tm);
 #endif
-  		std::ostringstream oss;
-  		oss << '[' << std::put_time(&tm, "%y:%m:%d:%S") << ']'; // YY:MM:DD:SS
-  		return oss.str();
+		std::ostringstream oss;
+		oss << '[' << std::put_time(&tm, "%y:%m:%d:%S") << ']'; // YY:MM:DD:SS
+		return oss.str();
 	}
 
 	// Config
 	struct Config {
 #ifdef LOGGER_THREAD_SAFE
-  		std::mutex mu;
+		std::mutex mu;
 #endif
 	};
 
@@ -238,24 +238,24 @@ namespace vctree_log{
 	// Log by line
 	class Line {
 		public:
-  			Line(const char* code, int line) : code_(code), line_(line) {}
-  			~Line() {
+			Line(const char* code, int line) : code_(code), line_(line) {}
+			~Line() {
 #ifdef LOGGER_THREAD_SAFE
-    		std::lock_guard<std::mutex> lock(cfg().mu);
+			std::lock_guard<std::mutex> lock(cfg().mu);
 #endif
-    		std::ostream& out = std::cout;
-    		out << timestamp_yy_mm_dd_ss()
-        		<< " [" << std::setw(16) << code_ << "] "
-        		<< "[" << std::setw(4) << line_ << "] "
-        		<< " " << ss_.str() << "\n";
-  			}
-  			template<typename T>
-  			Line& operator<<(const T& v) { ss_ << v; return *this; }
+			std::ostream& out = std::cout;
+			out << timestamp_yy_mm_dd_ss()
+				<< " [" << std::setw(16) << code_ << "] "
+				<< "[" << std::setw(4) << line_ << "] "
+				<< " " << ss_.str() << "\n";
+			}
+			template<typename T>
+			Line& operator<<(const T& v) { ss_ << v; return *this; }
 
 		private:
-  			const char* code_;
-  			int line_;
-  			std::ostringstream ss_;
+			const char* code_;
+			int line_;
+			std::ostringstream ss_;
 	};
 }
 
@@ -364,27 +364,27 @@ namespace Tree{
 		key.resize(newsize, {-1});
 	}
 
-    inline void in_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_BID ind){
-    	Tree_BID keyval = snap + key[0]*id;
-    	if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
-    	key[keyval]	= ind;
-    }
+	inline void in_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id, Tree_BID ind){
+		Tree_BID keyval = snap + key[0]*id;
+		if(keyval >= (Tree_BID) key.size()) re_key(key, keyval);
+		key[keyval]	= ind;
+	}
 
-    inline Tree_BID get_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
-    	Tree_BID keyval = snap + key[0]*id;
-    	if(keyval >= (Tree_BID) key.size()) return -1;
-    	else return key[keyval];
-    }
+	inline Tree_BID get_key(TreeKeyArray& key, Tree_Snap snap, Tree_GID id){
+		Tree_BID keyval = snap + key[0]*id;
+		if(keyval >= (Tree_BID) key.size()) return -1;
+		else return key[keyval];
+	}
 
-    inline void tree_resize(TreeArray& tree, Tree_BID bid){
-            if( (Tree_BID) tree.size() > bid) return;
+	inline void tree_resize(TreeArray& tree, Tree_BID bid){
+			if( (Tree_BID) tree.size() > bid) return;
 
-            Tree_BID stepsize = 10000 + bid;
+			Tree_BID stepsize = 10000 + bid;
 
-            tree.resize(stepsize);
-            return;
+			tree.resize(stepsize);
+			return;
 
-    }
+	}
 	inline void treeinit(TreeArray& tree, TreeKeyArray& key, 
 		Tree_Snap snap, Tree_GID id){
 
@@ -437,9 +437,9 @@ namespace Tree{
 			LOG()<<"no tree matched: "<<snap<<" / "<<id<<" / "<<rank;
 #ifdef CTREE_USE_MPI
 			int errcode = 1;
-    		MPI_Abort(MPI_COMM_WORLD, errcode);
+			MPI_Abort(MPI_COMM_WORLD, errcode);
 #endif
-    		std::exit(errcode);
+			std::exit(errcode);
 		}else{
 			tree0 = tree[keyval];
 		}
@@ -466,7 +466,7 @@ namespace Tree{
 		keyval_org 	= snap + key[0] * id;
 		//keyval_new 	= to_snap + key[0] * to_id;
 
-    	in_key(key, to_snap, to_id, key[keyval_org]);
+		in_key(key, to_snap, to_id, key[keyval_org]);
 		//key[keyval_new].ind = key[keyval_org].ind;
 		//key[keyval_new] 	= key[keyval_org];
 
@@ -498,8 +498,8 @@ namespace Tree{
 		}else{
 			LOG()<<"Why this happens?";
 			int errcode = 1;
-    		MPI_Abort(MPI_COMM_WORLD, errcode);
-    		std::exit(errcode);
+			MPI_Abort(MPI_COMM_WORLD, errcode);
+			std::exit(errcode);
 		}
 
 	}
@@ -511,8 +511,8 @@ namespace Tree{
 		if(!istree(key, snap, id)){
 			LOG()<<"Why?";
 			int errcode = 1;
-    		MPI_Abort(MPI_COMM_WORLD, errcode);
-    		std::exit(errcode);
+			MPI_Abort(MPI_COMM_WORLD, errcode);
+			std::exit(errcode);
 			return;
 		}
 
@@ -750,46 +750,46 @@ namespace mpi_type {
 	// ---- 32-bit signed ----
 	template<> inline MPI_Datatype type<std::int32_t>() {
 	#ifdef MPI_INT32_T
-    	return MPI_INT32_T;
+		return MPI_INT32_T;
 	#else
-    	if (sizeof(int)  == 4) return MPI_INT;
-    	if (sizeof(long) == 4) return MPI_LONG;
-    	if (sizeof(short)== 4) return MPI_SHORT;
-    	throw std::logic_error("No 32-bit MPI integer type available");
+		if (sizeof(int)  == 4) return MPI_INT;
+		if (sizeof(long) == 4) return MPI_LONG;
+		if (sizeof(short)== 4) return MPI_SHORT;
+		throw std::logic_error("No 32-bit MPI integer type available");
 	#endif
 	}
 
 	// ---- 32-bit unsigned ----
 	template<> inline MPI_Datatype type<std::uint32_t>() {
 	#ifdef MPI_UINT32_T
-	    return MPI_UINT32_T;
+		return MPI_UINT32_T;
 	#else
-	    if (sizeof(unsigned int)  == 4) return MPI_UNSIGNED;
-	    if (sizeof(unsigned long) == 4) return MPI_UNSIGNED_LONG;
-	    if (sizeof(unsigned short)== 4) return MPI_UNSIGNED_SHORT;
-	    throw std::logic_error("No 32-bit MPI unsigned type available");
+		if (sizeof(unsigned int)  == 4) return MPI_UNSIGNED;
+		if (sizeof(unsigned long) == 4) return MPI_UNSIGNED_LONG;
+		if (sizeof(unsigned short)== 4) return MPI_UNSIGNED_SHORT;
+		throw std::logic_error("No 32-bit MPI unsigned type available");
 	#endif
 	}
 
 	// ---- 64-bit signed ----
 	template<> inline MPI_Datatype type<std::int64_t>() {
 	#ifdef MPI_INT64_T
-	    return MPI_INT64_T;
+		return MPI_INT64_T;
 	#else
-	    if (sizeof(long long) == 8) return MPI_LONG_LONG;
-	    if (sizeof(long)      == 8) return MPI_LONG;      // LP64
-	    throw std::logic_error("No 64-bit MPI integer type available");
+		if (sizeof(long long) == 8) return MPI_LONG_LONG;
+		if (sizeof(long)      == 8) return MPI_LONG;      // LP64
+		throw std::logic_error("No 64-bit MPI integer type available");
 	#endif
 	}
 
 	// ---- 64-bit unsigned ----
 	template<> inline MPI_Datatype type<std::uint64_t>() {
 	#ifdef MPI_UINT64_T
-	    return MPI_UINT64_T;
+		return MPI_UINT64_T;
 	#else
-	    if (sizeof(unsigned long long) == 8) return MPI_UNSIGNED_LONG_LONG;
-	    if (sizeof(unsigned long)      == 8) return MPI_UNSIGNED_LONG; // LP64
-	    throw std::logic_error("No 64-bit MPI unsigned type available");
+		if (sizeof(unsigned long long) == 8) return MPI_UNSIGNED_LONG_LONG;
+		if (sizeof(unsigned long)      == 8) return MPI_UNSIGNED_LONG; // LP64
+		throw std::logic_error("No 64-bit MPI unsigned type available");
 	#endif
 	}
 

@@ -95,7 +95,7 @@ namespace Ctree{
 
 		// Initialize List
     	explicit ControlSt(vctree_set::Settings& vh)
-        	: list(vh.ctree_n_search) 
+        	: list(vh.n_search) 
     		{}
 
     	// Free p_list

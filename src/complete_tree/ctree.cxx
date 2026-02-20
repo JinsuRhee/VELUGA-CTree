@@ -270,7 +270,7 @@ namespace Ctree{
 		CT_Merit dind;
 		CT_Merit factor = (0.5772156649 + std::log( (CT_Merit) npart ));
 
-		if(vh.ctree_weighttype == 1){
+		if(vh.weighttype == 1){
 
 #ifdef CTREE_USE_OMP
 			#pragma omp parallel for default(none) \
@@ -349,7 +349,7 @@ namespace Ctree{
 		// resize particle array for exsiting ones for multiple snapshots
 		std::vector<CT_I32> ucut(npid);
 		CT_I32 uncut = 0;
-		CT_I32 n_step_bw0 = vh.ctree_core_n;
+		CT_I32 n_step_bw0 = vh.core_n;
 		while(true){
 			uncut = 0;
 			for(CT_I32 i=0; i<uind_n; i++){
@@ -358,7 +358,7 @@ namespace Ctree{
 					uncut ++;
 				}
 			}
-			if( ((CT_Merit) uncut) / ((CT_Merit) uind_n) > vh.ctree_minfrac) break;
+			if( ((CT_Merit) uncut) / ((CT_Merit) uind_n) > vh.core_minfrac) break;
 			n_step_bw0 --;
 		}
 
@@ -393,7 +393,7 @@ namespace Ctree{
 			data[ind].id = -1;
 			data[ind].snap = -1;
 
-			for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+			for(CT_I32 i=0; i<vh.n_search; i++){
 				data[ind].list[i].merit = -1.;
 				data[ind].list[i].id 	= -1;
 				data[ind].list[i].snap 	= -1;
@@ -404,7 +404,7 @@ namespace Ctree{
 			data[ind].snap 	= s_end;
 
 			ncut = 0;
-			for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+			for(CT_I32 i=0; i<vh.n_search; i++){
 				if(data[ind].list[i].snap < s_end && data[ind].list[i].snap > 0){
 					ncut ++;
 					cut.push_back(i);
@@ -412,7 +412,7 @@ namespace Ctree{
 			}
 
 			if(ncut == 0){
-				for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+				for(CT_I32 i=0; i<vh.n_search; i++){
 					data[ind].list[i].merit = -1.;
 					data[ind].list[i].id 	= -1;
 					data[ind].list[i].snap 	= -1;
@@ -426,8 +426,8 @@ namespace Ctree{
 				}
 				data[ind].list_n	= ncut;
 
-				if(ncut <= vh.ctree_n_search-1){
-					for(CT_I32 i=ncut; i<vh.ctree_n_search; i++){
+				if(ncut <= vh.n_search-1){
+					for(CT_I32 i=ncut; i<vh.n_search; i++){
 						data[ind].list[i].merit = -1.;
 						data[ind].list[i].id 	= -1;
 						data[ind].list[i].snap 	= -1;
@@ -439,7 +439,7 @@ namespace Ctree{
 			data[ind].id 	= id_end;
 			data[ind].snap 	= s_end;
 
-			for(CT_I32 i=0; i<vh.ctree_n_search; i++){
+			for(CT_I32 i=0; i<vh.n_search; i++){
 				data[ind].list[i].merit = -1.;
 				data[ind].list[i].id 	= -1;
 				data[ind].list[i].snap 	= -1;
@@ -539,12 +539,12 @@ namespace Ctree{
 			if(data[i].list[0].snap > 0){
 				ind1 	= wheresnap(sinfo, data[i].list[0].snap);
 			}else{
-				ind1 	= ind0 + vh.ctree_n_search*2;
+				ind1 	= ind0 + vh.n_search*2;
 			}
 
 			// determine
-			//if((ind - ind0) <= vh.ctree_n_search || (ind1-ind0) < vh.ctree_n_search){
-			if( std::abs(ind1 - ind) <= vh.ctree_n_search || std::abs(ind - ind0) <= vh.ctree_n_search) { // best connection is still available within vh.ctree_n_search
+			//if((ind - ind0) <= vh.n_search || (ind1-ind0) < vh.n_search){
+			if( std::abs(ind1 - ind) <= vh.n_search || std::abs(ind - ind0) <= vh.n_search) { // best connection is still available within vh.n_search
 				data[i].stat = 0;
 				number.C ++;
 			} else{
@@ -558,7 +558,7 @@ namespace Ctree{
 				CT_I32 njump = 0;
 				for(CT_I32 j=1; j<data[i].list_n; j++){
 					njump	= data[i].list[j-1].snap - data[i].list[j].snap;
-					if(njump > vh.ctree_n_search){
+					if(njump > vh.n_search){
 						data[i].stat = -1;
 						ctfree(vh, data, i, -1, -1, snap_curr);
 						number.B ++;
@@ -591,7 +591,7 @@ namespace Ctree{
 			}
 
 			
-			gals.resize(vh.ctree_core_n);
+			gals.resize(vh.core_n);
 
 			
 			while(true){
@@ -599,10 +599,10 @@ namespace Ctree{
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	+= vh.ctree_core_dn;
+				ind 	+= vh.core_dn;
 
 				if(ind > tree0.endind) break;
-				if(ncheck >= vh.ctree_core_n) break;
+				if(ncheck >= vh.core_n) break;
 			}
 		}else{
 			CT_I32 ind=0;
@@ -614,17 +614,17 @@ namespace Ctree{
 				}
 			}
 
-			gals.resize(vh.ctree_core_n);
+			gals.resize(vh.core_n);
 
 			while(true){
 				gals[ncheck]	= (IO::r_gal(vh, tree0.snap[ind], tree0.id[ind], true))[0];
 
 				npart 	+= gals[ncheck].pid.size();
 				ncheck ++;
-				ind 	-= vh.ctree_core_dn;
+				ind 	-= vh.core_dn;
 
 				if(ind < 0) break;
-				if(ncheck >= vh.ctree_core_n) break;
+				if(ncheck >= vh.core_n) break;
 			}
 		}
 
@@ -914,10 +914,10 @@ namespace Ctree{
 
 							
 
-		//t_slist.reserve(vh.ctree_n_search);
-		//t_idlist.reserve(vh.ctree_n_search);
+		//t_slist.reserve(vh.n_search);
+		//t_idlist.reserve(vh.n_search);
 		//t_slist.resize();
-		//t_idlist.resize(vh.ctree_n_search);
+		//t_idlist.resize(vh.n_search);
 
 		if(ncut > 0){
 
@@ -1053,7 +1053,7 @@ namespace Ctree{
 			if(owner != rank) continue;
 
 			n0 	= data[ind].list_n;
-			if(n0 >= vh.ctree_n_search) continue;
+			if(n0 >= vh.n_search) continue;
 
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
@@ -1081,7 +1081,7 @@ namespace Ctree{
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			n0 	= data[ind].list_n;
-			if(n0 >= vh.ctree_n_search) continue;
+			if(n0 >= vh.n_search) continue;
 
 			data[ind].list[n0].merit 	= meritcom.merit;
 			data[ind].list[n0].id		= meritcom.id;
@@ -1127,10 +1127,10 @@ namespace Ctree{
 		//	- should be 1 if all particles appear during the selected part of the branch
 		// 	- higher occurance should have a stronger weight
 
-		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.ctree_core_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
+		//CT_Merit factor = ((CT_Merit) 1.) / std::pow( ((CT_Merit) vh.core_n),2.) * std::pow( ((CT_Merit )n_occ),2.);
 
 		CT_Merit factor = 1.;
-		factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.ctree_core_n), 2);
+		factor *= ((CT_Merit )n_occ) / std::pow(((CT_Merit) vh.core_n), 2);
 		// n_occ = (the occurrence of core particles) X (the snapshots used finding core particles) 
 		// first term gives higher occurrrence have stronger weights
 		// second term gives lower weight to short branches
@@ -1249,8 +1249,8 @@ namespace Ctree{
 
 				index0	= wheresnap(sinfo, snap_curr);
 				index1 	= wheresnap(sinfo, modtree.snap[0]);
-				if(std::abs(index0-index1) > vh.ctree_n_search){
-					//modtree.snap[0] > snap_curr + vh.ctree_n_search){
+				if(std::abs(index0-index1) > vh.n_search){
+					//modtree.snap[0] > snap_curr + vh.n_search){
 					data[dind].stat = -1;
 					ctfree(vh, data, dind, -1, -1, snap_curr);
 					Tree::TreeSt& tree0 = tree[com_bid];
@@ -1279,12 +1279,12 @@ int myrank = mpi_rank();
 		//snap_int_cut 	= ind1-ind0-1;
 		//snap_int_cut2 	= ind2-ind1-1;
 
-		//if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
-		//if(snap_int_cut2 >= vh.ctree_n_search) snap_int_cut2 = vh.ctree_n_search;
+		//if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
+		//if(snap_int_cut2 >= vh.n_search) snap_int_cut2 = vh.n_search;
 		//ind1 	= snap_curr;
 		//ind0 	= vh.snapi;
 		snap_int_cut	= ind1-ind0-1;
-		if(snap_int_cut >= vh.ctree_n_search) snap_int_cut = vh.ctree_n_search;
+		if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
 		//----- Extract Target Control whose list is fully filled
 		std::vector<CT_I32> cut(data[0].last_ind+1);
 		CT_I32 ncut = 0;
@@ -1318,7 +1318,7 @@ auto t0 = std::chrono::steady_clock::now();
 			}
 
 			for(CT_I32 j=0; j<data[ind].list_n; j++){
-				if(data[ind].list[j].merit >= vh.ctree_meritfrac*dum_merit){
+				if(data[ind].list[j].merit >= vh.meritfrac*dum_merit){
 					next_point[i].id 	= data[ind].list[j].id;
 					next_point[i].snap 	= data[ind].list[j].snap;
 					next_point[i].merit = data[ind].list[j].merit;
@@ -1333,7 +1333,7 @@ auto t0 = std::chrono::steady_clock::now();
 //					next_point[i].merit = data[ind].list[j].merit;
 //
 //					// link to closer snapshot if the merit scoes is enough high
-//					if(dum_merit >= 0.5 * vh.ctree_minfrac) break;
+//					if(dum_merit >= 0.5 * vh.core_minfrac) break;
 //				}
 			}
 		}
@@ -1532,7 +1532,7 @@ t0 = std::chrono::steady_clock::now();
 					}
 				}
 
-				if(list_ind == vh.ctree_n_search-1){
+				if(list_ind == vh.n_search-1){
 					data[cut[i]].stat = -1;
 					tree0.stat 	= -2;
 					
@@ -1791,7 +1791,7 @@ t0 = std::chrono::steady_clock::now();
 
 							index0	= wheresnap(sinfo, snap_curr);
 							index1 	= wheresnap(sinfo, lsnap);
-							if(std::abs(index0-index1) > vh.ctree_n_search){
+							if(std::abs(index0-index1) > vh.n_search){
 								job4type[0] = 2;
 
 								// this to be updated in the future
@@ -2251,7 +2251,7 @@ t0 = std::chrono::steady_clock::now();
 			}
 		}
 
-		if(list_ind == vh.ctree_n_search-1){
+		if(list_ind == vh.n_search-1){
 			data[job.ind].stat = -1;
 			ctfree(vh, data, job.ind, -1, -1, snap_curr);
 		}else{
@@ -2569,7 +2569,7 @@ t0 = std::chrono::steady_clock::now();
 		// Some warning message
 		//-----
 
-		if(myrank==0 && vh.iotype = "HM"){
+		if(myrank == 0 && vh.iotype == "HM"){
 			LOG()<<" CTree assumes that HMaker has PID with int32";
 		}
 
@@ -2640,8 +2640,8 @@ t0 = std::chrono::steady_clock::now();
 
 			if(myrank==0)LOG() <<"      TREE CONNECTION AT SNAP "<<i4(sinfo[i].snum)<<" for "<<i6(data[0].last_ind+1)<<" galaxies";
 
-			if(vh.ctree_loadcheck > 0){
-				if(sinfo[i].snum > vh.ctree_loadcheck) continue;
+			if(vh.loadcheck > 0){
+				if(sinfo[i].snum > vh.loadcheck) continue;
 
 				if(skip_load < 0){
 #ifdef CTREE_USE_MPI
@@ -2651,10 +2651,10 @@ t0 = std::chrono::steady_clock::now();
 					//for(int j=0; j<size; j++){
 					//	if(j==myrank){
 #endif
-							ControlArray data2 = loaddata(vh, vh.ctree_loadcheck);
+							ControlArray data2 = loaddata(vh, vh.loadcheck);
 							Tree::TreeArray tree2;
 							Tree::TreeKeyArray key2;
-							loadtree_ctree(vh, tree2, key2, vh.ctree_loadcheck);
+							loadtree_ctree(vh, tree2, key2, vh.loadcheck);
 							data    = std::move(data2);
 							tree    = std::move(tree2);
 							key     = std::move(key2);
