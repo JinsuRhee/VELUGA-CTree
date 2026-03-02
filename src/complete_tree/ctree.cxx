@@ -1644,6 +1644,11 @@ t0 = std::chrono::steady_clock::now();
 			check_overlap(NEXT_T, thisjob, thisjob.tind2, ind, cut, next_point, islink, rank_index);
 			ncut 	= cut.size(); // update ncut
 			
+			// Remove a que for overlapped ones (ind+dind & tind + tind2)
+			check_overlap2(NEXT_T, thisjob, thisjob.ind, thisjob.dind, ind, cut, next_point, islink, rank_index);
+			check_overlap2(NEXT_T, thisjob, thisjob.tind, thisjob.tind2, ind, cut, next_point, islink, rank_index);
+			ncut 	= cut.size(); // update ncut
+
 			// Gather que
 			int owner;
 			owner = thisjob.ind % size;
@@ -2084,7 +2089,103 @@ t0 = std::chrono::steady_clock::now();
 
 	}
 
-	
+	void check_overlap2(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 jobind2, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index){
+		int rank, size;
+		MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+		MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+		
+
+		// collect jobind
+		std::vector<CT_I32> all_ind_a(size), all_ind_b(size);
+		MPI_Allgather(&jobind, 1, MPI_INT, all_ind_a.data(), 1, MPI_INT, MPI_COMM_WORLD);
+		MPI_Allgather(&jobind2, 1, MPI_INT, all_ind_b.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+
+		// sort
+		std::vector<std::pair<CT_I32,int>> pairs;
+		pairs.reserve(size*2);
+		for (int r = 0; r < size; ++r) {
+			if(all_ind_a[r]>=0) pairs.emplace_back(all_ind_a[r], r);
+			if(all_ind_b[r]>=0) pairs.emplace_back(all_ind_b[r], r);
+		}
+
+		//pairs.erase(std::remove_if(pairs.begin(), pairs.end(),
+		//				   [](const auto& p){ return p.first < 0; }),
+		//	pairs.end());
+
+
+		std::sort(pairs.begin(), pairs.end(),
+			  [](const auto& a, const auto& b){
+				  if (a.first != b.first) return a.first < b.first;
+				  return a.second < b.second;
+			  });
+
+		// winner or loser
+		std::vector<char> is_loser(size, 0);
+		//bool any_dup = false;
+
+		for (int i = 0; i < (int) pairs.size(); ) {
+			int j = i + 1;
+			while (j < (int) pairs.size() && pairs[j].first == pairs[i].first) ++j;
+
+			// [i, j) : same ind group
+			if (j - i > 1) {
+				//any_dup = true;
+				// i is winner, i+1..j-1 loser
+				for (int k = i + 1; k < j; ++k) {
+					int loser_rank = pairs[k].second;
+					is_loser[loser_rank] = 1;
+				}
+			}
+			i = j;
+		}
+
+		// send ind of loser
+		int sendcnt = is_loser[rank] ? 1 : 0;
+		std::vector<int> recvcnts(size);
+		MPI_Allgather(&sendcnt, 1, MPI_INT, recvcnts.data(), 1, MPI_INT, MPI_COMM_WORLD);
+
+		std::vector<int> displs(size, 0);
+		int total = 0;
+		for (int i = 0; i < size; ++i) {
+			displs[i] = total;
+			total    += recvcnts[i];
+		}
+
+		std::vector<CT_I32> gathered_loser_inds(total);
+		MPI_Allgatherv(is_loser[rank] ? &ind : nullptr, sendcnt, MPI_INT,
+				   gathered_loser_inds.data(), recvcnts.data(), displs.data(), MPI_INT,
+				   MPI_COMM_WORLD);
+
+		// push back to cut
+		cut.insert(cut.end(), gathered_loser_inds.begin(), gathered_loser_inds.end());
+
+		// append next_array
+		NextArray recv_next(total);
+		NextSt local_next_elem	= next_point[rank_index];
+		if (total > 0) {
+			MPI_Allgatherv(is_loser[rank] ? &local_next_elem : nullptr, sendcnt, NEXT_T,
+				recv_next.data(), recvcnts.data(), displs.data(), NEXT_T, MPI_COMM_WORLD);
+			next_point.insert(next_point.end(), recv_next.begin(), recv_next.end());
+		}
+
+		// append islink
+		std::vector<CT_I32> recv_islink(total);
+		CT_I32 local_islink = islink[rank_index];
+		if (total > 0) {
+			MPI_Allgatherv(is_loser[rank] ? &local_islink : nullptr, sendcnt, MPI_INT, 
+				recv_islink.data(), recvcnts.data(), displs.data(), MPI_INT, MPI_COMM_WORLD);
+
+			islink.insert(islink.end(), recv_islink.begin(), recv_islink.end());
+		}
+
+		// change job for loser
+		if(is_loser[rank] == 1){
+			init_job(thisjob);
+		}
+
+	}
 
 //		CT_I32 local_ind[2] = {thisjob.ind, thisjob.dind};
 //		
