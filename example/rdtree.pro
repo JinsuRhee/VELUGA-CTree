@@ -77,17 +77,18 @@ FUNCTION rdtree_rdtree, fname, rddump=rddump
 		idtmp 		= rdtree_mkarray(nbranch, gidtag)
 		snaptmp		= rdtree_mkarray(nbranch, snaptag)
 
-		IF rddump EQ 1L THEN BEGIN
-			pidtmp		= rdtree_mkarray(nbranch, gidtag)
-			psnaptmp	= rdtree_mkarray(nbranch, snaptag)
-		ENDIF
-
 		mertmp 		= rdtree_mkarray(nbranch, mertag)
 		
 		READU, 1, idtmp
 		READU, 1, snaptmp
-		;READU, 1, pidtmp
-		;READU, 1, psnaptmp
+
+		IF rddump EQ 1L THEN BEGIN
+			pidtmp		= rdtree_mkarray(nbranch, gidtag)
+			psnaptmp	= rdtree_mkarray(nbranch, snaptag)
+			READU, 1, pidtmp
+			READU, 1, psnaptmp
+		ENDIF
+
 		READU, 1, mertmp
 
 		IF nmerge GE 1L THEN BEGIN
@@ -131,7 +132,11 @@ PRO rdtree, rddump=rddump
 	varname 		= './ctree.sav'
 
 	tree_key		= rdtree_rdkey(treename)
-	tree_data		= rdtree_rdtree(keyname, rddump)
+	IF KEYWORD_SET(rddump) THEN BEGIN
+		tree_data 	= rdtree_rdtree(keyname, /rddump)
+	ENDIF ELSE BEGIN
+		tree_data	= rdtree_rdtree(keyname)
+	ENDELSE
 
 
 	SAVE, filename=varname, tree_key, tree_data
