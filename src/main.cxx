@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
   	if(myrank == 0) LOG() <<"  Configuration Loaded";
   }
 
+  if(myrank == 0) print_config(vh);
   //-----
   // Read snapshot list
   //-----

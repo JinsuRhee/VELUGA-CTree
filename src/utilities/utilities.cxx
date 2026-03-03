@@ -28,6 +28,32 @@ bool u_printlogo() {
 	return true;
 }
 
+// For configuration output
+void print_config(vctree_set::Settings& vh){
+	LOG()<<"//-----";
+	LOG()<<"// Summary of the input configuration option";
+	LOG()<<"//-----";
+	LOG()<<"		";
+	LOG()<<"		* iotype = "<<vh.iotype;
+	LOG()<<"		* loadtree = "<<vh.loadtree;
+	if(vh.loadtree == "Y"){
+		LOG()<<"			tree = "<<vh.loadtree_ftree;
+		LOG()<<"			tkey =  "<<vh.loadtree_fkey;
+	}
+	LOG()<<" ";
+	LOG()<<"		* horg = "<<vh.horg;
+	LOG()<<"		* snapi = "<<vh.snapi;
+	LOG()<<"		* snapf = "<<vh.snapf;
+	LOG()<<"		* makecheck = "<<vh.makecheck;
+	LOG()<<"		* loadcheck = "<<vh.loadcheck;
+	LOG()<<" ";
+	LOG()<<"		* meritfrac = "<<vh.meritfrac;
+	LOG()<<"		* n_search = "<<vh.n_search;
+	LOG()<<"		* core_n = "<<vh.core_n;
+	LOG()<<"		* core_dn = "<<vh.core_dn;
+	LOG()<<"		* core_minfrac = "<<vh.core_minfrac;
+	LOG()<<"//-----";
+}
 // For Initial Run stat Check
 bool u_initialcheck(int argc) {
 	if (argc < 2) {
