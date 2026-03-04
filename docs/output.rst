@@ -200,7 +200,7 @@ The following script shows how to load the tree arrays and extract a branch of a
        print(branch['father_ID']) # If this branch is merged, the father branch index.
                                   # The corresponding branch is tree[branch['father_ID']]
        
-       print(branch['n_mergerbr']) # The number of branches that merged into this one
+       print(branch['n_mergebr']) # The number of branches that merged into this one
        print(branch['m_id']) # ID list of the merged branches
        print(branch['m_snap']) # Snapshot list of the merged branches
        print(branch['m_merit']) # Merit of mergers
@@ -245,7 +245,7 @@ IDL
       PRINT, tree0.father_ID  ; If this branch is merged, the father branch index.
                               ; The corresponding branch is tree[branch['father_ID']]
        
-      PRINT, tree0.n_mergerbr ; The number of branches that merged into this one
+      PRINT, tree0.n_mergebr ; The number of branches that merged into this one
       PRINT, tree0.m_id       ; ID list of the merged branches
       PRINT, tree0.m_snap     ; Snapshot list of the merged branches
       PRINT, tree0.m_merit    ; Merit of mergers
