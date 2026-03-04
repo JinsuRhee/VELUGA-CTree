@@ -1601,6 +1601,20 @@ if(myrank == 0){
 		CT_ID id_to_link;
 		CT_Merit merit_to_link;
 		
+		// Delete null index
+		// Seems to imporve performance but found to have some bugs (pended)
+//		CT_I32 remindex = 0;
+//		cut.erase(
+//			std::remove_if(cut.begin(), cut.end(), 
+//				[&](CT_I32 x){
+//					bool remove = data[x].stat == -1 || islink[remindex] < 0;
+//					remindex ++;
+//					return remove;
+//				}
+//			), cut.end()
+//		);
+//		ncut 	= cut.size();
+
 		ind = 0;
 t0 = std::chrono::steady_clock::now();
 

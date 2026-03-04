@@ -468,6 +468,7 @@ namespace Tree{
 		// debugging for tree order
 		if(treedum.snap[0] <= to_snap){
 			LOG()<<"mis ordering in tree array :"<<keyval_org<<" / "<<snap<<" / "<<id;
+			LOG()<<" from "<<treedum.snap[0]<<" / "<<treedum.id[0];
 			LOG()<<" to "<<to_snap<<" / "<<to_id;
 #ifdef CTREE_USE_MPI
 			int errcode = 1;

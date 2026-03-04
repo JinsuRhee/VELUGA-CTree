@@ -52,7 +52,9 @@ class rdctree:
 			bidtag 	= np.fromfile(f, dtype=np.int32, count=1)
 			mertag 	= np.fromfile(f, dtype=np.int32, count=1)
 
-			if(self.rddump) ntree 	= np.fromfile(f, dtype=np.int64, count=1)
+			if(self.rddump):
+				ntree = np.fromfile(f, dtype=np.int64, count=1)
+				
 			lind 	= np.fromfile(f, dtype=np.int64, count=1)
 
 
@@ -140,7 +142,7 @@ def main(argv=None):
 	DEFAULT_KEY 		= reader.keyname
 	DEFAULT_TREE 		= reader.treename
 	DEFAULT_OUT 		= reader.varname
-	DEFULAT_DUMP 		= reader.rddump
+	DEFAULT_DUMP 		= reader.rddump
 
 	parser = argparse.ArgumentParser(
 		description="Read CTree binary outputs (ctree_key.dat, ctree_tree.dat)."
