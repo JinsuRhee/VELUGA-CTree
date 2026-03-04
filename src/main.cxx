@@ -51,9 +51,6 @@ int main(int argc, char** argv) {
     	u_stop();
     } else{
     	LOG()  << "Program starts";
-
-    	// TODO 123123
-    	// Basic spec info will be printed here
     }
   }
 
@@ -68,10 +65,6 @@ int main(int argc, char** argv) {
   }
 
   if(myrank == 0) print_config(vh);
-  //-----
-  // Read snapshot list
-  //-----
-
 
 
   //-----
@@ -123,7 +116,6 @@ int main(int argc, char** argv) {
   //-----
   // Save Tree
   //-----
-
   if(myrank == 0){
     LOG() <<"  Save the Tree & Key";
     if(myrank == 0) savetree_base(vh, tree, key, false);
