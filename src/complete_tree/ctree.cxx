@@ -158,7 +158,7 @@ namespace Ctree{
 		return share;
 	}
 
-// for memory efficient ver
+	// for memory efficient ver
 	MeritSt get_merit3(SnapPT& pid0, PIDArray& pid, CT_I32 merittype){
 
 		CT_I32 np_snap = pid0.pid.size();
@@ -555,15 +555,22 @@ namespace Ctree{
 			}
 
 			// if there is a too big jump
-			if(data[i].list_n >= 2){
-				CT_I32 njump = 0;
-				for(CT_I32 j=1; j<data[i].list_n; j++){
-					njump	= data[i].list[j-1].snap - data[i].list[j].snap;
-					if(njump > vh.n_search){
-						data[i].stat = -1;
-						ctfree(vh, data, i, -1, -1, snap_curr);
-						number.B ++;
-					}
+			//if(data[i].list_n >= 2){
+			//	CT_I32 njump = 0;
+			//	for(CT_I32 j=1; j<data[i].list_n; j++){
+			//		njump	= data[i].list[j-1].snap - data[i].list[j].snap;
+			//		if(njump > vh.n_search){
+			//			data[i].stat = -1;
+			//			ctfree(vh, data, i, -1, -1, snap_curr);
+			//			number.B ++;
+			//		}
+			//	}
+			//}
+			if(data[i].list_n>=1){
+				if(std::abs(data[i].snap - data[i].list[0].snap) > vh.n_search){
+					data[i].stat = -1;
+					ctfree(vh, data, i, -1, -1, snap_curr);
+					number.B ++;
 				}
 			}
 
@@ -1545,14 +1552,29 @@ t0 = std::chrono::steady_clock::now();
 
 					ctfree(vh, data, cut[i], -1, -1, snap_curr);
 				}else{
-					for(CT_I32 j=list_ind+1; j<data[cut[i]].list_n; j++){
-						data[cut[i]].list[j-1] = data[cut[i]].list[j];
+
+					// move the left list table to the first
+					data[cut[i]].list_n = vh.n_search - list_ind - 1;
+					for(CT_I32 j=0; j<data[cut[i]].list_n; j++){
+						data[cut[i]].list[j] = data[cut[i]].list[j+list_ind+1];
+					}
+					for(CT_I32 j=data[cut[i]].list_n; j<vh.n_search; j++){
+						data[cut[i]].list[j].id 	= -1;
+						data[cut[i]].list[j].snap 	= -1;
+						data[cut[i]].list[j].merit 	= -1.;
 					}
 
-					data[cut[i]].list[data[cut[i]].list_n-1].id 	= -1;
-					data[cut[i]].list[data[cut[i]].list_n-1].snap 	= -1;
-					data[cut[i]].list[data[cut[i]].list_n-1].merit  = -1.;
-					data[cut[i]].list_n --;
+
+					//for(CT_I32 j=list_ind+1; j<data[cut[i]].list_n; j++){
+					//	//data[cut[i]].list[j-1] = data[cut[i]].list[j];
+					//	data[cut[i]].list[j-(list_ind+1)] = data[cut[i]].list[j];
+					//}
+
+					//data[cut[i]].list[data[cut[i]].list_n-1].id 	= -1;
+					//data[cut[i]].list[data[cut[i]].list_n-1].snap 	= -1;
+					//data[cut[i]].list[data[cut[i]].list_n-1].merit  = -1.;
+					//data[cut[i]].list_n --;
+
 					//data[cut[i]].list.erase(data[cut[i]].list.begin() + list_ind);
 					//data[cut[i]].list.resize(data[cut[i]].list.size() + 1);				
 					//data[cut[i]].list_n --;
@@ -2370,15 +2392,26 @@ t0 = std::chrono::steady_clock::now();
 			data[job.ind].stat = -1;
 			ctfree(vh, data, job.ind, -1, -1, snap_curr);
 		}else{
-
-			for(CT_I32 j=list_ind+1; j<data[job.ind].list_n; j++){
-				data[job.ind].list[j-1] = data[job.ind].list[j];
+			data[job.ind].list_n = vh.n_search - list_ind - 1;
+			
+			for(CT_I32 j=0; j<data[job.ind].list_n; j++){
+				data[job.ind].list[j] = data[job.ind].list[j+list_ind+1];
+			}
+			for(CT_I32 j=data[job.ind].list_n; j<vh.n_search; j++){
+				data[job.ind].list[j].id 	= -1;
+				data[job.ind].list[j].snap 	= -1;
+				data[job.ind].list[j].merit 	= -1.;
 			}
 
-			data[job.ind].list[data[job.ind].list_n-1].id 		= -1;
-			data[job.ind].list[data[job.ind].list_n-1].snap 	= -1;
-			data[job.ind].list[data[job.ind].list_n-1].merit 	= -1.;
-			data[job.ind].list_n --;
+			//for(CT_I32 j=list_ind+1; j<data[job.ind].list_n; j++){
+			//	data[job.ind].list[j-1] = data[job.ind].list[j];
+			//}
+
+			//data[job.ind].list[data[job.ind].list_n-1].id 		= -1;
+			//data[job.ind].list[data[job.ind].list_n-1].snap 	= -1;
+			//data[job.ind].list[data[job.ind].list_n-1].merit 	= -1.;
+			//data[job.ind].list_n --;
+
 			//data[job.ind].list.erase( data[job.ind].list.begin() + list_ind);
 			//data[job.ind].list.resize(data[job.ind].list.size() + 1);
 			//data[job.ind].list_n --;
@@ -3863,7 +3896,7 @@ t0 = std::chrono::steady_clock::now();
 		out.write(reinterpret_cast<const char*>(&n), sizeof(n));
 
 		// PID type
-		std::int64_t pt = static_cast<std::int32_t>(sizeof(CT_PID));
+		std::int64_t pt = static_cast<std::int64_t>(sizeof(CT_PID));
 		out.write(reinterpret_cast<const char*>(&pt), sizeof(pt));
 
 		for(auto d : data){
@@ -3921,10 +3954,10 @@ t0 = std::chrono::steady_clock::now();
 		// PID type
 		std::int64_t pt;
 		loadtree_read(in, pt);
-		if(pt != sizeof(CT_PID)){
+		if(sizeof(pt) != sizeof(CT_PID)){
 			LOG()<<"	Particle ID type is not matched";
 			LOG()<<"		compiled = "<<sizeof(CT_PID);
-			LOG()<<"		saved = "<<pt;
+			LOG()<<"		saved = "<<sizeof(pt);
 		}
 		
 		ControlArray data = allocate(vh, ndata);
