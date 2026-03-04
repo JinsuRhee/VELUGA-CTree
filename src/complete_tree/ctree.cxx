@@ -41,6 +41,7 @@ namespace Ctree{
 
 
 		if(!istree){
+#ifdef CTREE_USE_MPI
 			int rank = 0, size = 1;
 			MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 			MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -51,10 +52,10 @@ namespace Ctree{
 				}
 				MPI_Barrier(MPI_COMM_WORLD);
 			}
-			
+#else			
 			u_stop();
-
-			makenewbr(vh, data, ind, data[ind].snap, data[ind].id, tree, key);
+#endif
+			//makenewbr(vh, data, ind, data[ind].snap, data[ind].id, tree, key);
 		}
 
 		Tree::treeinput(tree, key, data[ind].snap0, data[ind].id0, snap_to_link, id_to_link, merit_to_link);
@@ -1595,7 +1596,6 @@ if(myrank == 0){
 }
 
 
-//456456
 		// Link to a next checkpoint
 		CT_snap snap_to_link;
 		CT_ID id_to_link;
