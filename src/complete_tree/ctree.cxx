@@ -1282,6 +1282,8 @@ namespace Ctree{
 double howlong1, howlong2, howlong3, howlong4, howlong5;
 int myrank = mpi_rank();
 		
+		CT_I32 ind;
+
 		//----- Extract Target Control whose list is fully filled
 		std::vector<CT_I32> cut(data[0].last_ind+1);
 		CT_I32 ncut = 0;
@@ -1507,7 +1509,7 @@ t0 = std::chrono::steady_clock::now();
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(none) \
 			private(tree0, keyval) \
-			shared(ncut, islink, data, cut, next_point, snap_curr, vh, key, tree, snap_int_cut)
+			shared(ncut, islink, data, cut, next_point, snap_curr, vh, key, tree)
 #endif
 		for(CT_I32 i=0; i<ncut; i++){
 			keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
