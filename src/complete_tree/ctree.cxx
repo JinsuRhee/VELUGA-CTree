@@ -1515,7 +1515,7 @@ t0 = std::chrono::steady_clock::now();
 #ifdef CTREE_USE_OMP
 		#pragma omp parallel for default(none) \
 			private(tree0, keyval) \
-			shared(ncut, islink, data, cut, next_point, snap_curr, vh, key, tree)
+			shared(ncut, islink, data, cut, next_point, snap_curr, vh, key, tree, snap_int_cut)
 #endif
 		for(CT_I32 i=0; i<ncut; i++){
 			keyval 	= Tree::get_key(key, data[cut[i]].snap0, data[cut[i]].id0);
@@ -1714,7 +1714,7 @@ t0 = std::chrono::steady_clock::now();
 			if(job_tind.size()>0){
 				for(auto j:job_tind){
 					if(j.jobnum != 1) continue;
-					DoJob1b(vh, tree, key, data, j);
+					DoJob1b(tree, key, data, j);
 				}
 			}
 
@@ -2338,7 +2338,7 @@ t0 = std::chrono::steady_clock::now();
 		ctfree(vh, data, job.ind, job.snap, job.id, snap_curr);
 	}
 
-	void DoJob1b(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){		// tree[ tind ]
+	void DoJob1b(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){		// tree[ tind ]
 		expandbr(data, job.ind, tree, key, job.id, job.snap, job.merit);
 		// tree[ tind ]
 	}
@@ -2381,7 +2381,7 @@ t0 = std::chrono::steady_clock::now();
 	void DoJob3a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr){
 		// data [ ind ]
 		CT_I32 snap_int_cut, ind0, ind1;
-		
+
 		ind1 	= wheresnap(vh.sinfo, snap_curr);
 		ind0 	= wheresnap(vh.sinfo, (CT_snap) vh.snapi);
 		snap_int_cut	= ind1-ind0-1;

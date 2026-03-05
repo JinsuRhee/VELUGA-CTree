@@ -210,7 +210,7 @@ namespace Ctree{
     void DoJob4(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, LinkJob& job, IO::snapinfo& sinfo, CT_snap snap_curr);
 
     void DoJob1a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr);
-    void DoJob1b(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
+    void DoJob1b(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
 
     void DoJob2a(vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_snap snap_curr);
 	void DoJob2b(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_snap snap_curr);
