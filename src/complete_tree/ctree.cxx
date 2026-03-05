@@ -1061,7 +1061,7 @@ namespace Ctree{
 			if(owner != rank) continue;
 
 			n0 	= data[ind].list_n;
-			if(n0 >= vh.n_search) continue;
+			if(n0 >= vh.n_search2) continue;
 
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
@@ -2783,15 +2783,18 @@ t0 = std::chrono::steady_clock::now();
 
 			if(myrank==0)LOG() <<"      TREE CONNECTION AT SNAP "<<i4(sinfo[i].snum)<<" for "<<i6(data[0].last_ind+1)<<" galaxies";
 
+			//Adjust n_search2
+			CT_I32 ind0, ind1, snap_int_cut;
+			ind1    = wheresnap(sinfo, sinfo[i].snum);
+			ind0    = wheresnap(sinfo, (CT_snap) vh.snapi);
+			snap_int_cut    = ind1-ind0+1;
+ 			if(snap_int_cut < vh.n_search) vh.n_search2 = snap_int_cut;
+
+
 			if(vh.loadcheck > 0){
 				if(sinfo[i].snum > vh.loadcheck) continue;
 
-				//Adjust _search2
-				CT_I32 ind0, ind1, snap_int_cut;
-				ind1    = wheresnap(sinfo, sinfo[i].snum);
-				ind0    = wheresnap(sinfo, (CT_snap) vh.snapi);
-				snap_int_cut    = ind1-ind0+1;
- 				if(snap_int_cut < vh.n_search) vh.n_search2 = snap_int_cut;
+				
 
 
 
