@@ -2380,10 +2380,11 @@ t0 = std::chrono::steady_clock::now();
 
 	void DoJob3a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr){
 		// data [ ind ]
-
+		CT_I32 snap_int_cut, ind0, ind1;
+		
 		ind1 	= wheresnap(vh.sinfo, snap_curr);
 		ind0 	= wheresnap(vh.sinfo, (CT_snap) vh.snapi);
-		CT_I32 snap_int_cut	= ind1-ind0-1;
+		snap_int_cut	= ind1-ind0-1;
 		if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
 
 		CT_I32 list_ind=0;
