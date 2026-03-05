@@ -170,6 +170,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     }
   }
 
+  vh.n_search2 = vh.n_search;
   vh.finalize_paths();
   vh.read_snaplist();
 

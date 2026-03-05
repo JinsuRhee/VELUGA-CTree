@@ -1091,7 +1091,8 @@ namespace Ctree{
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
 			n0 	= data[ind].list_n;
-			if(n0 >= vh.n_search) continue;
+			if(n0 >= vh.n_search2) continue;
+			if(meritcom.merit == 0) continue;
 
 			data[ind].list[n0].merit 	= meritcom.merit;
 			data[ind].list[n0].id		= meritcom.id;
@@ -1280,28 +1281,19 @@ namespace Ctree{
 
 double howlong1, howlong2, howlong3, howlong4, howlong5;
 int myrank = mpi_rank();
-		CT_I32 ind, ind0, ind1, snap_int_cut;
-
-		ind1 	= wheresnap(sinfo, snap_curr);
-		ind0 	= wheresnap(sinfo, (CT_snap) vh.snapi);
-		//ind2 	= wheresnap(sinfo, (CT_I32) vh.snapf);
-
-		//snap_int_cut 	= ind1-ind0-1;
-		//snap_int_cut2 	= ind2-ind1-1;
-
-		//if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
-		//if(snap_int_cut2 >= vh.n_search) snap_int_cut2 = vh.n_search;
-		//ind1 	= snap_curr;
-		//ind0 	= vh.snapi;
-		snap_int_cut	= ind1-ind0-1;
-		if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
+		
 		//----- Extract Target Control whose list is fully filled
 		std::vector<CT_I32> cut(data[0].last_ind+1);
 		CT_I32 ncut = 0;
 		for(CT_I32 i=0; i<data[0].last_ind+1; i++){
-			if(data[i].stat == 0 && data[i].list_n >= snap_int_cut && data[i].list_n > 0){
+			if(data[i].stat == 0 && data[i].list_n == vh.n_search2 && data[i].list_n > 0){
 				cut[ncut] 	= i;
 				ncut ++;
+			}
+
+			if(data[i].list_n > vh.n_search2){
+				LOG()<<"This should not be happened: "<<i<<" / "<<data[i].list_n<<" / "<<vh.n_search2;
+				u_stop();
 			}
 		}
 
@@ -1542,7 +1534,7 @@ t0 = std::chrono::steady_clock::now();
 					}
 				}
 
-				if(list_ind == vh.n_search-1){
+				if(list_ind == vh.n_search2-1){
 					data[cut[i]].stat = -1;
 					tree0.stat 	= -2;
 					
@@ -1556,7 +1548,7 @@ t0 = std::chrono::steady_clock::now();
 				}else{
 
 					// move the left list table to the first
-					data[cut[i]].list_n = snap_int_cut - list_ind - 1;
+					data[cut[i]].list_n = vh.n_search2 - list_ind - 1;
 					for(CT_I32 j=0; j<data[cut[i]].list_n; j++){
 						data[cut[i]].list[j] = data[cut[i]].list[j+list_ind+1];
 					}
@@ -1834,7 +1826,7 @@ t0 = std::chrono::steady_clock::now();
 
 							index0	= wheresnap(sinfo, snap_curr);
 							index1 	= wheresnap(sinfo, lsnap);
-							if(std::abs(index0-index1) > vh.n_search){
+							if(std::abs(index0-index1) > vh.n_search2){
 								job4type[0] = 2;
 
 								// this to be updated in the future
@@ -2380,13 +2372,6 @@ t0 = std::chrono::steady_clock::now();
 
 	void DoJob3a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr){
 		// data [ ind ]
-		CT_I32 snap_int_cut, ind0, ind1;
-
-		ind1 	= wheresnap(vh.sinfo, snap_curr);
-		ind0 	= wheresnap(vh.sinfo, (CT_snap) vh.snapi);
-		snap_int_cut	= ind1-ind0-1;
-		if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
-
 		CT_I32 list_ind=0;
 
 		for(CT_I32 j=0; j<data[job.ind].list_n; j++){
@@ -2396,11 +2381,11 @@ t0 = std::chrono::steady_clock::now();
 			}
 		}
 
-		if(list_ind == vh.n_search-1){
+		if(list_ind == vh.n_search2-1){
 			data[job.ind].stat = -1;
 			ctfree(vh, data, job.ind, -1, -1, snap_curr);
 		}else{
-			data[job.ind].list_n = snap_int_cut - list_ind - 1;
+			data[job.ind].list_n = vh.n_search2 - list_ind - 1;
 
 			for(CT_I32 j=0; j<data[job.ind].list_n; j++){
 				data[job.ind].list[j] = data[job.ind].list[j+list_ind+1];
@@ -2798,6 +2783,15 @@ t0 = std::chrono::steady_clock::now();
 
 			if(vh.loadcheck > 0){
 				if(sinfo[i].snum > vh.loadcheck) continue;
+
+				//Adjust _search2
+				CT_I32 ind0, ind1, snap_int_cut;
+				ind1    = wheresnap(sinfo, sinfo[i].snum);
+				ind0    = wheresnap(sinfo, (CT_snap) vh.snapi);
+				snap_int_cut    = ind1-ind0+1;
+ 				if(snap_int_cut < vh.n_search) vh.n_search2 = snap_int_cut;
+
+
 
 				if(skip_load < 0){
 #ifdef CTREE_USE_MPI
@@ -3962,7 +3956,7 @@ t0 = std::chrono::steady_clock::now();
 		// PID type
 		std::int64_t pt;
 		loadtree_read(in, pt);
-		if(sizeof(pt) != sizeof(CT_PID)){
+		if(pt != sizeof(CT_PID)){
 			LOG()<<"	Particle ID type is not matched";
 			LOG()<<"		compiled = "<<sizeof(CT_PID);
 			LOG()<<"		saved = "<<sizeof(pt);

@@ -113,6 +113,7 @@ namespace vctree_set{
 		// complete_tree related
 		double meritfrac		= 0.5;
 		int32_t n_search   		= 10;     // number of snapshots to be searched simultaneously
+		int32_t n_search2 		= 10;
 		int32_t core_n   		= 10;     // number of branch points (>10) when collecting particles on a existing branch
 		int32_t core_dn  		= 5;      // dN between the points (corresponding to 200 MYr seems good)
 		double core_minfrac 	= 0.25;
