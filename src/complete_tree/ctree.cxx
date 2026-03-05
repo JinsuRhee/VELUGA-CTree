@@ -34,12 +34,12 @@ namespace Ctree{
 	}
 
 
-	void expandbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link){
+	void expandbr(ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link){
 		
 		// this should be snap0 & id0 in mpi parallelization
 		bool istree = Tree::istree(key, data[ind].snap0, data[ind].id0);
 
-
+		
 		if(!istree){
 #ifdef CTREE_USE_MPI
 			int rank = 0, size = 1;
@@ -1065,6 +1065,8 @@ namespace Ctree{
 
 			MeritSt meritcom = get_merit3(pid0, data[ind].p_list, 1);
 
+			if(meritcom.merit == 0.) continue;
+
 			data[ind].list[n0].merit 	= meritcom.merit;
 			data[ind].list[n0].id		= meritcom.id;
 			data[ind].list[n0].snap 	= snap_curr;
@@ -1554,7 +1556,7 @@ t0 = std::chrono::steady_clock::now();
 				}else{
 
 					// move the left list table to the first
-					data[cut[i]].list_n = vh.n_search - list_ind - 1;
+					data[cut[i]].list_n = snap_int_cut - list_ind - 1;
 					for(CT_I32 j=0; j<data[cut[i]].list_n; j++){
 						data[cut[i]].list[j] = data[cut[i]].list[j+list_ind+1];
 					}
@@ -1885,7 +1887,7 @@ t0 = std::chrono::steady_clock::now();
 			istree 	= Tree::istree(key, snap_to_link, id_to_link);
 
 			if(!istree){ // notree
-				expandbr(vh, data, ind, tree, key, id_to_link, snap_to_link, merit_to_link);
+				expandbr(data, ind, tree, key, id_to_link, snap_to_link, merit_to_link);
 
 				if(data[ind].stat == -1){
 					LOG()<<"Why?";
@@ -2337,7 +2339,7 @@ t0 = std::chrono::steady_clock::now();
 	}
 
 	void DoJob1b(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job){		// tree[ tind ]
-		expandbr(vh, data, job.ind, tree, key, job.id, job.snap, job.merit);
+		expandbr(data, job.ind, tree, key, job.id, job.snap, job.merit);
 		// tree[ tind ]
 	}
 
@@ -2379,6 +2381,11 @@ t0 = std::chrono::steady_clock::now();
 	void DoJob3a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr){
 		// data [ ind ]
 
+		ind1 	= wheresnap(vh.sinfo, snap_curr);
+		ind0 	= wheresnap(vh.sinfo, (CT_snap) vh.snapi);
+		CT_I32 snap_int_cut	= ind1-ind0-1;
+		if(snap_int_cut >= vh.n_search) snap_int_cut = vh.n_search;
+
 		CT_I32 list_ind=0;
 
 		for(CT_I32 j=0; j<data[job.ind].list_n; j++){
@@ -2392,8 +2399,8 @@ t0 = std::chrono::steady_clock::now();
 			data[job.ind].stat = -1;
 			ctfree(vh, data, job.ind, -1, -1, snap_curr);
 		}else{
-			data[job.ind].list_n = vh.n_search - list_ind - 1;
-			
+			data[job.ind].list_n = snap_int_cut - list_ind - 1;
+
 			for(CT_I32 j=0; j<data[job.ind].list_n; j++){
 				data[job.ind].list[j] = data[job.ind].list[j+list_ind+1];
 			}
