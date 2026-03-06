@@ -68,12 +68,15 @@ int main(int argc, char** argv) {
 
 
   //-----
-  // Make Branch Part
+  // Load Tree || Make Branch Part
   //-----
   Tree::TreeArray tree;
   Tree::TreeKeyArray key;
 
-  if(vh.branchmaker == "Y"){
+  if(vh.branchmaker == "Y" && vh.loadtree == "Y"){
+    LOG()<<"Both branchmaker and loadtree cannot be trun on simultaneously";
+    u_stop();
+  }else if(vh.branchmaker == "Y"){
     if(myrank == 0) LOG() <<"  Entering to MakeBr";
 
     if(vh.brtype == "TF"){
@@ -84,16 +87,7 @@ int main(int argc, char** argv) {
       if(myrank == 0) LOG() <<"  No corresponding branch type";
       u_stop();      
     }
-  }
-
-#ifdef CTREE_USE_MPI
-  MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-  //-----
-  // Load Existing tree
-  //-----
-  if(vh.loadtree == "Y" && vh.branchmaker != "Y"){
+  }else if(vh.loadtree == "Y"){
     if(myrank==0) LOG() <<"  Reading to Exsiting Tree";
     loadtree_base(vh, tree, key, true);
   }
