@@ -106,6 +106,7 @@ namespace IO_VR{
 	using VRT_merit		= IO_dtype::IO_merit;//double;
 	using VRT_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
 	using VRT_I32		= IO_dtype::IO_I32;//std::int32_t;
+	using VRT_I64 		= IO_dtype::IO_I64;
 	using VRT_double 	= IO_dtype::IO_double;
 
 	//----- For galaxy array
@@ -113,7 +114,7 @@ namespace IO_VR{
 	using GalArray = IO_dtype::GalArray;
 
 	
-	inline void in_gpt(std::vector<vctree_set::vr_pointerSt>& gpt, VRT_GID id, VRT_I32 fnum, VRT_I32 offset){
+	inline void in_gpt(std::vector<vctree_set::vr_pointerSt>& gpt, VRT_GID id, VRT_I32 fnum, VRT_I64 offset){
 		if((VRT_GID) gpt.size() <= id){
 			gpt.resize(id+10000);
 		}
@@ -169,29 +170,29 @@ namespace IO_VR{
 		size_t n = line.size(), i=0;
 
 		auto read_token = [&](std::string& tok) -> bool {
-	        tok.clear();
-	        while (i < n && is_space(s[i])) ++i;
-	        if (i >= n) return false;
-	        size_t start = i;
-	        while (i < n && !is_space(s[i])) ++i;
-	        tok.assign(s + start, i - start);
-	        if (!tok.empty() && tok.back() == '\r') tok.pop_back();
-	        return true;
-    	};
+			tok.clear();
+			while (i < n && is_space(s[i])) ++i;
+			if (i >= n) return false;
+			size_t start = i;
+			while (i < n && !is_space(s[i])) ++i;
+			tok.assign(s + start, i - start);
+			if (!tok.empty() && tok.back() == '\r') tok.pop_back();
+			return true;
+		};
 
-    	std::string tok;
-    	int col=0;
-    	while (read_token(tok)) {
-    		
+		std::string tok;
+		int col=0;
+		while (read_token(tok)) {
+			
 
-    		
-    		if (col == 0){ gal0.id = static_cast<VRT_GID>(std::stol(tok));}
-    		else if (col == 5){ gal0.npart = static_cast<VRT_I32>(std::stol(tok));}
+			
+			if (col == 0){ gal0.id = static_cast<VRT_GID>(std::stol(tok));}
+			else if (col == 5){ gal0.npart = static_cast<VRT_I32>(std::stol(tok));}
 
-    		col++;
-    	}
+			col++;
+		}
 
-    	
+		
 	}
 	//
 	inline GalArray r_gal(vctree_set::Settings& vh, const VRT_Snap snap_curr, const VRT_GID id0, const bool readpart=false){
@@ -386,7 +387,7 @@ namespace IO_VR{
 			pick_id = 0;
 
 			VRT_I32 mpinum = gpt[id0].fnum;
-			VRT_I32 offset = gpt[id0].offset;
+			VRT_I64 offset = gpt[id0].offset;
 
 			std::ifstream f(dir + "/" + flist[mpinum].fname, std::ios::binary);
 			f.seekg(offset);
@@ -425,12 +426,12 @@ namespace IO_VR{
 				}
 
 
-	        	gal[0].pid 	= pid;
-	        	fb.close();
-	        	fu.close();
-	        }
+				gal[0].pid 	= pid;
+				fb.close();
+				fu.close();
+			}
 
-	        f.close();
+			f.close();
 		}
 
 		if(id0>0){
@@ -531,9 +532,9 @@ namespace IO_VR{
 //-----
 namespace IO_VELUGA{
 	inline std::string zfill_longlong(long long x, int width) {
-	    std::ostringstream oss;
-	    oss << std::setfill('0') << std::setw(width) << x;
-	    return oss.str();
+		std::ostringstream oss;
+		oss << std::setfill('0') << std::setw(width) << x;
+		return oss.str();
 	}
 
 	//-----
@@ -545,6 +546,7 @@ namespace IO_VELUGA{
 	using VRT_merit		= IO_dtype::IO_merit;//double;
 	using VRT_BID 		= IO_dtype::IO_BID;//std::int32_t;		// Branch Index
 	using VRT_I32		= IO_dtype::IO_I32;//std::int32_t;
+	using VRT_I64 		= IO_dtype::IO_I64;
 	using VRT_double 	= IO_dtype::IO_double;
 
 	//----- For galaxy array
@@ -560,9 +562,9 @@ namespace IO_VELUGA{
 
 	
 	//-----
-    // HDF5 related
-    //-----
-    template<typename T> inline hid_t h5_native_type();
+	// HDF5 related
+	//-----
+	template<typename T> inline hid_t h5_native_type();
 	//template<> inline hid_t h5_native_type<int8_t>()   { return H5T_NATIVE_INT8;  }
 	//template<> inline hid_t h5_native_type<uint8_t>()  { return H5T_NATIVE_UINT8; }
 	//template<> inline hid_t h5_native_type<int16_t>()  { return H5T_NATIVE_INT16; }
@@ -593,69 +595,69 @@ namespace IO_VELUGA{
 	//    }
 	//}
 
-    template<typename T>
-    inline std::vector<T> VR_HDF5_rdbyname(const hid_t file_id, const std::string& dname){
-    	hid_t d = H5Dopen2(file_id, dname.c_str(), H5P_DEFAULT);
-    	if (d < 0) throw std::runtime_error("Failed to open dataset: " + dname);
+	template<typename T>
+	inline std::vector<T> VR_HDF5_rdbyname(const hid_t file_id, const std::string& dname){
+		hid_t d = H5Dopen2(file_id, dname.c_str(), H5P_DEFAULT);
+		if (d < 0) throw std::runtime_error("Failed to open dataset: " + dname);
 
-    	hid_t s = H5Dget_space(d);
-    	if (s < 0) { H5Dclose(d); throw std::runtime_error("Failed to get dataspace: " + dname); }
+		hid_t s = H5Dget_space(d);
+		if (s < 0) { H5Dclose(d); throw std::runtime_error("Failed to get dataspace: " + dname); }
 
-    	int nd = H5Sget_simple_extent_ndims(s);
-    	std::vector<T> out;
-    	if (nd == 0) {
-        	out.resize(1);
-    	} else if (nd == 1) {
-        	hsize_t dims[1]{};
-        	H5Sget_simple_extent_dims(s, dims, nullptr);
-        	out.resize(static_cast<size_t>(dims[0]));
-    	} else {
-        	H5Sclose(s); H5Dclose(d);
-        	throw std::runtime_error("Dataset rank > 1 not supported: " + dname);
-    	}
+		int nd = H5Sget_simple_extent_ndims(s);
+		std::vector<T> out;
+		if (nd == 0) {
+			out.resize(1);
+		} else if (nd == 1) {
+			hsize_t dims[1]{};
+			H5Sget_simple_extent_dims(s, dims, nullptr);
+			out.resize(static_cast<size_t>(dims[0]));
+		} else {
+			H5Sclose(s); H5Dclose(d);
+			throw std::runtime_error("Dataset rank > 1 not supported: " + dname);
+		}
 
-    	herr_t st = H5Dread(d, h5_native_type<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, out.data());
-    	H5Sclose(s);
-    	H5Dclose(d);
-    	if (st < 0) throw std::runtime_error("Failed to read dataset: " + dname);
-    	return out;
+		herr_t st = H5Dread(d, h5_native_type<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, out.data());
+		H5Sclose(s);
+		H5Dclose(d);
+		if (st < 0) throw std::runtime_error("Failed to read dataset: " + dname);
+		return out;
 
-    }
+	}
 
-    template<typename T>
-    inline std::vector<T> VR_HDF5_rdbyattr(const hid_t file_id, const std::string& aname){
-    	// open attr 
-    	std::string object_path = "/";
-    	hid_t a = H5Aopen_by_name(file_id, object_path.c_str(), aname.c_str(), H5P_DEFAULT, H5P_DEFAULT);
-    	if (a < 0) throw std::runtime_error("Failed to open attribute: " + object_path + " / " + aname);
+	template<typename T>
+	inline std::vector<T> VR_HDF5_rdbyattr(const hid_t file_id, const std::string& aname){
+		// open attr 
+		std::string object_path = "/";
+		hid_t a = H5Aopen_by_name(file_id, object_path.c_str(), aname.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+		if (a < 0) throw std::runtime_error("Failed to open attribute: " + object_path + " / " + aname);
 
-    	// dataspace
-    	hid_t s = H5Aget_space(a);
-    	if (s < 0) { H5Aclose(a); throw std::runtime_error("Failed to get attr dataspace"); }
+		// dataspace
+		hid_t s = H5Aget_space(a);
+		if (s < 0) { H5Aclose(a); throw std::runtime_error("Failed to get attr dataspace"); }
 
-    	int nd = H5Sget_simple_extent_ndims(s);
-    	std::vector<T> out;
-    	if (nd == 0) {
-        	out.resize(1);
-    	} else if (nd == 1) {
- 	       hsize_t dims[1]{1};
-    	    H5Sget_simple_extent_dims(s, dims, nullptr);
-        	out.resize(static_cast<size_t>(dims[0]));
-    	} else {
-        	H5Sclose(s);
-        	H5Aclose(a);
-        	throw std::runtime_error("Attribute rank > 1 not supported: " + object_path + " / " + aname);
-    	}
+		int nd = H5Sget_simple_extent_ndims(s);
+		std::vector<T> out;
+		if (nd == 0) {
+			out.resize(1);
+		} else if (nd == 1) {
+		   hsize_t dims[1]{1};
+			H5Sget_simple_extent_dims(s, dims, nullptr);
+			out.resize(static_cast<size_t>(dims[0]));
+		} else {
+			H5Sclose(s);
+			H5Aclose(a);
+			throw std::runtime_error("Attribute rank > 1 not supported: " + object_path + " / " + aname);
+		}
 
-    	// read
-    	herr_t st = H5Aread(a, h5_native_type<T>(), out.data());
-    	H5Sclose(s);
-    	H5Aclose(a);
-    	if (st < 0) throw std::runtime_error("Failed to read attribute: " + object_path + " / " + aname);
+		// read
+		herr_t st = H5Aread(a, h5_native_type<T>(), out.data());
+		H5Sclose(s);
+		H5Aclose(a);
+		if (st < 0) throw std::runtime_error("Failed to read attribute: " + object_path + " / " + aname);
 
-    	return out;
+		return out;
 
-    }
+	}
    
 	//-----
 	// read Galaxy Catalog
@@ -669,82 +671,82 @@ namespace IO_VELUGA{
 	inline GalArray r_gal(const vctree_set::Settings& vh, const VRT_Snap snap_curr, const VRT_GID id0, const bool readpart=false){
 		const std::string& id_prefix = "ID_";
 		int id_zero_pad = 6;
-	    const std::string& g_group = "G_Prop";
-	    const std::string& p_group = "P_Prop";
-	    const std::string& g_npart_name = "G_npart";
-	    const std::string& p_id_name = "P_ID";
-	    //std::size_t growth_step = 1;
+		const std::string& g_group = "G_Prop";
+		const std::string& p_group = "P_Prop";
+		const std::string& g_npart_name = "G_npart";
+		const std::string& p_id_name = "P_ID";
+		//std::size_t growth_step = 1;
 
-	    std::string fname 	= vh.veluga_dir_catalog + "/snap_" + i4(snap_curr) + ".hdf5";
+		std::string fname 	= vh.veluga_dir_catalog + "/snap_" + i4(snap_curr) + ".hdf5";
 		hid_t fid = H5Fopen(fname.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 
-	    if (fid < 0) throw std::runtime_error("Failed to open file: " + fname);
+		if (fid < 0) throw std::runtime_error("Failed to open file: " + fname);
 
 
-	    try {
-	        
-	        std::vector<VRT_GID> ids;
-	        GalArray gal;
-	        if (id0 < 0) {
-	            ids = VR_HDF5_rdbyname<VRT_GID>(fid, "ID");
-	        } else {
-	            ids = { static_cast<VRT_GID>(id0) };
-	        }
+		try {
+			
+			std::vector<VRT_GID> ids;
+			GalArray gal;
+			if (id0 < 0) {
+				ids = VR_HDF5_rdbyname<VRT_GID>(fid, "ID");
+			} else {
+				ids = { static_cast<VRT_GID>(id0) };
+			}
 
-	        gal.resize(ids.size());
+			gal.resize(ids.size());
 
-	        for(VRT_GID i=0; i < (VRT_GID) ids.size(); i++){
-	        	const auto idv = static_cast<VRT_GID>(ids[i]);
-	        	const std::string base = id_prefix + zfill_longlong(idv, id_zero_pad); // "ID_000001"
-	        	const std::string gobj = base + "/" + g_group; // "ID_000001/G_prop"
-	            const std::string pobj = base + "/" + p_group; // "ID_000001/P_prop"
+			for(VRT_GID i=0; i < (VRT_GID) ids.size(); i++){
+				const auto idv = static_cast<VRT_GID>(ids[i]);
+				const std::string base = id_prefix + zfill_longlong(idv, id_zero_pad); // "ID_000001"
+				const std::string gobj = base + "/" + g_group; // "ID_000001/G_prop"
+				const std::string pobj = base + "/" + p_group; // "ID_000001/P_prop"
 
-	            gal[i].id 	= static_cast<VRT_GID>(ids[i]);
+				gal[i].id 	= static_cast<VRT_GID>(ids[i]);
 
-	            std::vector<VRT_GID> np = VR_HDF5_rdbyname<VRT_GID>(fid, gobj + "/" + g_npart_name);
-	            gal[i].npart = static_cast<VRT_I32>(np[0]);
+				std::vector<VRT_GID> np = VR_HDF5_rdbyname<VRT_GID>(fid, gobj + "/" + g_npart_name);
+				gal[i].npart = static_cast<VRT_I32>(np[0]);
 
-	            // Pos & Vel
-	            std::vector<VRT_double> dum;
+				// Pos & Vel
+				std::vector<VRT_double> dum;
 
 				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Xc");
-	            gal[i].xc = static_cast<VRT_double>(dum[0]);
+				gal[i].xc = static_cast<VRT_double>(dum[0]);
 
-	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Yc");
-	            gal[i].yc = static_cast<VRT_double>(dum[0]);
+				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Yc");
+				gal[i].yc = static_cast<VRT_double>(dum[0]);
 
-	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Zc");
-	            gal[i].zc = static_cast<VRT_double>(dum[0]);
+				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_Zc");
+				gal[i].zc = static_cast<VRT_double>(dum[0]);
 
-	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VXc");
-	            gal[i].vxc = static_cast<VRT_double>(dum[0]);
+				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VXc");
+				gal[i].vxc = static_cast<VRT_double>(dum[0]);
 
-	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VYc");
-	            gal[i].vyc = static_cast<VRT_double>(dum[0]);
+				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VYc");
+				gal[i].vyc = static_cast<VRT_double>(dum[0]);
 
-	            dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VZc");
-	            gal[i].vzc = static_cast<VRT_double>(dum[0]);
+				dum = VR_HDF5_rdbyname<VRT_double>(fid, gobj + "/G_VZc");
+				gal[i].vzc = static_cast<VRT_double>(dum[0]);
 
 
-	            if(readpart){
-	            	std::vector<VRT_PID> pid = VR_HDF5_rdbyname<VRT_PID>(fid, pobj + "/" + p_id_name);
-	            	gal[i].pid 	= pid;
-	            }
+				if(readpart){
+					std::vector<VRT_PID> pid = VR_HDF5_rdbyname<VRT_PID>(fid, pobj + "/" + p_id_name);
+					gal[i].pid 	= pid;
+				}
 
-	            gal[i].snap 	= snap_curr;
-	            
+				gal[i].snap 	= snap_curr;
+				
 
-	            
-	        }
+				
+			}
 
-	        H5Fclose(fid);
+			H5Fclose(fid);
 
-	        
-	        return gal;
-	    } catch (...) {
-	        H5Fclose(fid);
-	        throw;
-	    }
+			
+			return gal;
+		} catch (...) {
+			H5Fclose(fid);
+			throw;
+		}
 
 	}
 }
@@ -754,9 +756,9 @@ namespace IO_VELUGA{
 //-----
 namespace IO_HM{
 	inline std::string zfill_longlong(long long x, int width) {
-	    std::ostringstream oss;
-	    oss << std::setfill('0') << std::setw(width) << x;
-	    return oss.str();
+		std::ostringstream oss;
+		oss << std::setfill('0') << std::setw(width) << x;
+		return oss.str();
 	}
 
 	// Endian swap
@@ -765,59 +767,59 @@ namespace IO_HM{
 	inline uint64_t bswap64(uint64_t x) { return __builtin_bswap64(x); }
 	template <typename T>
 	T bswap(T v) {
-    	if constexpr (sizeof(T) == 2) {
-        	uint16_t x; std::memcpy(&x, &v, 2);
-        	x = bswap16(x);
-        	std::memcpy(&v, &x, 2);
-    	} else if constexpr (sizeof(T) == 4) {
-        	uint32_t x; std::memcpy(&x, &v, 4);
-        	x = bswap32(x);
-        	std::memcpy(&v, &x, 4);
-    	} else if constexpr (sizeof(T) == 8) {
-        	uint64_t x; std::memcpy(&x, &v, 8);
-        	x = bswap64(x);
-        	std::memcpy(&v, &x, 8);
-    	}
-    	return v;
+		if constexpr (sizeof(T) == 2) {
+			uint16_t x; std::memcpy(&x, &v, 2);
+			x = bswap16(x);
+			std::memcpy(&v, &x, 2);
+		} else if constexpr (sizeof(T) == 4) {
+			uint32_t x; std::memcpy(&x, &v, 4);
+			x = bswap32(x);
+			std::memcpy(&v, &x, 4);
+		} else if constexpr (sizeof(T) == 8) {
+			uint64_t x; std::memcpy(&x, &v, 8);
+			x = bswap64(x);
+			std::memcpy(&v, &x, 8);
+		}
+		return v;
 	}
 
 	inline std::vector<char> read_f77_record(std::ifstream& ifs) {
-	    int32_t len1 = 0, len2 = 0;
+		int32_t len1 = 0, len2 = 0;
 
-	    if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
-	        throw std::runtime_error("Failed to read record header");
+		if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
+			throw std::runtime_error("Failed to read record header");
 
-	    std::vector<char> buf(len1);
-	    if (!ifs.read(buf.data(), len1))
-	        throw std::runtime_error("Failed to read record payload");
+		std::vector<char> buf(len1);
+		if (!ifs.read(buf.data(), len1))
+			throw std::runtime_error("Failed to read record payload");
 
-	    if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
-	        throw std::runtime_error("Failed to read record footer");
+		if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
+			throw std::runtime_error("Failed to read record footer");
 
-	    if (len1 != len2)
-	        throw std::runtime_error("Record length mismatch");
+		if (len1 != len2)
+			throw std::runtime_error("Record length mismatch");
 
-	    return buf;
+		return buf;
 	}
 
 	// ---- SKIP record  ----
 	inline void skip_f77_record(std::ifstream& ifs) {
-	    int32_t len1 = 0, len2 = 0;
+		int32_t len1 = 0, len2 = 0;
 
-	    // header
-	    if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
-	        throw std::runtime_error("Failed to read record header");
+		// header
+		if (!ifs.read(reinterpret_cast<char*>(&len1), 4))
+			throw std::runtime_error("Failed to read record header");
 
-	    // skip payload
-	    if (!ifs.seekg(len1, std::ios::cur))
-	        throw std::runtime_error("Failed to skip record payload");
+		// skip payload
+		if (!ifs.seekg(len1, std::ios::cur))
+			throw std::runtime_error("Failed to skip record payload");
 
-	    // footer
-	    if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
-	        throw std::runtime_error("Failed to read record footer");
+		// footer
+		if (!ifs.read(reinterpret_cast<char*>(&len2), 4))
+			throw std::runtime_error("Failed to read record footer");
 
-	    if (len1 != len2)
-	        throw std::runtime_error("Record length mismatch on skip");
+		if (len1 != len2)
+			throw std::runtime_error("Record length mismatch on skip");
 	}
 
 	//-----
@@ -836,7 +838,7 @@ namespace IO_HM{
 	using GalSt = IO_dtype::GalSt;
 	using GalArray = IO_dtype::GalArray;
 
-	inline void in_gpt(std::vector<int32_t>& gpt, HM_I32 id, HM_I32 pointer){
+	inline void in_gpt(std::vector<int64_t>& gpt, HM_I32 id, HM_I64 pointer){
 		if((HM_I32) gpt.size() <= id){
 			gpt.resize(id*2);
 		}
@@ -862,7 +864,7 @@ namespace IO_HM{
 		}
 
 		//check the presence of pointer
-		std::vector<int32_t>& gpt = vh.hm_gpointer[snap_curr];
+		std::vector<int64_t>& gpt = vh.hm_gpointer[snap_curr];
 
 		if(gpt.size()==0){ // have no information about file pointer
 
@@ -870,8 +872,9 @@ namespace IO_HM{
 			gpt.resize(ini_max_id);
 			GalArray gal;
 
-			HM_I32 nbodies, nmain, nsub, nall;
-			HM_I32 curr_pt = 0;
+			HM_I32 nbodies, nmain, nsub, nall, nbin;
+			HM_I64 curr_pt = 0;
+			nbin = 0;
 
 			// READ nbodies
 			auto rec 	= read_f77_record(ifs);
@@ -902,7 +905,7 @@ namespace IO_HM{
 			std::vector<HM_I32> pid;
 			std::vector<char> rec2;
 
-			HM_I32 curr_pt_old;
+			HM_I64 curr_pt_old;
 			for(HM_I32 i=0; i<nall; i++){
 
 				curr_pt_old = curr_pt;
@@ -919,6 +922,8 @@ namespace IO_HM{
 				}else{
 					skip_f77_record(ifs);
 				}
+
+
 				curr_pt 	+= (4+4*numpart+4);
 				
 				// read ID
@@ -943,28 +948,33 @@ namespace IO_HM{
 				curr_pt 	+= (4+8*3+4);
 
 				// skip vx, vy, vz
-    			skip_f77_record(ifs);
-    			curr_pt 	+= (4+8*3+4);
+				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*3+4);
 
-    			// skip lx, ly, lz
-    			skip_f77_record(ifs);
-    			curr_pt 	+= (4+8*3+4);
+				// skip lx, ly, lz
+				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*3+4);
 
-    			// skip shapes
-    			skip_f77_record(ifs);
-    			curr_pt 	+= (4+8*4+4);
+				// skip shapes
+				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*4+4);
 
-    			// skip energies
-    			skip_f77_record(ifs);
-    			curr_pt 	+= (4+8*3+4);
+				// skip energies
+				skip_f77_record(ifs);
+				curr_pt 	+= (4+8*3+4);
 
-    			// skip spin
-    			skip_f77_record(ifs);
-    			curr_pt 	+= (4+8+4);
-
-    			// skip sigma
+				// skip spin
 				skip_f77_record(ifs);
 				curr_pt 	+= (4+8+4);
+
+				// skip sigma
+				skip_f77_record(ifs);
+				if(vh.horg == 'h'){
+					curr_pt 	+= (4+8+4);
+				}else if(vh.horg == 'g'){
+					curr_pt 	+= (4+8*3+4);
+				}
+				
 
 				// skip virial
 				skip_f77_record(ifs);
@@ -974,6 +984,21 @@ namespace IO_HM{
 				skip_f77_record(ifs);
 				curr_pt 	+= (4+8*2+4);
 
+				// additional skip for GalaxyMaker Data
+				if(vh.horg == 'g'){
+					// # of bin
+					rec 	= read_f77_record(ifs);
+					std::memcpy(&nbin, rec.data(), 4);
+					curr_pt 	+= (4+4*1+4);
+
+					// radial bin
+					skip_f77_record(ifs);
+					curr_pt 	+= (4+8*nbin+4);
+
+					// density
+					skip_f77_record(ifs);
+					curr_pt 	+= (4+8*nbin+4);
+				}
 				// input
 				in_gpt(gpt, gid, curr_pt_old);
 				
@@ -1088,21 +1113,21 @@ namespace IO_HM{
 					skip_f77_record(ifs);
 
 					// skip vx, vy, vz
-	    			skip_f77_record(ifs);
+					skip_f77_record(ifs);
 
-	    			// skip lx, ly, lz
-	    			skip_f77_record(ifs);
+					// skip lx, ly, lz
+					skip_f77_record(ifs);
 
-	    			// skip shapes
-	    			skip_f77_record(ifs);
+					// skip shapes
+					skip_f77_record(ifs);
 
-	    			// skip energies
-	    			skip_f77_record(ifs);
+					// skip energies
+					skip_f77_record(ifs);
 
-	    			// skip spin
-	    			skip_f77_record(ifs);
+					// skip spin
+					skip_f77_record(ifs);
 
-	    			// skip sigma
+					// skip sigma
 					skip_f77_record(ifs);
 
 					// skip virial
@@ -1110,6 +1135,19 @@ namespace IO_HM{
 
 					// skip profile
 					skip_f77_record(ifs);
+
+					// additional skip for GalaxyMaker Data
+					if(vh.horg == 'g'){
+						// # of bin
+						skip_f77_record(ifs);
+
+						// radial bin
+						skip_f77_record(ifs);
+					
+						// density
+						skip_f77_record(ifs);
+					}
+
 				
 					gal[i].snap 	= snap_curr;
 					gal[i].id 		= gid;
@@ -1123,7 +1161,7 @@ namespace IO_HM{
 							
 			}
 			return gal;
-	    }
+		}
 		
 		
 	}
@@ -1137,20 +1175,20 @@ namespace IO_HM{
 namespace IO_RAMSES{
 
 	static inline std::string trim(std::string s) {
-	    auto not_space = [](unsigned char ch){ return !std::isspace(ch); };
-	    s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
-	    s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
-	    return s;
+		auto not_space = [](unsigned char ch){ return !std::isspace(ch); };
+		s.erase(s.begin(), std::find_if(s.begin(), s.end(), not_space));
+		s.erase(std::find_if(s.rbegin(), s.rend(), not_space).base(), s.end());
+		return s;
 	}
 	
 	template<typename T>
-  	bool parse_num(const std::string& s, T& out) {
-    	std::istringstream iss(trim(s));
-    	iss >> out;
-    return (bool)iss && iss.eof();
-  	}
+	bool parse_num(const std::string& s, T& out) {
+		std::istringstream iss(trim(s));
+		iss >> out;
+	return (bool)iss && iss.eof();
+	}
 
-  	
+	
 
 	
 
@@ -1243,19 +1281,39 @@ namespace IO {
 //	}
 
 	//----- Read Catalog
-	inline IO_dtype::GalArray r_gal(vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const bool readpart=false){
-		if(vh.iotype == "VELUGA"){
-			return IO_VELUGA::r_gal(vh, snap_curr, id0, readpart);
-		}else if(vh.iotype == "HM"){
-			return IO_HM::r_gal(vh, snap_curr, id0, readpart);
-		}else if(vh.iotype == "VR"){
-			return IO_VR::r_gal(vh, snap_curr, id0, readpart);
-		//}else if(vh.iotype == "ANY"){
-			//return IO_ANY::r_gal(vh, snap_curr, id0, readpart);
-		}else{
-			LOG()<<"Should be implemented for different IO Type";
-			u_stop();
-		}
+	inline IO_dtype::GalArray r_gal(vctree_set::Settings& vh, const IO_dtype::IO_Snap snap_curr, const IO_dtype::IO_GID id0, const      bool readpart=false){
+			IO_dtype::GalArray gal;
+			if(vh.iotype == "VELUGA"){
+					gal = IO_VELUGA::r_gal(vh, snap_curr, id0, readpart);
+			}else if(vh.iotype == "HM"){
+					gal = IO_HM::r_gal(vh, snap_curr, id0, readpart);
+			}else if(vh.iotype == "VR"){
+					gal = IO_VR::r_gal(vh, snap_curr, id0, readpart);
+			//}else if(vh.iotype == "ANY"){
+					//return IO_ANY::r_gal(vh, snap_curr, id0, readpart);
+			}else{
+					LOG()<<"Should be implemented for different IO Type";
+					u_stop();
+			}
+			// Wrong ID check
+			if(id0 <0){
+					IO_dtype::IO_GID maxid = -1;
+					for(IO_dtype::IO_I32 i=0; i< (IO_dtype::IO_I32) gal.size(); i++){
+							if(gal[i].id >= maxid) maxid = gal[i].id;
+					}
+					std::vector<IO_dtype::IO_GID> idcheck(maxid+1, static_cast<IO_dtype::IO_GID>(-1));
+					for(IO_dtype::IO_I32 i=0; i< (IO_dtype::IO_I32) gal.size(); i++){
+							if(idcheck[gal[i].id]>0){
+									LOG()<<"Duplicate ID exists (ID = "<<gal[i].id<<" )";
+									u_stop();
+							}
+			
+							idcheck[gal[i].id]=1;
+					}
+			
+			}
+	 
+			return gal;
 	}
 
 

@@ -65,11 +65,12 @@ Build the code:
 
 	.. code-block:: bash
 
-	   cmake -S . -B build \
+	   cmake \
 	     -DCTREE_ID_TYPE=int64 \
 	     -DCTREE_SNAP_TYPE=int32 \
 	     -DCTREE_PARTID_TYPE=int64 \
-	     -DCTREE_MERIT_TYPE=float32
+	     -DCTREE_MERIT_TYPE=float32 \
+	     ../
 
 	   cmake --build build
 

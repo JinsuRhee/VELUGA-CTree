@@ -9,6 +9,7 @@ class rdctree:
 		self.keyname 	= "./ctree_key.dat"
 		self.treename 	= "./ctree_tree.dat"
 		self.varname 	= "./ctree.pkl"
+		self.rddump		= False
 
 	def get_dtype(self, tag):
 		"""
@@ -51,7 +52,9 @@ class rdctree:
 			bidtag 	= np.fromfile(f, dtype=np.int32, count=1)
 			mertag 	= np.fromfile(f, dtype=np.int32, count=1)
 
-			#ntree 	= np.fromfile(f, dtype=np.int64, count=1)
+			if(self.rddump):
+				ntree = np.fromfile(f, dtype=np.int64, count=1)
+				
 			lind 	= np.fromfile(f, dtype=np.int64, count=1)
 
 
@@ -71,8 +74,10 @@ class rdctree:
 
 				idtmp	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
 				snaptmp = np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
-				#pidtmp 	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
-				#psnaptmp= np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
+				if(self.rddump):
+					pidtmp 	= np.fromfile(f, dtype=self.get_dtype(gidtag), count=nbranch)
+					psnaptmp= np.fromfile(f, dtype=self.get_dtype(snaptag), count=nbranch)
+					
 				mertmp 	= np.fromfile(f, dtype=self.get_dtype(mertag), count=nbranch)
 
 				if(nmerge>=1):
@@ -137,6 +142,7 @@ def main(argv=None):
 	DEFAULT_KEY 		= reader.keyname
 	DEFAULT_TREE 		= reader.treename
 	DEFAULT_OUT 		= reader.varname
+	DEFAULT_DUMP 		= reader.rddump
 
 	parser = argparse.ArgumentParser(
 		description="Read CTree binary outputs (ctree_key.dat, ctree_tree.dat)."
@@ -144,6 +150,8 @@ def main(argv=None):
 	parser.add_argument("--key", default=None, help=f"Path to key file (default: {DEFAULT_KEY})")
 	parser.add_argument("--tree", default=None, help=f"Path to tree file (default: {DEFAULT_TREE})")
 	parser.add_argument("--pickle", default=None, help=f"Path to output pickle file (default: {DEFAULT_OUT})")
+
+	parser.add_argument("--dump", default=False, help=f"Read dumpfile (default: {DEFAULT_DUMP})")
 
 	args = parser.parse_args(argv)
 

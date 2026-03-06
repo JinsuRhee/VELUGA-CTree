@@ -32,6 +32,7 @@ namespace Ctree{
 	using CT_snap 	= IO_dtype::IO_Snap;
 	using CT_PID 	= IO_dtype::IO_PID;
 	using CT_Merit 	= IO_dtype::IO_merit;
+	using CT_BID 	= IO_dtype::IO_BID;
 
 	// Branch Controller Array
 	struct ListSt{
@@ -95,7 +96,7 @@ namespace Ctree{
 
 		// Initialize List
     	explicit ControlSt(vctree_set::Settings& vh)
-        	: list(vh.ctree_n_search) 
+        	: list(vh.n_search) 
     		{}
 
     	// Free p_list
@@ -209,7 +210,7 @@ namespace Ctree{
     void DoJob4(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, ControlKey& dkey, LinkJob& job, IO::snapinfo& sinfo, CT_snap snap_curr);
 
     void DoJob1a(vctree_set::Settings& vh, ControlArray& data, LinkJob& job, CT_snap snap_curr);
-    void DoJob1b(vctree_set::Settings& vh, Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
+    void DoJob1b(Tree::TreeArray& tree, Tree::TreeKeyArray& key, ControlArray& data, LinkJob& job);
 
     void DoJob2a(vctree_set::Settings& vh, Tree::TreeArray& tree, ControlArray& data, LinkJob& job, CT_snap snap_curr);
 	void DoJob2b(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_snap snap_curr);
@@ -226,6 +227,7 @@ namespace Ctree{
 	void DoJob4e(vctree_set::Settings& vh, ControlArray& data, CT_I32 dind, CT_snap snap_curr, CT_I32* jobtype);
 
 	void check_overlap(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index);
+	void check_overlap2(MPI_Datatype& NEXT_T, LinkJob& thisjob, CT_I32 jobind, CT_I32 jobind2, CT_I32 ind, std::vector<CT_I32>& cut, NextArray& next_point, std::vector<CT_I32>& islink, CT_I32 rank_index);
 	void filter_sort(std::vector<std::pair<CT_I32, CT_I32>>& pairs);
 	void syn_data(LinkJob& thisjob, ControlArray& data, ControlKey& dkey);
 	void syn_tree(LinkJob& thisjob, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
@@ -266,7 +268,7 @@ namespace Ctree{
 	void finalize(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, Tree::TreeArray& tree, Tree::TreeKeyArray& key, IO::snapinfo& sinfo, CT_snap snap_curr, ctree_num& number);
 	// ETC
 	void makenewbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, CT_snap snap0, CT_ID id0, Tree::TreeArray& tree, Tree::TreeKeyArray& key);
-	void expandbr(vctree_set::Settings& vh, ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link);
+	void expandbr(ControlArray& data, CT_I32 ind, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link);
 	void linkbr(vctree_set::Settings& vh, ControlArray& data, ControlKey& dkey, CT_I32 ind, IO::snapinfo& sinfo, Tree::TreeArray& tree, Tree::TreeKeyArray& key, CT_ID id_to_link, CT_snap snap_to_link, CT_Merit merit_to_link, CT_snap snap_curr);
 
 	CT_Merit get_merit2(std::vector<CT_PID>& pid0, std::vector<CT_PID>& pid, CT_I32 merittype);

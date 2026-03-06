@@ -22,7 +22,7 @@ I/O related
    * - out_dir
      - ``string``
      - *(required)*
-     - Path specifier for the output data.
+     - Path for the output data.
 
        The output data are ``ctree_tree.dat`` and ``ctree_key.dat``
 
@@ -55,7 +55,7 @@ I/O related
    * - vr_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = VR``
+     - Path for the catalog data when ``iotype = VR``
 
        **CTree** searches raw VELOCIraptor outputs (e.g., *.catalog.dat0) in directories divided by snapshot numbers
 
@@ -84,7 +84,7 @@ I/O related
    * - veluga_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = VELUGA``
+     - Path for the catalog data when ``iotype = VELUGA``
 
        Path at which ``snap_*`` directories are located
 
@@ -98,7 +98,7 @@ I/O related
    * - hm_dir_catalog
      - ``string``
      - *(required)*
-     - Path specifer for the catalog data when ``iotype = HM``
+     - Path for the catalog data when ``iotype = HM``
 
        Path at which ``*.bricks`` are located
 
@@ -121,17 +121,17 @@ I/O related
    * - loadtree_ftree
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree branch data when ``loadtree = Y``
+     - Path for the merger tree branch data when ``loadtree = Y``
 
    * - loadtree_fkey
      - ``string``
      - *(required)*
-     - Path specifier for the merger tree key data when ``loadtree = Y``
+     - Path for the merger tree key data when ``loadtree = Y``
 
    * - snapi, snapf
      - ``integer``
      - *(required)*
-     - Snapshot range specifiers. **CTree** loops from ``snapf`` to ``snapi``
+     - Snapshot range identifers. **CTree** loops from ``snapf`` to ``snapi``
 
        A user can also give the snapshot list by a Ascii file with :ref:`snaplist <snaplist-option>`
 
@@ -139,7 +139,7 @@ I/O related
        snaplist
      - ``string``
      - 
-     - File specifier including the list of snapshots (line-by-line).
+     - File identifer including the list of snapshots (line-by-line).
 
        The list is automatically sorted
    
@@ -147,9 +147,31 @@ I/O related
        horg
      - ``h or g``
      - h
-     - A flag for the catalog type (Halo or Galaxy).
+     - Flag for the catalog type (Halo or Galaxy).
 
-       It is only used when reading the catalog data (``iotype = VELUGA``).
+       It is only used when reading the catalog data (``iotype = VELUGA`` and ``iotype = HM``).
+   * -
+     -
+     -
+     -
+
+   * - makecheck
+     - ``integer``
+     - 10
+     - Control saving of intermediate data.
+
+       For a positive value, data are saved at snapshots where the snapshot number modulo this value equals zero.
+
+       **CTree** can be restarted from these snapshots.
+
+       If a negative value is provided, no intermediate data are saved.
+
+   * - loadcheck
+     - ``integer``
+     - -1
+     - A snapshot number for the restart, if exists.
+
+   
 
 
 Branch related parameters
@@ -164,14 +186,14 @@ Branch related parameters
      - **Default**
      - **Description**
 
-   * - ctree_n_search
+   * - n_search
      - ``integer``
      - 10
      - The number of snapshots to be used in progenitor searches
 
        It determines the size of list tables of branches where candidate progenitor information is written
 
-   * - ctree_meritfrac
+   * - meritfrac
      - ``float``
      - 0.5
      - Fraction to allow a suboptimal later progenitor to be a branch point
@@ -185,19 +207,19 @@ Branch related parameters
      -
      -
 
-   * - ctree_core_n
+   * - core_n
      - ``integer``
      - 10
      - The number of snapshots used when extracting core particles.
 
        ``ctree_core_n`` snapshots with the ``ctree_core_dn`` interval are used
 
-   * - ctree_core_dn
+   * - core_dn
      - ``integer``
      - 5
      - Snapshot interval for the core particle extraction
 
-   * - ctree_minfrac
+   * - core_minfrac
      - ``float``
      - 0.25
      - Fraction to define core particles.
@@ -205,27 +227,6 @@ Branch related parameters
        A subset of particles with N occurrances are defined as core particles if their fraction is higher than ``ctree_meritfrac``
 
        Otherwise, **CTree** repeats the core particle searches with a lower occurrance number
-
-   * -
-     -
-     -
-     -
-
-   * - ctree_makecheck
-     - ``integer``
-     - 10
-     - A modulo value for saving checkpoint snapshots.
-
-       If a snapshot number is a modulo of ``ctree_makecheck``, then the data at the corresponding snapshot are saved.
-
-       **CTree** can restart the execution from checkpoint snapshots
-
-       If a negative value is given, then **CTree** does not generate checkpoint snapshots
-
-   * - ctree_loadcheck
-     - ``integer``
-     - -1
-     - A snapshot number for the restart, if exists.
 
    * -
      -
@@ -275,7 +276,7 @@ These options are used when building initial branches based on the connectivity 
    * - tfdir
      - ``string``
      - *(required)*
-     - Path specifier where TreeFrog raw outputs (*.tree) are located
+     - Path where TreeFrog raw outputs (*.tree) are located
 
    * - treedir
      - ``des or prg``

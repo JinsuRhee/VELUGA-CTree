@@ -23,6 +23,9 @@
 // Logo Printing
 bool u_printlogo();
 
+// Config summary priting
+void print_config(vctree_set::Settings& vh);
+
 // Run Stat check
 bool u_initialcheck(int argc);
 

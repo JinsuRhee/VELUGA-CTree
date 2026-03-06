@@ -157,6 +157,13 @@ Python
 
 ``example/rdtree.py`` generates a pickle file containing the tree and key arrays.
 
+.. code-block:: bash
+    python3 rdtree.py
+
+    # if you want to convert a dump CTree result file (e.g., ctree_####.dat):
+    python3 rdtree.py --dump True
+
+
 The following script shows how to load the tree arrays and extract a branch of an object.
 
 
@@ -193,7 +200,7 @@ The following script shows how to load the tree arrays and extract a branch of a
        print(branch['father_ID']) # If this branch is merged, the father branch index.
                                   # The corresponding branch is tree[branch['father_ID']]
        
-       print(branch['n_mergerbr']) # The number of branches that merged into this one
+       print(branch['n_mergebr']) # The number of branches that merged into this one
        print(branch['m_id']) # ID list of the merged branches
        print(branch['m_snap']) # Snapshot list of the merged branches
        print(branch['m_merit']) # Merit of mergers
@@ -205,6 +212,13 @@ IDL
 ~~~
 
 ``example/rdtree.pro`` generates a sav file containing the tree and key arrays.
+
+.. code-block:: bash
+    idl -e rdtree
+
+    # if you want to convert a dump CTree result file (e.g., ctree_####.dat):
+    idl -e "rdtree, /rddump"
+
 
 .. code-block:: idl
 
@@ -231,10 +245,11 @@ IDL
       PRINT, tree0.father_ID  ; If this branch is merged, the father branch index.
                               ; The corresponding branch is tree[branch['father_ID']]
        
-      PRINT, tree0.n_mergerbr ; The number of branches that merged into this one
+      PRINT, tree0.n_mergebr ; The number of branches that merged into this one
       PRINT, tree0.m_id       ; ID list of the merged branches
       PRINT, tree0.m_snap     ; Snapshot list of the merged branches
       PRINT, tree0.m_merit    ; Merit of mergers
       PRINT, tree0.m_bid      ; Indices of the merged branches
                               ; , corresponding tree[ branch['m_bid'][:] ]
    ENDELSE
+

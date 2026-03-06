@@ -51,9 +51,6 @@ int main(int argc, char** argv) {
     	u_stop();
     } else{
     	LOG()  << "Program starts";
-
-    	// TODO 123123
-    	// Basic spec info will be printed here
     }
   }
 
@@ -67,19 +64,19 @@ int main(int argc, char** argv) {
   	if(myrank == 0) LOG() <<"  Configuration Loaded";
   }
 
-  //-----
-  // Read snapshot list
-  //-----
-
+  if(myrank == 0) print_config(vh);
 
 
   //-----
-  // Make Branch Part
+  // Load Tree || Make Branch Part
   //-----
   Tree::TreeArray tree;
   Tree::TreeKeyArray key;
 
-  if(vh.branchmaker == "Y"){
+  if(vh.branchmaker == "Y" && vh.loadtree == "Y"){
+    LOG()<<"Both branchmaker and loadtree cannot be trun on simultaneously";
+    u_stop();
+  }else if(vh.branchmaker == "Y"){
     if(myrank == 0) LOG() <<"  Entering to MakeBr";
 
     if(vh.brtype == "TF"){
@@ -90,16 +87,7 @@ int main(int argc, char** argv) {
       if(myrank == 0) LOG() <<"  No corresponding branch type";
       u_stop();      
     }
-  }
-
-#ifdef CTREE_USE_MPI
-  MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
-  //-----
-  // Load Existing tree
-  //-----
-  if(vh.loadtree == "Y" && vh.branchmaker != "Y"){
+  }else if(vh.loadtree == "Y"){
     if(myrank==0) LOG() <<"  Reading to Exsiting Tree";
     loadtree_base(vh, tree, key, true);
   }
@@ -122,7 +110,6 @@ int main(int argc, char** argv) {
   //-----
   // Save Tree
   //-----
-
   if(myrank == 0){
     LOG() <<"  Save the Tree & Key";
     if(myrank == 0) savetree_base(vh, tree, key, false);

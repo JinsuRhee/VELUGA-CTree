@@ -96,6 +96,9 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     //else if (lkey=="simtype") vh.simtype = normalize_iotype(val, false);
     else if (lkey=="out_dir") vh.out_dir = normalize_iotype(val, true);
 
+    else if (lkey=="makecheck") { parse_num(val, vh.makecheck); }
+    else if (lkey=="loadcheck") { parse_num(val, vh.loadcheck); }
+
     // VR related
     else if (lkey=="vr_dir_catalog") vh.vr_dir_catalog = normalize_iotype(val, true);
     else if (lkey=="vr_dir_catalog_prefix") vh.vr_dir_catalog_prefix = normalize_iotype(val, true);
@@ -152,15 +155,14 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
    
 
     // Ctree
-    else if (lkey=="ctree_minfrac")    { parse_num(val, vh.ctree_minfrac); }
-    else if (lkey=="ctree_meritfrac")    { parse_num(val, vh.ctree_meritfrac); }
-    else if (lkey=="ctree_n_search")   { parse_num(val, vh.ctree_n_search); }
-    else if (lkey=="ctree_core_n")   { parse_num(val, vh.ctree_core_n); }
-    else if (lkey=="ctree_core_dn")  { parse_num(val, vh.ctree_core_dn); }
-    else if (lkey=="ctree_rfact")      { parse_num(val, vh.ctree_rfact); }
-    else if (lkey=="ctree_weighttype") { parse_num(val, vh.ctree_weighttype); }
-    else if (lkey=="ctree_makecheck") { parse_num(val, vh.ctree_makecheck); }
-    else if (lkey=="ctree_loadcheck") { parse_num(val, vh.ctree_loadcheck); }
+    else if (lkey=="meritfrac")    { parse_num(val, vh.meritfrac); }
+    else if (lkey=="n_search")   { parse_num(val, vh.n_search); }
+    else if (lkey=="core_n")   { parse_num(val, vh.core_n); }
+    else if (lkey=="core_dn")  { parse_num(val, vh.core_dn); }
+    else if (lkey=="core_minfrac")    { parse_num(val, vh.core_minfrac); }
+    //else if (lkey=="ctree_rfact")      { parse_num(val, vh.ctree_rfact); }
+    //else if (lkey=="ctree_weighttype") { parse_num(val, vh.ctree_weighttype); }
+    
     //else if (lkey=="ctree_rerunmod")   { parse_num(val, vh.ctree_rerunmod); }
     //else if (lkey=="ctree_rerun")      { parse_num(val, vh.ctree_rerun); }
     else {
@@ -168,6 +170,7 @@ bool g_load_config(const std::string& path, vctree_set::Settings& vh) {
     }
   }
 
+  vh.n_search2 = vh.n_search;
   vh.finalize_paths();
   vh.read_snaplist();
 
